@@ -1,0 +1,11 @@
+{
+  "stage": "v11-before-v12-edits",
+  "sourceSha256": "2a10e2ebb7fcb14977094a0a40bf27cca40eeab89283e16c837833e38a0f1f63",
+  "fixture": {
+    "legitSneakAtPhase1": 1,
+    "legitSneakAtPhase0": 0,
+    "scaffoldContiguousTicks": 1,
+    "scaffoldEveryOtherTick": 0
+  },
+  "note": "Pure local snapshot traces; no game/network/config/audio/report execution"
+}

@@ -1,0 +1,3 @@
+Final v12 full-build verification: denicker bridge
+13 tests. All passed.
+Offline fixtures only; no live game injection or player chat/report sends.

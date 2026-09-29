@@ -1,0 +1,4 @@
+# Preserve source bytes and line endings used by the build manifests.
+* -text
+*.png binary
+*.ico binary

@@ -1,0 +1,110 @@
+[
+  {
+    "name": "FrenchifyTabOverlayNative",
+    "offset": "0x131760",
+    "rva": "0x132f60",
+    "size": 489,
+    "major": 52,
+    "sha256": "b23b9749f3c39b70e96659bdcbb6247f1cfd19a73bb6d3d674658dcdb22a658c",
+    "parent": "awh",
+    "minor": 0,
+    "fields": 1,
+    "methods": 4
+  },
+  {
+    "name": "FrenchifyGuiNewChat",
+    "offset": "0x131950",
+    "rva": "0x133150",
+    "size": 1576,
+    "major": 52,
+    "sha256": "a86f520a13b39237fff1e1d307e0e67f050297dbdd1450e9bd0b403e8487c148",
+    "parent": "avt",
+    "minor": 0,
+    "fields": 1,
+    "methods": 19
+  },
+  {
+    "name": "FrenchifyGui4",
+    "offset": "0x131f80",
+    "rva": "0x133780",
+    "size": 50012,
+    "major": 52,
+    "sha256": "392e568e4d1113b87b4ac1dd308caba7df8113e12e9f3d5a8d0f9b0e3cb90a29",
+    "parent": "axu",
+    "minor": 0,
+    "fields": 156,
+    "methods": 106
+  },
+  {
+    "name": "FrenchifyRenderGlobal",
+    "offset": "0x144100",
+    "rva": "0x145900",
+    "size": 352,
+    "major": 52,
+    "sha256": "9ed54a54fc1e033dd0ac5870183a51b75eac0ad28b7a4f6f3a3df9ea07c2ea1c",
+    "parent": "bfr",
+    "minor": 0,
+    "fields": 0,
+    "methods": 3
+  },
+  {
+    "name": "FrenchifyHitboxInstaller",
+    "offset": "0x144260",
+    "rva": "0x145a60",
+    "size": 1088,
+    "major": 52,
+    "sha256": "f9b097c168e501d40ea7baf98485dd21684df977e1e82d36c03fca86eb715e39",
+    "parent": "java/lang/Object",
+    "minor": 0,
+    "fields": 0,
+    "methods": 4
+  },
+  {
+    "name": "FrenchifyIngameGui",
+    "offset": "0x148910",
+    "rva": "0x14a110",
+    "size": 433,
+    "major": 52,
+    "sha256": "5d2a460e7120ab97e54720b97bbb8a66d20549e17522605e0709a052fcf6b025",
+    "parent": "avo",
+    "minor": 0,
+    "fields": 1,
+    "methods": 3
+  },
+  {
+    "name": "FrenchifySessionHud",
+    "offset": "0x148ad0",
+    "rva": "0x14a2d0",
+    "size": 1454,
+    "major": 52,
+    "sha256": "103fa2b1038400fe1ce7ef9f604e0da3c813f39303fff5423ab5b4d0413949a0",
+    "parent": "java/lang/Object",
+    "minor": 0,
+    "fields": 11,
+    "methods": 5
+  },
+  {
+    "name": "FrenchifySessionHudInstaller",
+    "offset": "0x149080",
+    "rva": "0x14a880",
+    "size": 1093,
+    "major": 52,
+    "sha256": "0b9a29dc67d7c4b0ceb8be7bba3e99ee5671bbf9d31239f4e086f376ff063f04",
+    "parent": "java/lang/Object",
+    "minor": 0,
+    "fields": 0,
+    "methods": 4
+  },
+  {
+    "name": "FrenchifyPacketLog",
+    "offset": "0x14a140",
+    "rva": "0x14b940",
+    "size": 10961,
+    "major": 52,
+    "sha256": "6ebd68c455764741a64c356bf2c93bda175ab7816edf2b79967006ce294e8e37",
+    "parent": "java/lang/Object",
+    "minor": 0,
+    "fields": 7,
+    "methods": 14
+  }
+]

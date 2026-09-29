@@ -1,0 +1,3 @@
+Final v12 full-build verification: packaging/privacy
+32 tests. 31 passed; 1 host symlink-permission skip.
+Offline fixtures only; no live game injection or player chat/report sends.

@@ -1,0 +1,16 @@
+{
+  "stage": "v12-before-v13-anticheat-audit",
+  "coreSha256": "3a7bea49237ba4c0184bc4277e8501280286e5fadae1726143583e49040dfa92",
+  "adapterSha256": "7ea58aef6813747848eb4390edceb3de547ee755306871a0461e5354279e5d9a",
+  "fixtureSha256": "3c70078512f9b1f64001d88688eb7c0b864a5a4bcda5c81a234177a8661f4741",
+  "decisions": {
+    "soundSettingBypassesCooldown": true,
+    "entityReplacementBypassesCooldown": true,
+    "rosterRemovalBypassesCooldown": true,
+    "invalidMovementBypassesCooldown": true,
+    "differentCheckDuplicatesReport": true,
+    "futurePacketCreatesNoFallCandidate": false,
+    "invalidTerrainReports": true
+  },
+  "note": "Pure fixture; returned alert/report decisions only, never sent."
+}

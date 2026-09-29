@@ -1,0 +1,28 @@
+{
+  "originalDllLoaded": false,
+  "gameInitialized": false,
+  "networkUsed": false,
+  "checks": {
+    "features": "AdninPacketProbeTest: 110 checks passed; actual Features with owned packet policy, no Minecraft initialization or chat send",
+    "vanilla": "AdninVanillaPacketTest: 112 checks passed (real vanilla packets; constructor/read cap 100 UTF-16 units; no network)\nSep 29, 2026 4:37:05 AM io.netty.util.internal.PlatformDependent <clinit>\nINFO: Your platform does not provide complete low-level API for accessing direct buffers reliably. Unless explicitly requested, heap buffer will always be preferred to avoid potential system unstability."
+  },
+  "vanillaJar": {
+    "path": "%USERPROFILE%\\AppData\\Roaming\\.minecraft\\versions\\1.8.9\\1.8.9.jar",
+    "sha256": "14f0d96d1a56fb4f5c3b2233d00699525893fe5ce3dcf181e7de59120595d298"
+  },
+  "productionFeatures": {
+    "path": "%USERPROFILE%\\Documents\\Codex\\2026-09-27\\files-mentioned-by-the-user-handoff\\outputs\\adnin-build\\build-v9\\java-runtime\\AdninFeatures.class",
+    "sha256": "a7d03df743f1aaa36e55e25ffb27693c6900896e6ecc829ca5100a9b3bcb8abc"
+  },
+  "dependencies": [
+    {
+      "name": "netty-all-4.0.23.Final.jar",
+      "sha256": "50510e9c9874b539b98ef931fe7eeeb002f6b5b1976ea37669b9493426294561"
+    },
+    {
+      "name": "guava-17.0.jar",
+      "sha256": "8c36a80ea613d0b6b8040a17cf837c5bbe3677bc1b06a058a6c174fdb787ebbc"
+    }
+  ],
+  "passed": true
+}

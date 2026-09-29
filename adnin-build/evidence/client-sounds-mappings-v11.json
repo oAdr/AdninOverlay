@@ -1,0 +1,214 @@
+{
+  "format": 1,
+  "provenance": {
+    "resource": "lunar/lunar_named_b5_1.8.9.kin",
+    "sha256": "38b680db93a53a47c6b80834f487cc434ec4e7c73606f10c5d2c729be4e8d53c"
+  },
+  "classes": {
+    "net/minecraft/block/Block": "afh",
+    "net/minecraft/block/Block$SoundType": "afh$b",
+    "net/minecraft/block/state/IBlockState": "alz",
+    "net/minecraft/client/Minecraft": "ave",
+    "net/minecraft/client/audio/ISound": "bpj",
+    "net/minecraft/client/audio/PositionedSoundRecord": "bpf",
+    "net/minecraft/client/audio/SoundHandler": "bpz",
+    "net/minecraft/client/entity/EntityPlayerSP": "bew",
+    "net/minecraft/client/multiplayer/PlayerControllerMP": "bda",
+    "net/minecraft/client/multiplayer/ServerData": "bde",
+    "net/minecraft/client/multiplayer/WorldClient": "bdb",
+    "net/minecraft/client/network/NetHandlerPlayClient": "bcy",
+    "net/minecraft/item/Item": "zw",
+    "net/minecraft/item/ItemBlock": "yo",
+    "net/minecraft/item/ItemStack": "zx",
+    "net/minecraft/network/NetworkManager": "ek",
+    "net/minecraft/network/Packet": "ff",
+    "net/minecraft/network/play/client/C08PacketPlayerBlockPlacement": "ja",
+    "net/minecraft/network/play/server/S29PacketSoundEffect": "gs",
+    "net/minecraft/util/BlockPos": "cj",
+    "net/minecraft/util/ResourceLocation": "jy"
+  },
+  "fields": [
+    [
+      "net/minecraft/block/Block",
+      "stepSound",
+      "Lnet/minecraft/block/Block$SoundType;",
+      "H"
+    ],
+    [
+      "net/minecraft/client/Minecraft",
+      "playerController",
+      "Lnet/minecraft/client/multiplayer/PlayerControllerMP;",
+      "c"
+    ],
+    [
+      "net/minecraft/client/Minecraft",
+      "thePlayer",
+      "Lnet/minecraft/client/entity/EntityPlayerSP;",
+      "h"
+    ],
+    [
+      "net/minecraft/client/Minecraft",
+      "theWorld",
+      "Lnet/minecraft/client/multiplayer/WorldClient;",
+      "f"
+    ],
+    [
+      "net/minecraft/client/multiplayer/ServerData",
+      "pingToServer",
+      "J",
+      "e"
+    ]
+  ],
+  "methods": [
+    [
+      "net/minecraft/block/Block",
+      "getIdFromBlock",
+      "(Lnet/minecraft/block/Block;)I",
+      "a"
+    ],
+    [
+      "net/minecraft/block/Block$SoundType",
+      "getPlaceSound",
+      "()Ljava/lang/String;",
+      "b"
+    ],
+    [
+      "net/minecraft/block/state/IBlockState",
+      "getBlock",
+      "()Lnet/minecraft/block/Block;",
+      "c"
+    ],
+    [
+      "net/minecraft/client/Minecraft",
+      "getCurrentServerData",
+      "()Lnet/minecraft/client/multiplayer/ServerData;",
+      "D"
+    ],
+    [
+      "net/minecraft/client/Minecraft",
+      "getNetHandler",
+      "()Lnet/minecraft/client/network/NetHandlerPlayClient;",
+      "u"
+    ],
+    [
+      "net/minecraft/client/Minecraft",
+      "getSoundHandler",
+      "()Lnet/minecraft/client/audio/SoundHandler;",
+      "W"
+    ],
+    [
+      "net/minecraft/client/Minecraft",
+      "isSingleplayer",
+      "()Z",
+      "F"
+    ],
+    [
+      "net/minecraft/client/audio/SoundHandler",
+      "playSound",
+      "(Lnet/minecraft/client/audio/ISound;)V",
+      "a"
+    ],
+    [
+      "net/minecraft/client/entity/EntityPlayerSP",
+      "isSneaking",
+      "()Z",
+      "av"
+    ],
+    [
+      "net/minecraft/client/multiplayer/PlayerControllerMP",
+      "isInCreativeMode",
+      "()Z",
+      "h"
+    ],
+    [
+      "net/minecraft/client/network/NetHandlerPlayClient",
+      "getNetworkManager",
+      "()Lnet/minecraft/network/NetworkManager;",
+      "a"
+    ],
+    [
+      "net/minecraft/item/ItemBlock",
+      "getBlock",
+      "()Lnet/minecraft/block/Block;",
+      "d"
+    ],
+    [
+      "net/minecraft/item/ItemStack",
+      "getItem",
+      "()Lnet/minecraft/item/Item;",
+      "b"
+    ],
+    [
+      "net/minecraft/network/NetworkManager",
+      "isLocalChannel",
+      "()Z",
+      "c"
+    ],
+    [
+      "net/minecraft/network/play/client/C08PacketPlayerBlockPlacement",
+      "getPlacedBlockDirection",
+      "()I",
+      "b"
+    ],
+    [
+      "net/minecraft/network/play/client/C08PacketPlayerBlockPlacement",
+      "getPosition",
+      "()Lnet/minecraft/util/BlockPos;",
+      "a"
+    ],
+    [
+      "net/minecraft/network/play/client/C08PacketPlayerBlockPlacement",
+      "getStack",
+      "()Lnet/minecraft/item/ItemStack;",
+      "c"
+    ],
+    [
+      "net/minecraft/network/play/server/S29PacketSoundEffect",
+      "getSoundName",
+      "()Ljava/lang/String;",
+      "a"
+    ],
+    [
+      "net/minecraft/network/play/server/S29PacketSoundEffect",
+      "getX",
+      "()D",
+      "b"
+    ],
+    [
+      "net/minecraft/network/play/server/S29PacketSoundEffect",
+      "getY",
+      "()D",
+      "c"
+    ],
+    [
+      "net/minecraft/network/play/server/S29PacketSoundEffect",
+      "getZ",
+      "()D",
+      "d"
+    ],
+    [
+      "net/minecraft/util/Vec3i",
+      "getX",
+      "()I",
+      "n"
+    ],
+    [
+      "net/minecraft/util/Vec3i",
+      "getY",
+      "()I",
+      "o"
+    ],
+    [
+      "net/minecraft/util/Vec3i",
+      "getZ",
+      "()I",
+      "p"
+    ],
+    [
+      "net/minecraft/world/World",
+      "getBlockState",
+      "(Lnet/minecraft/util/BlockPos;)Lnet/minecraft/block/state/IBlockState;",
+      "p"
+    ]
+  ]
+}

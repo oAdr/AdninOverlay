@@ -1,0 +1,299 @@
+{
+  "formatVersion": 2,
+  "nativeSource": "Reviewed native image assembly with targeted Java bridges; not a complete C++ rewrite",
+  "nativeFunctionsPreserved": 2493,
+  "injectorSource": "C++20",
+  "featureSource": "Java 8",
+  "gameRuntimeTested": false,
+  "allFeaturesTested": false,
+  "standaloneExecutable": true,
+  "embeddedPayloadVerified": true,
+  "iconEmbeddedVerified": true,
+  "forgeRequired": false,
+  "forgeFreeClassesChecked": {
+    "lunar": 59,
+    "vanilla": 60
+  },
+  "legacyAnticheatDisabled": true,
+  "fixedPhaseGameTick": true,
+  "replayOverlayEnabled": true,
+  "javaStopBeforeNativeUnload": true,
+  "ravenSourceCommit": "14b0a03e8b3af4f109d7c05bc5d0b98d42470179",
+  "thirdPartyNoticesEmbedded": true,
+  "mellowScaffoldSourceCommit": "17ef9b7466754a33ee8c8ed87fa7ea717573d775",
+  "interfaceLanguages": [
+    "en",
+    "zh_CN",
+    "zh_TW"
+  ],
+  "interfaceScalePercent": [
+    70,
+    140
+  ],
+  "iconSizes": [
+    [
+      16,
+      16
+    ],
+    [
+      24,
+      24
+    ],
+    [
+      32,
+      32
+    ],
+    [
+      48,
+      48
+    ],
+    [
+      64,
+      64
+    ],
+    [
+      128,
+      128
+    ],
+    [
+      256,
+      256
+    ]
+  ],
+  "iconSha256": "c549979fca0b32a50810e48cb0c113c86c462794890ac0a7f43bd474038e099e",
+  "artifacts": [
+    {
+      "file": "Adnin.dll",
+      "bytes": 2440192,
+      "sha256": "09d033c8a9f6dfdca66b4b396fbb61e595477efad9da058e04aba0799d238506"
+    },
+    {
+      "file": "AdninVanilla.dll",
+      "bytes": 2309120,
+      "sha256": "dcbb8940b754e511510dc99c4f7281a04e284b4c6ff7e9e140722765e66b984a"
+    },
+    {
+      "file": "Adnin.exe",
+      "bytes": 6921728,
+      "sha256": "1ff24a8f6e1c6e8b575f2a14f4b9683d3e11041687abbe4761f51cc39ff61af5"
+    }
+  ],
+  "runtimePayloads": [
+    {
+      "id": "lunar",
+      "file": "Adnin.dll",
+      "resourceId": 101,
+      "bytes": 2440192,
+      "sha256": "09d033c8a9f6dfdca66b4b396fbb61e595477efad9da058e04aba0799d238506",
+      "initialization": {
+        "peHeaderOffset": 272,
+        "imageSize": 2473984,
+        "markerRva": 2416640,
+        "marker": 3544405810745328705,
+        "signatures": [
+          {
+            "rva": 250866,
+            "bytes": "eb179090909090"
+          }
+        ],
+        "classes": [
+          {
+            "rva": 1729424,
+            "width": 8
+          },
+          {
+            "rva": 1729432,
+            "width": 8
+          },
+          {
+            "rva": 1729440,
+            "width": 8
+          },
+          {
+            "rva": 1729448,
+            "width": 8
+          }
+        ],
+        "pump": [
+          {
+            "rva": 1737120,
+            "width": 8
+          },
+          {
+            "rva": 1729470,
+            "width": 1
+          }
+        ],
+        "hooks": [
+          {
+            "rva": 1729600,
+            "width": 1
+          },
+          {
+            "rva": 1729468,
+            "width": 1
+          },
+          {
+            "rva": 1730920,
+            "width": 8
+          },
+          {
+            "rva": 1729488,
+            "width": 8
+          }
+        ],
+        "heartbeatRva": 1729480,
+        "heartbeatWidth": 8
+      }
+    },
+    {
+      "id": "vanilla",
+      "file": "AdninVanilla.dll",
+      "resourceId": 102,
+      "bytes": 2309120,
+      "sha256": "dcbb8940b754e511510dc99c4f7281a04e284b4c6ff7e9e140722765e66b984a",
+      "initialization": {
+        "peHeaderOffset": 272,
+        "imageSize": 2347008,
+        "markerRva": 2285568,
+        "marker": 3544405810745328705,
+        "signatures": [
+          {
+            "rva": 71804,
+            "bytes": "e8f7ea210090"
+          },
+          {
+            "rva": 2342912,
+            "bytes": "41444e5354303031"
+          }
+        ],
+        "classes": [
+          {
+            "rva": 1565712,
+            "width": 8
+          },
+          {
+            "rva": 1565720,
+            "width": 8
+          },
+          {
+            "rva": 1565728,
+            "width": 8
+          },
+          {
+            "rva": 1565736,
+            "width": 8
+          },
+          {
+            "rva": 1565744,
+            "width": 8
+          }
+        ],
+        "pump": [],
+        "hooks": [
+          {
+            "rva": 1567045,
+            "width": 1
+          },
+          {
+            "rva": 1567046,
+            "width": 1
+          },
+          {
+            "rva": 2342920,
+            "width": 4
+          }
+        ],
+        "heartbeatRva": 2342928,
+        "heartbeatWidth": 8
+      }
+    }
+  ],
+  "sourceInputsSha256": {
+    "src/injector/main.cpp": "475a9aa7f256d79bdeb27fdb17cb6b799990f5673fee8b5751f9f8b341820c6e",
+    "src/injector/payload.cpp": "bd73a9397390d985cc07025812322bfc47ea2787561c61dc81c91368e935f93f",
+    "src/injector/payload.h": "06b4d1672fbb0c558aa3729069b769f397de84dd114dd31bb388874177d8c57a",
+    "src/injector/remote-lease.h": "8ad3a1fb9b0440d8d85628c0df6574d687612dba0c35d1f9aeea5dcad626bcd3",
+    "src/injector/result-ui.cpp": "9fe56a247a7b42093787904c90b9588bb5ee5102d197559efdd6eb230009cc61",
+    "src/injector/result-ui.h": "a77cd79d6e1e752b99f8531b3d34d02e8dd28c20a604c4978c2a4ed89133d2f0",
+    "src/injector/runtime-profile.cpp": "acfd2e7cb898ec47a9d63bda8e99e04d109fbfa4d90f4875e09a97642b2f7490",
+    "src/injector/runtime-profile.h": "4753b857a884135c8b8053f8187723224e189d5dc463fa64bc46f3f64fa48013",
+    "src/java/AdninAnticheat.java": "18fa1f9501f3e96b4d9fff5b28a822229b6d82b0afb43c753996563353cc0a85",
+    "src/java/AdninAnticheatCore.java": "91ad3b32f67b86052059e640dd20ebd38e8eb757dd7f57d734c3870812559f40",
+    "src/java/AdninApi.java": "bd207283990da8734a66d52d261d64bf71358e120140a638dbe8c9354796f2f2",
+    "src/java/AdninClientPump.java": "ba8eb2b37cb909d0c4275f5b4f90652c807f4f8f0831293d30b8a982992c54d4",
+    "src/java/AdninClientSounds.java": "49773cb2d570bfc6558859ef43144544876785af1275f3ff34bc819d8ba8bfe3",
+    "src/java/AdninColumnOrder.java": "eeec9c10fd9ee412c1b1da143427ef27161dfc4949eaee0fed4fecfdad2410e0",
+    "src/java/AdninFeatures.java": "7d7eff73241a0179e85bd20b3ffb3d7fb8532486bec458024c03630b2aaa8148",
+    "src/java/AdninGameModules.java": "331b204f43e46e1c6ee1ff78a84be14f8a3c0d8db486d54801eab46641c28530",
+    "src/java/AdninGui4.java": "036cd31cfb0930ecac42ebd27f93a7d453f109cf7eafb3c277540376c0c2ab71",
+    "src/java/AdninGuiNewChat.java": "52af2748d3961fc40234fae97c73caa4711395c4c77560ed420204f2100b34da",
+    "src/java/AdninHeaders.java": "94fd4ef9cec352aa3a8753af00258b0919fb18cdc9e2209f8b1635720f1f464c",
+    "src/java/AdninHitboxInstaller.java": "c7a1da0de157152eed93673af7f29c5d493545c2811d24ea2da96545e4dab5b9",
+    "src/java/AdninIngameGui.java": "8c41a0d3a3989b228e79dfba21ccf585c5da3b9ed9842a7adc833aaf7ec58131",
+    "src/java/AdninLanguage.java": "23ab6afe72bacb02b52c9e3f93eedc2b0ffbc48295559844d8cdac82bec6ae1b",
+    "src/java/AdninMessages.java": "98f4d42c4b7ddd64a18792a6bb411d62829826b3772cc0cf8339a0656cd91482",
+    "src/java/AdninMetrics.java": "13008698bd5cb13078a19c8bf4099e98bfda51054b3bc41b7915c7774fcce5c8",
+    "src/java/AdninPacketLog.java": "d491e5dff1d96fb08a4e9c86dc097cdbb593e03a0b534e428fcbc88ab3b804f1",
+    "src/java/AdninRenderGlobal.java": "6da715ae3ae80fcb8fb18ce0a8d43a931d6ac30940353d72473a0ab8b6f54a18",
+    "src/java/AdninReplay.java": "339b159a3df8e9c313c9a71606eaa49e629834f906f43858c2b55bfe607971b2",
+    "src/java/AdninReplayProfiles.java": "7867164d5717a3602a26578312cbce818a15d00158e1e9c92907caee6f849793",
+    "src/java/AdninSessionHud.java": "8c2ff3ac08eb397578d3ccf6d2fa579cd76e0df6ed6b8c67bd6d9d234a74709e",
+    "src/java/AdninSessionHudInstaller.java": "fdbb71f39e0a496971a429cd2fa90a88bed0b95ea8eea73e5fe9071e275f0f33",
+    "src/java/AdninTabOverlayNative.java": "10b1e295c6cbb1ab436cd466063aa2b60dd117921341666d9db4a2b10bb57864",
+    "src/java/AdninUi.java": "64448aaa08a19ded7525701e78224fc27cb7f766331652c8b05e28171d93b7af",
+    "src/java/AdninUrchinCache.java": "f473c09aaae76f6c2f7527b61722321f22b5fe185774af957297d366059c0e2e",
+    "src/java-compat/AdninCompatPump.java": "3ba1d1b01a238dad734e6064744b5186a06b31ab67e33800d574eb3ab3c9b4c1",
+    "src/native/adnin-api-policy.asm": "ccecff794828049bcaf178a0896a849cc0f6d52d720720fbd4693adce3c3df94",
+    "src/native/adnin-bridge.asm": "8a81e24fc7564ae864841431ae90598e7c725e7e776c6887266185dfc2f1278f",
+    "src/native/adnin-columns.asm": "53bbbfb9ffe02a8f9c7f18136018e36f5351f3e939a03f4c5cc917bf3aa0f704",
+    "src/native/adnin-compat.asm": "d5acb42624ea1ab83dda1c2a8b10350f97d30865b4d5d33024c7b18c42d22371",
+    "src/native/adnin-denicker.asm": "c75458e8a604dd0b525eccdb3e08c97436f9d9d02ff93986f94de00be5f28ce6",
+    "src/native/adnin-headers.asm": "08e17abc7d56ef110a093cf68e5a2316a45aa1aff5bb64b00cb303b2d93e2274",
+    "src/native/adnin-hypixel-http.asm": "8cca1317ff27b74e0776e607dca7d6c24e050947d170aefd883c680d7fe6c7a7",
+    "src/native/adnin-lunar-stop.asm": "9e232fc2a2b6d4370d79738371d45b24a7738eb137648352c23ffdfe228bc5e0",
+    "src/native/adnin-match.asm": "8ae282cf4a13c512fc7d1d184d12c2d35d50776e46acab25f04fe748ac32a5d3",
+    "src/native/adnin-metrics.asm": "464e1ac374770d94d109d322a2b1666ca4a1910687359328c567d1164f3cf988",
+    "src/native/adnin-number-poll.asm": "6dc01e0753cc97631a9f97a7851863c13b65f9e9fea8e5c789d1e282cf3c93f0",
+    "src/native/adnin-process-entry.asm": "08f31a5cb10ec39811c7d63082ab8dbf39417c1448b3e49874500d0f1324b3d0",
+    "src/native/adnin-replay-denick.asm": "477012d233d9418b3ba7c62b2353d695504e0cca7766d404865cd6d19b103344",
+    "src/native/adnin-replay-stats.asm": "ca497c12217eb3ea218102a3ff5cf948436af815c040005c01986f2b7e73f063",
+    "src/native/adnin-replay.asm": "504cfd58c09441a7f9b98334cbf1dc209391edcdd7cbb78d5c15006306b04426",
+    "src/native/adnin-runtime.inc": "5d0aaab35c742cba0c73e36f48c4840f4d0d84eaf34c4236f31aa2c38b4e6621",
+    "src/native/adnin-scheduler.asm": "5b4c69347ad436dfee3443f5e9007d934627f75ab7e47c4c2b99c982900c93fe",
+    "src/native/ChatReaderLunar.asm": "6d1bc0ee32e00a0fc0336f6b1033ff69414e359514095f7685fb9eaf3fc7aad4",
+    "src/native/ChatReaderVanilla.asm": "ca794760d623c86b9323709e089b57bafcf1914c507efd840cd970df31b3c03a",
+    "scripts/bridge.py": "30feaa4932c91eea42b7cb99adaf1ee5d55d142aff5e1c202d4ef40334e60cfd",
+    "scripts/build-icon.py": "32280d199175ac89fc246b2137c8086f3eaaceacb5e60b1f3a3e04c747706040",
+    "scripts/build-java-compat.py": "974e845aa63bbaf373b1b2077b201b7a4e45f34ea9db8c856762f4514fe275e7",
+    "scripts/build-java.py": "f9c8469a429a41120d4ce015f739192b3b39515950955f7c9bada5df114a7769",
+    "scripts/build.py": "c33adad4b8442618847451111d1d7c07e8df4ed287a41b7f552e399ec1f4354f",
+    "scripts/classfile.py": "5d7927ba6d28f6b4f4262c67f4f7417684063874c4e3f40e9faf039e89305aca",
+    "scripts/java_compat.py": "d365bbf8166e1ef35c6cf1d3ba2a2e13b18c371670b3e653f99903465fc01a7d",
+    "scripts/native-image-source.py": "21c1196d81540e9466ac37f77405ce4062ab10c5511d2fe3b654e30b0047069c",
+    "scripts/native_anticheat.py": "088afe11a71e0da8893c790df5356f54e1dea3d30858d8b84b4ec036654f5597",
+    "scripts/native_api_policy.py": "a3d029d2ac9405263a6576f0d298482f76953c6b5995f24189e9df2f2586685c",
+    "scripts/native_compat.py": "6349f3104880592ce457f271ece53ea18c8bb89fff27740fb1c39469e4125396",
+    "scripts/native_headers.py": "d4c8dd182bb437ac4c039b80ba30a4573ed4dcae3df2da537848f2dd81fec166",
+    "scripts/native_number_poll.py": "90684e751c920f095287176738364f3e78d323b85cbf598e49d48cfa62087964",
+    "scripts/native_process_entry.py": "fc2994eb298a9c3acf8802d6bfe04e6d399c897cd1e0854c67cc58acc92acfbc",
+    "scripts/native_replay.py": "eb9e4daa07e84b507dbb839621459e572fc8761a1371ea3eb4666008aa3334fc",
+    "scripts/native_replay_denick.py": "a674bcc0030ddb1ddc8998a6640428ad1241486166f4b02e35150ceb56e407b5",
+    "scripts/native_replay_stats.py": "fc022aed59b1022df5961fafb16bf17103c5865a7fe5a64b15fcea842d3ed55e",
+    "scripts/native_scheduler.py": "5b618845395102d92e54e1071a7af0e4d69435a272a504dc3909560a4ea46c92",
+    "scripts/native_tick_hook.py": "3965eb0bf4a4c9e16f897c4a84d2d4ee10518424650ea499809b509c102306a1",
+    "scripts/package.py": "cf9d91f45251954e293778531b240ff1e19a878842ccc25ca0a247089511bc23",
+    "scripts/reembed.py": "3e9ccc383ead963127658954a67abece98d8b673f0d920b06fbe1414aa42a5fd",
+    "scripts/runtime_build.py": "6506e2a0cdc7ff3fc03b0699fcbf97cbb767680007ddd0fa204c3c97abb54602",
+    "resources/java-compat-1.8.9.json": "d64f5aaa7a56a77c6a60b52914433881f7967eb72314dc963fe987f1da1c9e6d",
+    "CMakeLists.txt": "1f61176afb9361356b460fbfe03dc03f541d974433e6831b6128e9256e5c59df",
+    "Build.ps1": "921140d9df6a49535fcfe926b1b312988421f6eac2debb817311f6d9f1c61017",
+    "requirements.txt": "a90de62a285a70c562933715d37e36c4304df5490adb9cf878ffc972b11cd738",
+    "resources/THIRD_PARTY_NOTICES.txt": "6b07fb17d0093c0129569aa7893e2fdd5e5ceef3603000d5147db6cc1abcadcf"
+  },
+  "supportedClients": [
+    "Lunar 1.8.9",
+    "Badlion 1.8.9",
+    "Vanilla 1.8.9"
+  ]
+}

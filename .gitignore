@@ -1,0 +1,22 @@
+# Local builds and generated files
+**/build/
+**/build-*/
+**/__pycache__/
+*.py[cod]
+*.class
+*.exe
+*.dll
+*.zip
+
+# Local configuration and credentials
+.env
+.env.*
+*.key
+*.pem
+adnin-features.properties
+adnin-runtime-status.properties
+toggles.json
+known-nicks.json
+language.txt
+.DS_Store
+Thumbs.db

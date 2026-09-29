@@ -1,0 +1,35 @@
+{
+  "stage": "v13-owned-anticheat-offline-validation",
+  "upstreamCommit": "14b0a03e8b3af4f109d7c05bc5d0b98d42470179",
+  "upstreamDetectorCount": 5,
+  "officialHeadConfirmation": "Integrating task independently confirmed official GitHub API HEAD equals the pinned commit",
+  "compiler": "Microsoft OpenJDK 17.0.20.101, --release 8",
+  "vm": "-Xverify:all",
+  "tests": {
+    "AdninAnticheatCoreTest": 3840,
+    "AdninAnticheatSettingsTest": 83,
+    "AdninAnticheatAdapterTest": 25
+  },
+  "unchangedAuditFixtureAfter": {
+    "soundSettingBypassesCooldown": false,
+    "entityReplacementBypassesCooldown": false,
+    "rosterRemovalBypassesCooldown": false,
+    "invalidMovementBypassesCooldown": false,
+    "differentCheckDuplicatesReport": false,
+    "futurePacketCreatesNoFallCandidate": false,
+    "invalidTerrainReports": false
+  },
+  "historyLimit": 1024,
+  "historyTtlMillis": 60000,
+  "replayDiscontinuityBlocksPerAxis": 5,
+  "replayNoFallLimit": "5-40 block Replay seek/NoFall ambiguity is conservatively suppressed; live NoFall unchanged",
+  "sourceSha256": {
+    "outputs/adnin-build/src/java/AdninAnticheatCore.java": "f0483b623ef41d50c36d1e37066e597270eb16c24dc630c10ff73570d7e0f658",
+    "outputs/adnin-build/src/java/AdninAnticheat.java": "557be0c0819f5d97b07e478cf37e73f23de3b68f753fb365b081bfd74b3b642e",
+    "outputs/adnin-build/tests/java/AdninAnticheatCoreTest.java": "168c9501356c77f094a0d1eeb01de8f92969ab18a19e230d50c634cb154bd2ea",
+    "outputs/adnin-build/tests/java/AdninAnticheatSettingsTest.java": "e16660d2a511fd7b680e836892982b91ea38d8c24f8c6ff0bd3fddf342954356",
+    "outputs/adnin-build/tests/test_anticheat_adapter.py": "a43eefd0606347fc6192d4e203784dbf90e8052f37f51524c51a12e561d2ce7f",
+    "work/raven-v13/AnticheatV12AuditBaseline.java": "3c70078512f9b1f64001d88688eb7c0b864a5a4bcda5c81a234177a8661f4741"
+  },
+  "testScope": "Production adapter/core bytecode with owned offline world, roster, chat and audio counters; no JNI/game/network/real report send/personal configuration"
+}

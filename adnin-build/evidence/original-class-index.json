@@ -1,0 +1,102 @@
+[
+  {
+    "name": "FrenchifyTabOverlayNative",
+    "offset": "0x12e980",
+    "size": 671,
+    "major": 52,
+    "minor": 0,
+    "fields": 1,
+    "methods": 4,
+    "sha256": "e865dc0716b924c43593434765199c6e80b6f3a299db4b1c4e6abcfb5b125492"
+  },
+  {
+    "name": "FrenchifyGuiNewChat",
+    "offset": "0x12ec20",
+    "size": 1576,
+    "major": 52,
+    "minor": 0,
+    "fields": 1,
+    "methods": 19,
+    "sha256": "a86f520a13b39237fff1e1d307e0e67f050297dbdd1450e9bd0b403e8487c148"
+  },
+  {
+    "name": "FrenchifyGui4",
+    "offset": "0x12f250",
+    "size": 50167,
+    "major": 52,
+    "minor": 0,
+    "fields": 156,
+    "methods": 106,
+    "sha256": "f3fbd2c875a3352f5a630e589f77248ceb7d19769fc605fcd39744a84133efa6"
+  },
+  {
+    "name": "FrenchifyRenderGlobal",
+    "offset": "0x16b430",
+    "size": 498,
+    "major": 52,
+    "minor": 0,
+    "fields": 0,
+    "methods": 3,
+    "sha256": "d37330f00bcc0a87fa18bba1888942399708c8181f640978823a7e0d6d17d287"
+  },
+  {
+    "name": "FrenchifyHitboxInstaller",
+    "offset": "0x16b630",
+    "size": 1214,
+    "major": 52,
+    "minor": 0,
+    "fields": 0,
+    "methods": 4,
+    "sha256": "c54321cc47a1db53019b2d0ca8340e768fbd7f0a2b112eef6a6c00d9b1690cbb"
+  },
+  {
+    "name": "FrenchifyIngameGui",
+    "offset": "0x170160",
+    "size": 534,
+    "major": 52,
+    "minor": 0,
+    "fields": 1,
+    "methods": 3,
+    "sha256": "cdbb331786ffe721b6e6db69064ea5d1a1e52646b4107fadf3881af5e4d60fcf"
+  },
+  {
+    "name": "FrenchifySessionHud",
+    "offset": "0x170380",
+    "size": 1709,
+    "major": 52,
+    "minor": 0,
+    "fields": 11,
+    "methods": 5,
+    "sha256": "14e626af27ae633b31f9a4ba475db64b64ca61a4a95f25f8befad8e6d5f1fc80"
+  },
+  {
+    "name": "FrenchifySessionHudInstaller",
+    "offset": "0x170a30",
+    "size": 1192,
+    "major": 52,
+    "minor": 0,
+    "fields": 0,
+    "methods": 4,
+    "sha256": "d6f5a2b692583a493d939493470d72aab49fe408f9eccdf544010401e112e3d5"
+  },
+  {
+    "name": "FrenchifyPacketLog",
+    "offset": "0x172180",
+    "size": 10961,
+    "major": 52,
+    "minor": 0,
+    "fields": 7,
+    "methods": 14,
+    "sha256": "6ebd68c455764741a64c356bf2c93bda175ab7816edf2b79967006ce294e8e37"
+  },
+  {
+    "name": "FrenchifyClientPump",
+    "offset": "0x1758e0",
+    "size": 327,
+    "major": 52,
+    "minor": 0,
+    "fields": 0,
+    "methods": 3,
+    "sha256": "cb5c00ce6289765053d74c2427db157c5d0c90c911c09bbe64d170cb50aa8290"
+  }
+]

@@ -1,0 +1,33 @@
+{
+  "version": "v10",
+  "originalFailure": {
+    "exitCode": 3,
+    "stage": "target-discovery",
+    "beforeDllLoad": true
+  },
+  "observedTitle": "Badlion Minecraft Client v4.4.4-f8775e4-PRODUCTION4 (1.8.9)",
+  "windowClass": "LWJGL",
+  "processName": "javaw.exe",
+  "tests": [
+    {
+      "selection": "auto",
+      "exitCode": 0,
+      "completed": true,
+      "existingPayload": false
+    },
+    {
+      "selection": "badlion",
+      "exitCode": 0,
+      "completed": true,
+      "existingPayload": false
+    }
+  ],
+  "executableSha256": "9c5a67238437084001b7b79f55cc3b10a4618c6182fe8b5d541d990c5370b251",
+  "dllPayloadsByteIdenticalToV9": true,
+  "dllLoadedByLiveTests": false,
+  "gameInitializationVerified": false,
+  "configMenuVerified": false,
+  "multiplayerVerified": false,
+  "personalSettingsRead": false,
+  "chatSent": false
+}

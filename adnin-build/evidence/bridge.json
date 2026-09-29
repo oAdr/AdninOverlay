@@ -1,0 +1,1249 @@
+{
+  "inputSha256": "c8c542c34e670c42944519ef42cb378a3c219ea323a611f235793913133a8b8e",
+  "outputSha256": "09d033c8a9f6dfdca66b4b396fbb61e595477efad9da058e04aba0799d238506",
+  "fixedNativeSha256": "c1ad1b6978c381c21b8a519ef852ac71f3c70195712eda83ef8eb4d973702cca",
+  "normalizedNativeTextSha256": "c35696823c7004ce7567dbc704b4e8adf60e259f57d8f3694fe6ec230cd803cd",
+  "imageSize": 2473984,
+  "section": {
+    "name": ".adncode",
+    "rva": 2416640,
+    "offset": 2384896,
+    "size": 55212,
+    "rawSize": 55296,
+    "executable": true,
+    "writable": false
+  },
+  "marker": "0x3130424e494e4441",
+  "metadata": {
+    "version": 2,
+    "headerSize": 160,
+    "payloadSize": 9216,
+    "plain": 192,
+    "json": 197,
+    "prelayout": 818,
+    "render": 846,
+    "outputBegin": 229,
+    "outputEnd": 489,
+    "outputUnwind": 1920,
+    "invokeBegin": 502,
+    "invokeEnd": 701,
+    "invokeUnwind": 1936,
+    "stringBegin": 701,
+    "stringEnd": 818,
+    "stringUnwind": 1952,
+    "layoutBegin": 818,
+    "layoutEnd": 846,
+    "layoutUnwind": 1964,
+    "renderBegin": 846,
+    "renderEnd": 1745,
+    "renderUnwind": 1980,
+    "seraphPrefix": 160,
+    "denicker": 2000,
+    "denickerBegin": 2000,
+    "denickerEnd": 3205,
+    "denickerUnwind": 3264,
+    "metricsBegin": 3288,
+    "metricsEnd": 3460,
+    "metricsUnwind": 3528,
+    "matchStart": 3540,
+    "matchBegin": 3540,
+    "matchEnd": 3594,
+    "matchUnwind": 3620,
+    "columnCatalog": 3632,
+    "columnBegin": 3632,
+    "columnEnd": 3692,
+    "columnUnwind": 3692,
+    "plainTags": 205,
+    "jsonTags": 213,
+    "plainLocal": 221,
+    "header": 3900,
+    "headerBegin": 3900,
+    "headerEnd": 4256,
+    "headerUnwind": 4336,
+    "processEntry": 8972,
+    "processEntryBegin": 8972,
+    "processEntryEnd": 8992,
+    "processEntryUnwind": 8992,
+    "numberGetLock": 7417,
+    "numberRegisterLock": 7417,
+    "numberPopLock": 7422,
+    "numberLockBegin": 7430,
+    "numberLockEnd": 7543,
+    "numberLockUnwind": 7544,
+    "apiKeyReady": 7626,
+    "apiKeyReadyBegin": 7626,
+    "apiKeyReadyEnd": 7678,
+    "apiKeyReadyUnwind": 7680,
+    "apiUuidReady": 7684,
+    "apiUuidReadyBegin": 7684,
+    "apiUuidReadyEnd": 7705,
+    "apiUuidReadyUnwind": 7708,
+    "apiPingProxy": 7712,
+    "apiPingProxyBegin": 7712,
+    "apiPingProxyEnd": 7729,
+    "apiPingProxyUnwind": 7732,
+    "hypixelHttp": 7780,
+    "hypixelHttpBegin": 7780,
+    "hypixelHttpEnd": 8581,
+    "hypixelHttpUnwind": 8584,
+    "apiDecodeComponent": 8720,
+    "apiDecodeComponentBegin": 8720,
+    "apiDecodeComponentEnd": 8853,
+    "apiDecodeComponentUnwind": 8856,
+    "apiRefreshFailures": 8860,
+    "apiRefreshFailuresBegin": 8860,
+    "apiRefreshFailuresEnd": 8945,
+    "apiRefreshFailuresUnwind": 8948,
+    "replayRdi": 4396,
+    "replayRdiBegin": 4396,
+    "replayRdiEnd": 4638,
+    "replayRdiUnwind": 4640,
+    "replayRbx": 4652,
+    "replayRbxBegin": 4652,
+    "replayRbxEnd": 4894,
+    "replayRbxUnwind": 4896,
+    "replayFrame": 4908,
+    "replayFrameBegin": 4908,
+    "replayFrameEnd": 5155,
+    "replayFrameUnwind": 5156,
+    "replayStats": 5245,
+    "replayStatsBegin": 5245,
+    "replayStatsEnd": 6388,
+    "replayStatsUnwind": 6388,
+    "replayStatsQueue": 6416,
+    "replayStatsQueueBegin": 6416,
+    "replayStatsQueueEnd": 6492,
+    "replayStatsQueueUnwind": 6492,
+    "replayStatsCleanup": 6504,
+    "replayStatsCleanupBegin": 6504,
+    "replayStatsCleanupEnd": 6553,
+    "replayStatsCleanupUnwind": 6556,
+    "replayStatsFrameCleanup": 6564,
+    "replayStatsFrameCleanupBegin": 6564,
+    "replayStatsFrameCleanupEnd": 6682,
+    "replayStatsFrameCleanupUnwind": 6684,
+    "replayDenickGate": 6828,
+    "replayDenickGateBegin": 6828,
+    "replayDenickGateEnd": 7059,
+    "replayDenickGateUnwind": 7060,
+    "replayNickName": 7072,
+    "replayNickNameBegin": 7072,
+    "replayNickNameEnd": 7308,
+    "replayNickNameUnwind": 7308,
+    "replayUuidCopy": 7320,
+    "replayUuidCopyBegin": 7320,
+    "replayUuidCopyEnd": 7338,
+    "replayUuidCopyUnwind": 7340,
+    "lunarSchedule": 9016,
+    "lunarScheduleBegin": 9016,
+    "lunarScheduleEnd": 9065,
+    "lunarScheduleUnwind": 9068,
+    "lunarStop": 9096,
+    "lunarStopBegin": 9096,
+    "lunarStopEnd": 9169,
+    "lunarStopUnwind": 9196
+  },
+  "hooks": [
+    {
+      "callRva": 102531,
+      "originalTargetRva": 229984,
+      "bridgeTargetRva": 2416861,
+      "callback": "plainLocal"
+    },
+    {
+      "callRva": 102780,
+      "originalTargetRva": 229984,
+      "bridgeTargetRva": 2416861,
+      "callback": "plainLocal"
+    },
+    {
+      "callRva": 449085,
+      "originalTargetRva": 229984,
+      "bridgeTargetRva": 2416832,
+      "callback": "plain"
+    },
+    {
+      "callRva": 453440,
+      "originalTargetRva": 229984,
+      "bridgeTargetRva": 2416832,
+      "callback": "plain"
+    },
+    {
+      "callRva": 437943,
+      "originalTargetRva": 229216,
+      "bridgeTargetRva": 2416853,
+      "callback": "jsonTags"
+    },
+    {
+      "callRva": 439858,
+      "originalTargetRva": 229984,
+      "bridgeTargetRva": 2416845,
+      "callback": "plainTags"
+    },
+    {
+      "callRva": 557128,
+      "originalTargetRva": 229216,
+      "bridgeTargetRva": 2416837,
+      "callback": "json"
+    },
+    {
+      "callRva": 557135,
+      "originalTargetRva": 229984,
+      "bridgeTargetRva": 2416832,
+      "callback": "plain"
+    },
+    {
+      "callRva": 556829,
+      "originalTargetRva": 229984,
+      "bridgeTargetRva": 2416832,
+      "callback": "plain"
+    },
+    {
+      "callRva": 581857,
+      "originalTargetRva": 566112,
+      "bridgeTargetRva": 2417458,
+      "callback": "prelayout"
+    },
+    {
+      "callRva": 582495,
+      "originalTargetRva": 575600,
+      "bridgeTargetRva": 2417486,
+      "callback": "render"
+    },
+    {
+      "callRva": 436861,
+      "originalTargetRva": 426240,
+      "bridgeTargetRva": 2416800,
+      "callback": "seraphPrefix"
+    },
+    {
+      "callRva": 438493,
+      "originalTargetRva": 426240,
+      "bridgeTargetRva": 2416800,
+      "callback": "seraphPrefix"
+    },
+    {
+      "callRva": 552191,
+      "originalTargetRva": 763184,
+      "bridgeTargetRva": 2418640,
+      "callback": "denicker"
+    },
+    {
+      "callRva": 81677,
+      "originalTargetRva": 565824,
+      "bridgeTargetRva": 2420180,
+      "callback": "matchStart"
+    },
+    {
+      "callRva": 391757,
+      "originalTargetRva": 387152,
+      "bridgeTargetRva": 2420272,
+      "callback": "columnCatalog"
+    },
+    {
+      "callRva": 554035,
+      "originalTargetRva": 484160,
+      "bridgeTargetRva": 2421885,
+      "callback": "replayStats"
+    },
+    {
+      "callRva": 553461,
+      "originalTargetRva": 29376,
+      "bridgeTargetRva": 2423960,
+      "callback": "replayUuidCopy"
+    },
+    {
+      "callRva": 764618,
+      "originalTargetRva": 1190775,
+      "bridgeTargetRva": 2424057,
+      "callback": "numberGetLock"
+    },
+    {
+      "callRva": 767383,
+      "originalTargetRva": 1190775,
+      "bridgeTargetRva": 2424057,
+      "callback": "numberRegisterLock"
+    },
+    {
+      "callRva": 769271,
+      "originalTargetRva": 1190775,
+      "bridgeTargetRva": 2424062,
+      "callback": "numberPopLock"
+    },
+    {
+      "callRva": 656380,
+      "originalTargetRva": 621312,
+      "bridgeTargetRva": 2424352,
+      "callback": "apiPingProxy"
+    },
+    {
+      "callRva": 605656,
+      "originalTargetRva": 187824,
+      "bridgeTargetRva": 2424420,
+      "callback": "hypixelHttp"
+    },
+    {
+      "callRva": 607936,
+      "originalTargetRva": 187824,
+      "bridgeTargetRva": 2424420,
+      "callback": "hypixelHttp"
+    },
+    {
+      "callRva": 716276,
+      "originalTargetRva": 187824,
+      "bridgeTargetRva": 2424420,
+      "callback": "hypixelHttp"
+    },
+    {
+      "callRva": 651733,
+      "originalTargetRva": 695952,
+      "bridgeTargetRva": 2425500,
+      "callback": "apiRefreshFailures"
+    },
+    {
+      "callRva": 875834,
+      "originalTargetRva": 49776,
+      "bridgeTargetRva": 2425656,
+      "callback": "lunarSchedule"
+    }
+  ],
+  "originalRuntimeFunctions": 3803,
+  "bridgeRuntimeFunctions": [
+    {
+      "name": "output",
+      "begin": 2416869,
+      "end": 2417129,
+      "unwind": 2418560
+    },
+    {
+      "name": "invoke",
+      "begin": 2417142,
+      "end": 2417341,
+      "unwind": 2418576
+    },
+    {
+      "name": "string",
+      "begin": 2417341,
+      "end": 2417458,
+      "unwind": 2418592
+    },
+    {
+      "name": "layout",
+      "begin": 2417458,
+      "end": 2417486,
+      "unwind": 2418604
+    },
+    {
+      "name": "render",
+      "begin": 2417486,
+      "end": 2418385,
+      "unwind": 2418620
+    },
+    {
+      "name": "denicker",
+      "begin": 2418640,
+      "end": 2419845,
+      "unwind": 2419904
+    },
+    {
+      "name": "metrics",
+      "begin": 2419928,
+      "end": 2420100,
+      "unwind": 2420168
+    },
+    {
+      "name": "match",
+      "begin": 2420180,
+      "end": 2420234,
+      "unwind": 2420260
+    },
+    {
+      "name": "column",
+      "begin": 2420272,
+      "end": 2420332,
+      "unwind": 2420332
+    },
+    {
+      "name": "header",
+      "begin": 2420540,
+      "end": 2420896,
+      "unwind": 2420976
+    },
+    {
+      "name": "replayRdi",
+      "begin": 2421036,
+      "end": 2421278,
+      "unwind": 2421280
+    },
+    {
+      "name": "replayRbx",
+      "begin": 2421292,
+      "end": 2421534,
+      "unwind": 2421536
+    },
+    {
+      "name": "replayFrame",
+      "begin": 2421548,
+      "end": 2421795,
+      "unwind": 2421796
+    },
+    {
+      "name": "replayStats",
+      "begin": 2421885,
+      "end": 2423028,
+      "unwind": 2423028
+    },
+    {
+      "name": "replayStatsQueue",
+      "begin": 2423056,
+      "end": 2423132,
+      "unwind": 2423132
+    },
+    {
+      "name": "replayStatsCleanup",
+      "begin": 2423144,
+      "end": 2423193,
+      "unwind": 2423196
+    },
+    {
+      "name": "replayStatsFrameCleanup",
+      "begin": 2423204,
+      "end": 2423322,
+      "unwind": 2423324
+    },
+    {
+      "name": "replayDenickGate",
+      "begin": 2423468,
+      "end": 2423699,
+      "unwind": 2423700
+    },
+    {
+      "name": "replayNickName",
+      "begin": 2423712,
+      "end": 2423948,
+      "unwind": 2423948
+    },
+    {
+      "name": "replayUuidCopy",
+      "begin": 2423960,
+      "end": 2423978,
+      "unwind": 2423980
+    },
+    {
+      "name": "numberLock",
+      "begin": 2424070,
+      "end": 2424183,
+      "unwind": 2424184
+    },
+    {
+      "name": "apiKeyReady",
+      "begin": 2424266,
+      "end": 2424318,
+      "unwind": 2424320
+    },
+    {
+      "name": "apiUuidReady",
+      "begin": 2424324,
+      "end": 2424345,
+      "unwind": 2424348
+    },
+    {
+      "name": "apiPingProxy",
+      "begin": 2424352,
+      "end": 2424369,
+      "unwind": 2424372
+    },
+    {
+      "name": "hypixelHttp",
+      "begin": 2424420,
+      "end": 2425221,
+      "unwind": 2425224
+    },
+    {
+      "name": "apiDecodeComponent",
+      "begin": 2425360,
+      "end": 2425493,
+      "unwind": 2425496
+    },
+    {
+      "name": "apiRefreshFailures",
+      "begin": 2425500,
+      "end": 2425585,
+      "unwind": 2425588
+    },
+    {
+      "name": "processEntry",
+      "begin": 2425612,
+      "end": 2425632,
+      "unwind": 2425632
+    },
+    {
+      "name": "lunarSchedule",
+      "begin": 2425656,
+      "end": 2425705,
+      "unwind": 2425708
+    },
+    {
+      "name": "lunarStop",
+      "begin": 2425736,
+      "end": 2425809,
+      "unwind": 2425836
+    }
+  ],
+  "runtimeFunctionTable": {
+    "rva": 2425856,
+    "size": 45996,
+    "count": 3833
+  },
+  "patches": [
+    {
+      "offset": 312,
+      "before": "103d1200",
+      "after": "0c032500",
+      "reason": "Skip CRT worker destructors only while the entire process is terminating"
+    },
+    {
+      "offset": 99459,
+      "before": "e8d8f10100",
+      "after": "e855502300",
+      "reason": "Optional JNI plainLocal bridge"
+    },
+    {
+      "offset": 99708,
+      "before": "e8dff00100",
+      "after": "e85c4f2300",
+      "reason": "Optional JNI plainLocal bridge"
+    },
+    {
+      "offset": 446013,
+      "before": "e81ea8fcff",
+      "after": "e87e061e00",
+      "reason": "Optional JNI plain bridge"
+    },
+    {
+      "offset": 450368,
+      "before": "e81b97fcff",
+      "after": "e87bf51d00",
+      "reason": "Optional JNI plain bridge"
+    },
+    {
+      "offset": 434871,
+      "before": "e8a4d0fcff",
+      "after": "e819321e00",
+      "reason": "Optional JNI jsonTags bridge"
+    },
+    {
+      "offset": 436786,
+      "before": "e829ccfcff",
+      "after": "e8962a1e00",
+      "reason": "Optional JNI plainTags bridge"
+    },
+    {
+      "offset": 554056,
+      "before": "e813fffaff",
+      "after": "e878601c00",
+      "reason": "Optional JNI json bridge"
+    },
+    {
+      "offset": 554063,
+      "before": "e80c02fbff",
+      "after": "e86c601c00",
+      "reason": "Optional JNI plain bridge"
+    },
+    {
+      "offset": 553757,
+      "before": "e83e03fbff",
+      "after": "e89e611c00",
+      "reason": "Optional JNI plain bridge"
+    },
+    {
+      "offset": 578785,
+      "before": "e87ac2ffff",
+      "after": "e84c021c00",
+      "reason": "Optional JNI prelayout bridge"
+    },
+    {
+      "offset": 579423,
+      "before": "e80ce5ffff",
+      "after": "e8eaff1b00",
+      "reason": "Optional JNI render bridge"
+    },
+    {
+      "offset": 433789,
+      "before": "e87ed6ffff",
+      "after": "e81e361e00",
+      "reason": "Optional JNI seraphPrefix bridge"
+    },
+    {
+      "offset": 435421,
+      "before": "e81ed0ffff",
+      "after": "e8be2f1e00",
+      "reason": "Optional JNI seraphPrefix bridge"
+    },
+    {
+      "offset": 549119,
+      "before": "e82c380300",
+      "after": "e8cc7a1c00",
+      "reason": "Optional JNI denicker bridge"
+    },
+    {
+      "offset": 78605,
+      "before": "e82e630700",
+      "after": "e8c2ae2300",
+      "reason": "Optional JNI matchStart bridge"
+    },
+    {
+      "offset": 388685,
+      "before": "e8feedffff",
+      "after": "e8def31e00",
+      "reason": "Optional JNI columnCatalog bridge"
+    },
+    {
+      "offset": 550963,
+      "before": "e808effeff",
+      "after": "e845801c00",
+      "reason": "Optional JNI replayStats bridge"
+    },
+    {
+      "offset": 550389,
+      "before": "e8c600f8ff",
+      "after": "e89e8a1c00",
+      "reason": "Optional JNI replayUuidCopy bridge"
+    },
+    {
+      "offset": 761546,
+      "before": "e8a8800600",
+      "after": "e82a521900",
+      "reason": "Optional JNI numberGetLock bridge"
+    },
+    {
+      "offset": 764311,
+      "before": "e8db750600",
+      "after": "e85d471900",
+      "reason": "Optional JNI numberRegisterLock bridge"
+    },
+    {
+      "offset": 766199,
+      "before": "e87b6e0600",
+      "after": "e802401900",
+      "reason": "Optional JNI numberPopLock bridge"
+    },
+    {
+      "offset": 653308,
+      "before": "e8ff76ffff",
+      "after": "e81ffa1a00",
+      "reason": "Optional JNI apiPingProxy bridge"
+    },
+    {
+      "offset": 602584,
+      "before": "e8d39ff9ff",
+      "after": "e887c01b00",
+      "reason": "Optional JNI hypixelHttp bridge"
+    },
+    {
+      "offset": 604864,
+      "before": "e8eb96f9ff",
+      "after": "e89fb71b00",
+      "reason": "Optional JNI hypixelHttp bridge"
+    },
+    {
+      "offset": 713204,
+      "before": "e8b7eff7ff",
+      "after": "e86b101a00",
+      "reason": "Optional JNI hypixelHttp bridge"
+    },
+    {
+      "offset": 648661,
+      "before": "e8b6ac0000",
+      "after": "e8c2101b00",
+      "reason": "Optional JNI apiRefreshFailures bridge"
+    },
+    {
+      "offset": 872762,
+      "before": "e83165f3ff",
+      "after": "e8f9a51700",
+      "reason": "Optional JNI lunarSchedule bridge"
+    },
+    {
+      "offset": 104414,
+      "before": "e81d9d0200",
+      "after": "9090909090",
+      "reason": "Retire legacy native AntiCheat dispatcher independently of historical configuration"
+    },
+    {
+      "offset": 104630,
+      "before": "0f84f3000000",
+      "after": "0f841a000000",
+      "reason": "Maintain fixed-phase game tick hook even when Session Stats is disabled"
+    },
+    {
+      "offset": 103241,
+      "before": "38056ec41800",
+      "after": "e8de51230090",
+      "reason": "Allow observed Replay sidebar only at overlay enabled predicate"
+    },
+    {
+      "offset": 104936,
+      "before": "803dcebd180000",
+      "after": "e83f4b23009090",
+      "reason": "Allow observed Replay sidebar only at overlay modelCache predicate"
+    },
+    {
+      "offset": 128446,
+      "before": "803df861180000",
+      "after": "e869f022009090",
+      "reason": "Allow observed Replay sidebar only at overlay render predicate"
+    },
+    {
+      "offset": 116488,
+      "before": "803dae90180000",
+      "after": "e81f2023009090",
+      "reason": "Allow observed Replay sidebar only at overlay fallbackRender predicate"
+    },
+    {
+      "offset": 548108,
+      "before": "4584e40f85e30a000083fb010f85da0a0000",
+      "after": "e89b911c000f84e10a000090909090909090",
+      "reason": "Admit cached verified Replay Nicks to existing Denicker branch without changing actor identity"
+    },
+    {
+      "offset": 761553,
+      "before": "0f8505030000",
+      "after": "0f85ddffffff",
+      "reason": "Defer Number UI polling through original no-lock cleanup while cache worker is busy"
+    },
+    {
+      "offset": 764318,
+      "before": "0f851f020000",
+      "after": "0f85ae010000",
+      "reason": "Defer Number UI polling through original no-lock cleanup while cache worker is busy"
+    },
+    {
+      "offset": 766206,
+      "before": "0f85f6000000",
+      "after": "0f85ce000000",
+      "reason": "Defer Number UI polling through original no-lock cleanup while cache worker is busy"
+    },
+    {
+      "offset": 601999,
+      "before": "483971100f84dd050000",
+      "after": "e836c21b0084c074e390",
+      "reason": "Require current nonempty direct key and reject blank copied key; never implicitly choose proxy"
+    },
+    {
+      "offset": 603856,
+      "before": "803dfd30110000750c48837b100074054532f6eb0341b601",
+      "after": "e82fbb1b0084c00f84010900009090909090909090909090",
+      "reason": "Require explicit proxy or current nonblank direct key before UUID stats retrieval"
+    },
+    {
+      "offset": 100204,
+      "before": "48833dfcb318000f",
+      "after": "48833d04ba18000f",
+      "reason": "Compare Number-owned key so replacement and clearing reach its existing setter"
+    },
+    {
+      "offset": 100212,
+      "before": "488d05ddb31800",
+      "after": "488d05e5b91800",
+      "reason": "Compare Number-owned key so replacement and clearing reach its existing setter"
+    },
+    {
+      "offset": 100219,
+      "before": "480f4705d5b31800",
+      "after": "480f4705ddb91800",
+      "reason": "Compare Number-owned key so replacement and clearing reach its existing setter"
+    },
+    {
+      "offset": 100261,
+      "before": "4c3b05bcb31800",
+      "after": "4c3b05c4b91800",
+      "reason": "Compare Number-owned key so replacement and clearing reach its existing setter"
+    },
+    {
+      "offset": 579079,
+      "before": "ff9038050000",
+      "after": "e8300d1c0090",
+      "reason": "Localize allowlisted Overlay header before measurement"
+    },
+    {
+      "offset": 579227,
+      "before": "ff9038050000",
+      "after": "e89c0c1c0090",
+      "reason": "Localize allowlisted Overlay header before drawing"
+    },
+    {
+      "offset": 83162,
+      "before": "ff1548a51100",
+      "after": "e8a9b2230090",
+      "reason": "Require Java game-module stop acknowledgement before Lunar End-key cleanup/unload"
+    },
+    {
+      "offset": 278,
+      "before": "0700",
+      "after": "0800",
+      "reason": "Append executable bridge section"
+    },
+    {
+      "offset": 352,
+      "before": "00e02400",
+      "after": "00c02500",
+      "reason": "Bridge image size"
+    },
+    {
+      "offset": 300,
+      "before": "00d61200",
+      "after": "00ae1300",
+      "reason": "Bridge code size"
+    },
+    {
+      "offset": 432,
+      "before": "00901a0044b20000",
+      "after": "00042500acb30000",
+      "reason": "Merged x64 exception table"
+    },
+    {
+      "offset": 816,
+      "before": "00000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "after": "2e61646e636f6465acd7000000e0240000d800000064240000000000000000000000000020000060",
+      "reason": "Read-execute bridge section header"
+    },
+    {
+      "offset": 360,
+      "before": "cafa2400",
+      "after": "1a602500",
+      "reason": "PE checksum"
+    }
+  ],
+  "legacyAnticheat": {
+    "profile": "lunar",
+    "disabled": true,
+    "callRva": 107486,
+    "originalTargetRva": 278784,
+    "originalBodyEndRva": 295912,
+    "before": "e81d9d0200",
+    "after": "9090909090",
+    "reason": "Retire legacy native AntiCheat dispatcher independently of historical configuration",
+    "guiFieldsAndJniAbiPreserved": true,
+    "detectorBodyAndUnwindPreserved": true
+  },
+  "gameTickHook": {
+    "profile": "lunar",
+    "branchRva": 107702,
+    "originalTargetRva": 107951,
+    "maintenanceRva": 107734,
+    "installCallRva": 107892,
+    "installerRva": 823264,
+    "blockStartRva": 107679,
+    "blockEndRva": 107956,
+    "blockSha256": "2d5151fa335276ef2e7ce0dc20369710851785243fd0efc6081a896930ae9521",
+    "before": "0f84f3000000",
+    "after": "0f841a000000",
+    "independentOfSessionStats": true,
+    "sessionStatsDisplaySettingPreserved": true,
+    "originalInstallerAndUnloadPreserved": true,
+    "reason": "Maintain fixed-phase game tick hook even when Session Stats is disabled"
+  },
+  "replayOverlay": [
+    {
+      "profile": "lunar",
+      "predicateRva": 106313,
+      "bridgeTargetRva": 2421036,
+      "before": "38056ec41800",
+      "after": "e8de51230090",
+      "callback": "replayRdi",
+      "purpose": "enabled",
+      "nativeEligibilityRva": 1729469,
+      "nativeGameStateUnchanged": true,
+      "reason": "Allow observed Replay sidebar only at overlay enabled predicate"
+    },
+    {
+      "profile": "lunar",
+      "predicateRva": 108008,
+      "bridgeTargetRva": 2421036,
+      "before": "803dcebd180000",
+      "after": "e83f4b23009090",
+      "callback": "replayRdi",
+      "purpose": "modelCache",
+      "nativeEligibilityRva": 1729469,
+      "nativeGameStateUnchanged": true,
+      "reason": "Allow observed Replay sidebar only at overlay modelCache predicate"
+    },
+    {
+      "profile": "lunar",
+      "predicateRva": 131518,
+      "bridgeTargetRva": 2421292,
+      "before": "803df861180000",
+      "after": "e869f022009090",
+      "callback": "replayRbx",
+      "purpose": "render",
+      "nativeEligibilityRva": 1729469,
+      "nativeGameStateUnchanged": true,
+      "reason": "Allow observed Replay sidebar only at overlay render predicate"
+    },
+    {
+      "profile": "lunar",
+      "predicateRva": 119560,
+      "bridgeTargetRva": 2421548,
+      "before": "803dae90180000",
+      "after": "e81f2023009090",
+      "callback": "replayFrame",
+      "purpose": "fallbackRender",
+      "nativeEligibilityRva": 1729469,
+      "nativeGameStateUnchanged": true,
+      "reason": "Allow observed Replay sidebar only at overlay fallbackRender predicate"
+    }
+  ],
+  "replayStats": {
+    "profile": "lunar",
+    "callRva": 554035,
+    "originalTargetRva": 484160,
+    "bridgeTargetRva": 2421885,
+    "guardedBlockRva": 553976,
+    "guardedBlockSize": 82,
+    "guardedBlockSha256": "e1baf09e1d9cee700c487c4ed94c1054b6ef68b33a738f203fd46a7184cbf797",
+    "callbackOwner": "AdninGui4",
+    "callback": "nativeReplayProfile",
+    "descriptor": "(Ljava/lang/String;)Ljava/lang/String;",
+    "validatedProfileFormat": "accountName|onlineUUIDv4",
+    "rawNameOffset": 64,
+    "confirmedNickSentinel": "NICK",
+    "confirmedNickLabel": "\u00a7c[NICK]",
+    "confirmedNickColor": 16733525,
+    "unknownOrPendingAction": "retain original placeholder",
+    "actorUuidOffset": 328,
+    "rowSize": 376,
+    "statsSize": 288,
+    "queueRva": 644464,
+    "getterRva": 626256,
+    "formatterRva": 376640,
+    "mutexRva": 1723248,
+    "originalPlaceholderPreserved": true,
+    "actorIdentityPreserved": true,
+    "historicalNamesUntouched": true,
+    "nativeGameStateUnchanged": true,
+    "chatAndOutputUntouched": true,
+    "nativeQueueDeduplicationAndThrottlePreserved": true
+  },
+  "replayDenicker": {
+    "profile": "lunar",
+    "gateRva": 551180,
+    "before": "4584e40f85e30a000083fb010f85da0a0000",
+    "after": "e89b911c000f84e10a000090909090909090",
+    "bridgeTargetRva": 2423468,
+    "skipRva": 553976,
+    "fallthroughRva": 551198,
+    "uuidCopyCallRva": 553461,
+    "uuidCopyTargetRva": 2423960,
+    "callbackOwner": "AdninGui4",
+    "callback": "nativeReplayIsNick",
+    "descriptor": "(Ljava/lang/String;)I",
+    "requiredAcknowledgement": 1,
+    "normalizedNameFrameOffset": 976,
+    "ordinaryUuidV1GatePreserved": true,
+    "originalDenickerResolutionAlgorithmsPreserved": true,
+    "actorIdentityPreserved": true,
+    "historicalNameCacheGatesUnchanged": true,
+    "reason": "Admit cached verified Replay Nicks to existing Denicker branch without changing actor identity"
+  },
+  "numberPolling": [
+    {
+      "callRva": 764618,
+      "originalTargetRva": 1190775,
+      "callback": "numberGetLock",
+      "bridgeTargetRva": 2424057,
+      "branchRva": 764625,
+      "before": "0f8505030000",
+      "after": "0f85ddffffff",
+      "busyRva": 764596,
+      "mutexRva": 1723632,
+      "mutexType": 2,
+      "successContinuationRva": 764623,
+      "noLockCleanupPreserved": true,
+      "workerSynchronizationPreserved": true,
+      "queuedItemsPreserved": true,
+      "registrationDeferredUntilLaterPoll": true,
+      "unexpectedErrorAction": "original std::_Throw_Cpp_error(5)",
+      "missingExportFallback": "original _Mtx_lock; original waiting retained",
+      "reason": "Defer Number UI polling through original no-lock cleanup while cache worker is busy"
+    },
+    {
+      "callRva": 767383,
+      "originalTargetRva": 1190775,
+      "callback": "numberRegisterLock",
+      "bridgeTargetRva": 2424057,
+      "branchRva": 767390,
+      "before": "0f851f020000",
+      "after": "0f85ae010000",
+      "busyRva": 767826,
+      "mutexRva": 1723632,
+      "mutexType": 2,
+      "successContinuationRva": 767388,
+      "noLockCleanupPreserved": true,
+      "workerSynchronizationPreserved": true,
+      "queuedItemsPreserved": true,
+      "registrationDeferredUntilLaterPoll": true,
+      "unexpectedErrorAction": "original std::_Throw_Cpp_error(5)",
+      "missingExportFallback": "original _Mtx_lock; original waiting retained",
+      "reason": "Defer Number UI polling through original no-lock cleanup while cache worker is busy"
+    },
+    {
+      "callRva": 769271,
+      "originalTargetRva": 1190775,
+      "callback": "numberPopLock",
+      "bridgeTargetRva": 2424062,
+      "branchRva": 769278,
+      "before": "0f85f6000000",
+      "after": "0f85ce000000",
+      "busyRva": 769490,
+      "mutexRva": 1723632,
+      "mutexType": 2,
+      "successContinuationRva": 769276,
+      "noLockCleanupPreserved": true,
+      "workerSynchronizationPreserved": true,
+      "queuedItemsPreserved": true,
+      "registrationDeferredUntilLaterPoll": true,
+      "unexpectedErrorAction": "original std::_Throw_Cpp_error(5)",
+      "missingExportFallback": "original _Mtx_lock; original waiting retained",
+      "reason": "Defer Number UI polling through original no-lock cleanup while cache worker is busy"
+    }
+  ],
+  "nativeApiPolicy": {
+    "patches": [
+      {
+        "siteRva": 605071,
+        "before": "483971100f84dd050000",
+        "after": "e836c21b0084c074e390",
+        "reason": "Require current nonempty direct key and reject blank copied key; never implicitly choose proxy",
+        "failureRva": 605051,
+        "continuationRva": 605081
+      },
+      {
+        "siteRva": 606928,
+        "before": "803dfd30110000750c48837b100074054532f6eb0341b601",
+        "after": "e82fbb1b0084c00f84010900009090909090909090909090",
+        "reason": "Require explicit proxy or current nonblank direct key before UUID stats retrieval",
+        "failureRva": 609246,
+        "continuationRva": 606952
+      },
+      {
+        "siteRva": 103276,
+        "before": "48833dfcb318000f",
+        "after": "48833d04ba18000f",
+        "reason": "Compare Number-owned key so replacement and clearing reach its existing setter",
+        "oldTargetRva": 1722224,
+        "newTargetRva": 1723768,
+        "displacementOffset": 3
+      },
+      {
+        "siteRva": 103284,
+        "before": "488d05ddb31800",
+        "after": "488d05e5b91800",
+        "reason": "Compare Number-owned key so replacement and clearing reach its existing setter",
+        "oldTargetRva": 1722200,
+        "newTargetRva": 1723744,
+        "displacementOffset": 3
+      },
+      {
+        "siteRva": 103291,
+        "before": "480f4705d5b31800",
+        "after": "480f4705ddb91800",
+        "reason": "Compare Number-owned key so replacement and clearing reach its existing setter",
+        "oldTargetRva": 1722200,
+        "newTargetRva": 1723744,
+        "displacementOffset": 4
+      },
+      {
+        "siteRva": 103333,
+        "before": "4c3b05bcb31800",
+        "after": "4c3b05c4b91800",
+        "reason": "Compare Number-owned key so replacement and clearing reach its existing setter",
+        "oldTargetRva": 1722216,
+        "newTargetRva": 1723760,
+        "displacementOffset": 3
+      }
+    ],
+    "explicitProxyRequired": true,
+    "blankDirectKeyRejected": true,
+    "keyPresenceSourceRva": 1723344,
+    "numberKeyRva": 1723744,
+    "numberIndependentCopyCompared": true,
+    "currentEmptyConfigRejectsOldWorkerKey": true,
+    "ping": {
+      "callRva": 656380,
+      "originalTargetRva": 621312,
+      "bridgeTargetRva": 2424352,
+      "callback": "apiPingProxy"
+    },
+    "http": {
+      "authentication": "API-Key request header",
+      "playerParameter": "uuid",
+      "nameResolution": "original native Mojang resolver",
+      "legacyKeyQueryRemovedBeforeNetwork": true,
+      "temporaryHeaderClearedOnNormalReturn": true,
+      "sources": [
+        {
+          "callRva": 605656,
+          "originalTargetRva": 187824,
+          "bridgeTargetRva": 2424420,
+          "callback": "hypixelHttp"
+        },
+        {
+          "callRva": 607936,
+          "originalTargetRva": 187824,
+          "bridgeTargetRva": 2424420,
+          "callback": "hypixelHttp"
+        },
+        {
+          "callRva": 716276,
+          "originalTargetRva": 187824,
+          "bridgeTargetRva": 2424420,
+          "callback": "hypixelHttp"
+        }
+      ]
+    },
+    "failedCacheRefresh": {
+      "callRva": 651733,
+      "originalTargetRva": 695952,
+      "bridgeTargetRva": 2425500,
+      "callback": "apiRefreshFailures",
+      "underOriginalStatsMutex": true,
+      "onlyFailedEntriesExpired": true,
+      "successfulResultsPreserved": true,
+      "failureTimestamp": 18446744073709506615
+    },
+    "originalSettersAndLocksPreserved": true,
+    "originalNoResultCleanupPreserved": true,
+    "limitation": "Existing cached results and requests already accepted before configuration synchronization may complete; no cancellation barrier is installed"
+  },
+  "headerLocalization": {
+    "owner": "AdninGui4",
+    "callback": "nativeOverlayHeader",
+    "descriptor": "(Ljava/lang/String;Ljava/lang/Object;I)Ljava/lang/String;",
+    "titleOnly": true,
+    "nativeColumnLayoutChanged": false,
+    "fitToColumnWidth": true,
+    "nativeFontRegister": "R12",
+    "nativeDescriptorRegister": "RDI",
+    "widthOffset": 68,
+    "patches": [
+      {
+        "siteRva": 582151,
+        "before": "ff9038050000",
+        "after": "e8300d1c0090",
+        "bridgeTargetRva": 2420540,
+        "purpose": "measurement",
+        "reason": "Localize allowlisted Overlay header before measurement"
+      },
+      {
+        "siteRva": 582299,
+        "before": "ff9038050000",
+        "after": "e89c0c1c0090",
+        "bridgeTargetRva": 2420540,
+        "purpose": "drawing",
+        "reason": "Localize allowlisted Overlay header before drawing"
+      }
+    ]
+  },
+  "schedulerLocalReference": {
+    "callRva": 875834,
+    "originalTargetRva": 49776,
+    "bridgeTargetRva": 2425656,
+    "callback": "lunarSchedule",
+    "returnedLocalFutureReleased": true,
+    "pendingExceptionPreserved": true,
+    "javaQueueOwnershipUnchanged": true,
+    "scope": "Lunar long-lived attached initializer thread"
+  },
+  "processTerminationGuard": {
+    "offset": 312,
+    "before": "103d1200",
+    "after": "0c032500",
+    "originalEntryRva": 1195280,
+    "bridgeEntryRva": 2425612,
+    "condition": "DLL_PROCESS_DETACH and lpReserved != NULL",
+    "explicitFreeLibraryPreserved": true,
+    "noJniLocksOrJoinsDuringProcessExit": true,
+    "reason": "Skip CRT worker destructors only while the entire process is terminating"
+  },
+  "outputRouting": {
+    "owner": "AdninGui4",
+    "callback": "nativeRenderGeneratedEvent",
+    "descriptor": "(Ljava/lang/String;ZI)I",
+    "categories": {
+      "players": 0,
+      "tags": 1,
+      "anticheatJavaOnly": 2,
+      "localOnly": 3
+    },
+    "sources": [
+      {
+        "callRva": 102531,
+        "json": false,
+        "category": 3
+      },
+      {
+        "callRva": 102780,
+        "json": false,
+        "category": 3
+      },
+      {
+        "callRva": 449085,
+        "json": false,
+        "category": 0
+      },
+      {
+        "callRva": 453440,
+        "json": false,
+        "category": 0
+      },
+      {
+        "callRva": 437943,
+        "json": true,
+        "category": 1
+      },
+      {
+        "callRva": 439858,
+        "json": false,
+        "category": 1
+      },
+      {
+        "callRva": 557128,
+        "json": true,
+        "category": 0
+      },
+      {
+        "callRva": 557135,
+        "json": false,
+        "category": 0
+      },
+      {
+        "callRva": 556829,
+        "json": false,
+        "category": 0
+      }
+    ],
+    "classification": "verified native producer CALL site, independent of message text"
+  },
+  "lunarUnloadGuard": {
+    "callRva": 86234,
+    "bridgeTargetRva": 2425736,
+    "originalIatRva": 1242664,
+    "stopOwner": "AdninGui4",
+    "stopMethod": "nativeStopGameModules",
+    "descriptor": "()I",
+    "requiredAcknowledgement": 1,
+    "initializerEnvStackOffset": 48,
+    "failureAction": "return no End key; defer native cleanup and unload"
+  },
+  "gameRuntimeTested": false,
+  "originalDllExecutedByBuild": false,
+  "skinSuccessOutput": {
+    "callRva": 556829,
+    "successGetterCallRva": 556028,
+    "successGetterRva": 697888,
+    "noSuccessSkipRva": 556857,
+    "format": "colored plain std::string",
+    "callback": "nativeRenderGeneratedEvent"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "stage": "v12-owned-anticheat-offline-validation",
+  "compiler": "Microsoft OpenJDK 17.0.20.101, --release 8",
+  "vm": "-Xverify:all",
+  "tests": {
+    "AdninAnticheatCoreTest": 2419,
+    "AdninAnticheatSettingsTest": 56
+  },
+  "unchangedFixtureAfter": {
+    "legitSneakAtPhase1": 1,
+    "legitSneakAtPhase0": 1,
+    "scaffoldContiguousTicks": 1,
+    "scaffoldEveryOtherTick": 0
+  },
+  "sourceSha256": {
+    "outputs/adnin-build/src/java/AdninAnticheatCore.java": "3a7bea49237ba4c0184bc4277e8501280286e5fadae1726143583e49040dfa92",
+    "outputs/adnin-build/src/java/AdninAnticheat.java": "7ea58aef6813747848eb4390edceb3de547ee755306871a0461e5354279e5d9a",
+    "outputs/adnin-build/tests/java/AdninAnticheatCoreTest.java": "add3a004231341c8c54b551a0345c174d9abc00180feda1f5aacc37bfd571dac",
+    "outputs/adnin-build/tests/java/AdninAnticheatSettingsTest.java": "ed508adbc07763c2cbb7b1bb52e9c14ca4c986734963ead6876ab97da08c0744",
+    "work/raven-v12/AnticheatV11Baseline.java": "6bd71247f1a168b4abea8176cf49376e7d22abb26f03b86c58d3f6dae883e10d"
+  },
+  "exclusions": [
+    "No game start or injection",
+    "No network",
+    "No personal config access",
+    "No chat or report sends",
+    "No sound playback"
+  ],
+  "notes": "Settings test compiles actual current Anticheat/Replay sources against normalized local Lunar runtime and existing parent helper classes. Core/phase fixture use no Minecraft classpath. The all-zero invalid UUID fixture uses new UUID(0L,0L); release privacy rules are unchanged."
+}

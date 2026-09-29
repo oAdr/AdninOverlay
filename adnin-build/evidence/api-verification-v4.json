@@ -1,0 +1,37 @@
+{
+  "version": "v4",
+  "sourceSha256": "68014ce8e8d8a2bfb259ac036fad813682c5662c16842a26e0888e2d392a86b0",
+  "service": "Official Urchin v3",
+  "authenticated": true,
+  "originalFailureReproduced": false,
+  "originalClient": {
+    "runtime": "Lunar Zulu 17.0.18",
+    "requests": 5,
+    "successful": 5,
+    "emptyTagResponses": 4,
+    "nonemptyTagResponses": 1
+  },
+  "revisedClient": [
+    {
+      "runtime": "Lunar Zulu 17.0.18",
+      "nameRequests": 1,
+      "uuidRequests": 1,
+      "successful": 2,
+      "emptyTagResponses": 1,
+      "nonemptyTagResponses": 1
+    },
+    {
+      "runtime": "Lunar Zulu 25.0.1",
+      "nameRequests": 1,
+      "uuidRequests": 1,
+      "successful": 2,
+      "emptyTagResponses": 1,
+      "nonemptyTagResponses": 1
+    }
+  ],
+  "keyStoredInSourceOrReport": false,
+  "rawResponsesStored": false,
+  "playerIdentifiersStored": false,
+  "gameRuntimeTested": false,
+  "notes": "One-shot standalone probes use the production API source. No game process was injected and no chat was sent. Keys were supplied to the Java process via redirected stdin."
+}
