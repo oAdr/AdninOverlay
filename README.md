@@ -1,4 +1,4 @@
-# Adnin
+# AdninOverlay
 
 A Windows x64 companion for Minecraft 1.8.9, focused on Hypixel player statistics, overlays, and client utilities. Adnin targets Lunar Client, Badlion Client, and Vanilla through a standalone executable with embedded runtime DLLs. No Forge installation is required.
 
