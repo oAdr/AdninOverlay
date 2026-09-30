@@ -1,7 +1,8 @@
-"""Static PE checks and isolated execution of only our newly assembled bridges.
+"""Static PE checks and isolated execution of native bridges and mock consumers.
 
-The supplied/reconstructed native DLL and Java classes are never executed.
-Private mock memory contains only our bridge and Python-backed ABI stubs.
+The supplied/reconstructed native DLL is never loaded and Java never executes.
+Private mock memory holds the new bridges and Python-backed ABI stubs. Chat
+pruning additionally runs copied consumer bytes with every external call mocked.
 """
 import argparse
 import ctypes
@@ -27,6 +28,10 @@ import api_policy_checks
 import hypixel_http_checks
 import header_checks
 import process_entry_checks
+import game_state_checks
+import skin_policy_checks
+import input_hooks_checks
+import chat_poll_prune_checks
 
 parser = argparse.ArgumentParser(add_help=False)
 parser.add_argument('--input', type=Path, required=True)
@@ -59,6 +64,21 @@ def fixture():
 
 
 class CompatPETests(unittest.TestCase):
+    def test_chat_poll_pruning_preserves_consumer_boundary_abi_refs_and_chained_unwind(self):
+        chat_poll_prune_checks.verify(self,self.before,self.final,self.report,'vanilla')
+        chat_poll_prune_checks.execute(self,self.final,self.report,'vanilla',ARGS.nasm)
+
+    def test_input_binding_lifecycle_and_ordinary_message_transparency(self):
+        input_hooks_checks.verify(self,self.before,self.final,self.report,'vanilla')
+        input_hooks_checks.execute(self,self.final,self.report,'vanilla',ARGS.nasm)
+
+    def test_mellow_skin_retires_hash_scans_without_changing_setting_or_other_denickers(self):
+        skin_policy_checks.verify(self,self.before,self.final,self.report,'vanilla')
+
+    def test_game_state_published_after_parser_with_strict_predicate_and_safe_jni(self):
+        game_state_checks.verify(self,self.before,self.final,self.report,'vanilla')
+        game_state_checks.execute(self,self.final,self.report,'vanilla',ARGS.nasm)
+
     def test_process_exit_guard_preserves_explicit_unload_attach_and_abi(self):
         process_entry_checks.verify(self,self.before,self.final,self.report,'vanilla')
         process_entry_checks.execute(self,self.final,self.report,'vanilla',ARGS.nasm)
@@ -123,14 +143,21 @@ class CompatPETests(unittest.TestCase):
         self.assertEqual(report, self.report)
 
     def test_registration_unload_guard_and_all_feature_hooks(self):
-        self.assertEqual(len(self.report['hooks']), 28)
+        self.assertEqual(len(self.report['hooks']), 29)
         self.assertEqual({h['callback'] for h in self.report['hooks']},
-                         {'plain', 'json', 'plainTags', 'jsonTags', 'plainLocal', 'prelayout', 'render', 'seraphPrefix', 'denicker', 'matchStart', 'columnCatalog', 'replayStats', 'replayUuidCopy', 'numberGetLock', 'numberRegisterLock', 'numberPopLock', 'apiPingProxy', 'hypixelHttp', 'apiRefreshFailures', 'registerClientTick', 'stopClientPumpBeforeUnload'})
+                         {'plain', 'plainDenick', 'jsonDenick', 'plainTags', 'jsonTags', 'plainLocal', 'gameActive', 'prelayout', 'render', 'seraphPrefix', 'denicker', 'matchStart', 'columnCatalog', 'replayStats', 'replayUuidCopy', 'numberGetLock', 'numberRegisterLock', 'numberPopLock', 'apiPingProxy', 'hypixelHttp', 'apiRefreshFailures', 'registerClientTick', 'stopClientPumpBeforeUnload'})
         for item in self.report['hooks']:
             expected = bridge.call_bytes(item['callRva'], item['bridgeTargetRva'])
             self.assertEqual(self.pe.get_data(item['callRva'], 5), expected)
         self.assertEqual(self.pe.get_data(native_compat.REGISTER_SITE + 5, 1), b'\x90')
         self.assertEqual(self.pe.get_data(native_compat.UNLOAD_KEY_SITE + 5, 1), b'\x90')
+        guard = self.report['unloadGuard']
+        self.assertFalse(guard['systemKeyPolling'])
+        self.assertTrue(guard['requiresClientAuthorizedRequest'] and guard['requestSurvivesKeyRelease'])
+        self.assertEqual(guard['originalPollIntervalMs'], 20)
+        before = pefile.PE(data=self.before)
+        for rva, size in ((0x15200, 5), (0x1520b, 5), (0x1522d, 0x0d), (0x1523f, 0x23)):
+            self.assertEqual(self.pe.get_data(rva, size), before.get_data(rva, size))
 
     def test_legacy_anticheat_dispatch_is_nopped_and_original_body_is_retained(self):
         before = pefile.PE(data=self.before)
@@ -160,7 +187,7 @@ class CompatPETests(unittest.TestCase):
     def test_skin_success_hook_keeps_pending_status_and_nonempty_name_guards(self):
         before = pefile.PE(data=self.before)
         hook = next(h for h in self.report['hooks'] if h['callRva'] == 0x89819)
-        self.assertEqual((hook['originalTargetRva'], hook['callback']), (0x39f40, 'plain'))
+        self.assertEqual((hook['originalTargetRva'], hook['callback']), (0x39f40, 'plainDenick'))
         self.assertEqual(before.get_data(0x89819, 5), bytes.fromhex('e82207fbff'))
         for rva, expected in ((0x894f8, 'e80337020084c00f8430030000'),
                               (0x89806, '4c8d8df02500004d8b4608488b542458498bcd'),
@@ -190,8 +217,8 @@ class CompatPETests(unittest.TestCase):
         self.assertEqual(self.pe.get_data(state.VirtualAddress, 40), native_compat.STATE_MAGIC + bytes(32))
 
     def test_unwind_and_runtime_descriptor(self):
-        self.assertEqual(len(self.report['bridgeRuntimeFunctions']), 30)
-        self.assertEqual(len(self.pe.DIRECTORY_ENTRY_EXCEPTION), 3825)
+        self.assertEqual(len(self.report['bridgeRuntimeFunctions']), len(bridge.FUNCTION_NAMES)+2)
+        self.assertEqual(len(self.pe.DIRECTORY_ENTRY_EXCEPTION), 3795+len(bridge.FUNCTION_NAMES)+2)
         runtime = self.report['runtime_metadata']
         self.assertEqual(runtime['heartbeatWidth'], 8)
         self.assertEqual(runtime['heartbeatRva'], self.report['stateSection']['rva'] + 16)
@@ -235,6 +262,7 @@ class CompatExecutionTests(unittest.TestCase):
         self.global_class = 0x7788
         self.key_state = 0
         self.stop_throws = False
+        self.stop_ack = 1
         self.entries = (ctypes.c_uint64 * 6)(*[self.base + v for v in (0x140cd0, 0x140ce8, 0x20490, 0x140d00, 0x140d28, 0x204a0)])
         def register(env, clazz, methods, count):
             self.events.append(('register', env, clazz, count, ctypes.string_at(methods, count * 24)))
@@ -253,11 +281,15 @@ class CompatExecutionTests(unittest.TestCase):
         def stop(env, clazz, method_id, args):
             self.lifecycle_events.append(('stop', env, clazz, method_id, args))
             if self.stop_throws: self.pending_exception = 1
+            return self.stop_ack
         self.bind(0x388, P, [P, P, ctypes.c_char_p, ctypes.c_char_p], method)
         self.bind(0xa8, P, [P, P], new_global)
         self.bind(0xb0, None, [P, P], delete_global)
-        self.bind(0x478, None, [P, P, P, P], stop)
-        key_callback = ctypes.WINFUNCTYPE(ctypes.c_short, ctypes.c_int)(lambda key: self.key_state)
+        self.bind(0x418, ctypes.c_int, [P, P, P, P], stop)
+        def key_state(key):
+            self.lifecycle_events.append(('system-key', key))
+            return self.key_state
+        key_callback = ctypes.WINFUNCTYPE(ctypes.c_short, ctypes.c_int)(key_state)
         self.keep.append(key_callback)
         ctypes.c_void_p.from_address(self.base + 0x132640).value = ctypes.cast(key_callback, P).value
         target = self.base + section['rva'] + meta['register']
@@ -301,7 +333,7 @@ class CompatExecutionTests(unittest.TestCase):
         self.assertEqual(ctypes.c_uint32.from_address(self.state + 8).value, 1)
         self.assertEqual(ctypes.c_uint64.from_address(self.state + 24).value, self.global_class)
         self.assertEqual(ctypes.c_uint64.from_address(self.state + 32).value, self.stop_method)
-        self.assertEqual(self.lifecycle_events[0], ('method', self.env_ptr, 0x1234, b'adninStopClientPump', b'()V'))
+        self.assertEqual(self.lifecycle_events[0], ('method', self.env_ptr, 0x1234, b'adninTryStopClientPump', b'()I'))
 
     def test_registration_failure_is_preserved_and_not_reported_ready(self):
         self.return_status = -7
@@ -336,22 +368,64 @@ class CompatExecutionTests(unittest.TestCase):
         self.assertEqual(ctypes.c_uint32.from_address(self.state + 8).value, 0)
         self.assertEqual(ctypes.c_uint64.from_address(self.state + 24).value, 0)
 
-    def test_end_stops_callback_before_allowing_original_cleanup(self):
+    def test_client_authorized_stop_ack_allows_original_cleanup(self):
         self.register(self.env_ptr, 0x1234, ctypes.addressof(self.entries), 2)
         self.key_state = -32768
-        self.assertEqual(self.unload_key(0x23, self.env_ptr), -32768)
+        self.assertEqual(self.unload_key(0x23, self.env_ptr), 1)
+        self.assertFalse(any(e[0] == 'system-key' for e in self.lifecycle_events))
         self.assertEqual(self.lifecycle_events[-2:], [('stop', self.env_ptr, self.global_class, self.stop_method, None),
                                                      ('delete-global', self.env_ptr, self.global_class)])
         self.assertEqual(ctypes.c_uint32.from_address(self.state + 8).value, 0)
         self.assertEqual(ctypes.c_uint32.from_address(self.state + 12).value, 1)
         self.assertEqual(bytes(ctypes.string_at(self.state + 24, 16)), bytes(16))
 
-    def test_idle_key_and_uninstalled_pump_do_not_call_stop(self):
+    def test_input_callback_retains_jni_refs_until_detach_is_safe(self):
+        self.register(self.env_ptr,0x1234,ctypes.addressof(self.entries),2)
+        active=ctypes.c_uint32.from_address(self.base+self.report['nativeInputHooks']['activeCounterRva'])
+        self.stop_ack=1;active.value=1
+        self.assertEqual(self.unload_key(0x23,self.env_ptr),0)
+        self.assertEqual(ctypes.c_uint32.from_address(self.state+8).value,1)
+        self.assertEqual(ctypes.c_uint64.from_address(self.state+24).value,self.global_class)
+        self.assertFalse(any(e[0]=='delete-global' for e in self.lifecycle_events))
+        active.value=0
+        self.assertEqual(self.unload_key(0x23,self.env_ptr),1)
+        self.assertEqual(ctypes.c_uint32.from_address(self.state+8).value,0)
+
+    def test_system_key_cannot_bypass_missing_pump_or_client_authorization(self):
         self.key_state = -32768
-        self.assertEqual(self.unload_key(0x23, None), -32768)
+        self.assertEqual(self.unload_key(0x23, None), 0)
         self.assertFalse(self.lifecycle_events)
         self.register(self.env_ptr, 0x1234, ctypes.addressof(self.entries), 2)
-        self.key_state = 0
+        self.stop_ack = 0
+        for key in (-32768, -32767, 1, 0):
+            self.key_state = key
+            before = len(self.lifecycle_events)
+            self.assertEqual(self.unload_key(0x23, self.env_ptr), 0)
+            self.assertEqual(self.lifecycle_events[before:], [('stop', self.env_ptr, self.global_class, self.stop_method, None)])
+            self.assertEqual(ctypes.c_uint32.from_address(self.state + 8).value, 1)
+        self.assertFalse(any(e[0] == 'system-key' for e in self.lifecycle_events))
+
+    def test_busy_stop_preserves_ownership_until_nonblocking_ready_retry(self):
+        self.register(self.env_ptr, 0x1234, ctypes.addressof(self.entries), 2)
+        self.key_state = -32768
+        for acknowledgement in (0, 0, 2, -1):
+            self.stop_ack = acknowledgement
+            before = len(self.lifecycle_events)
+            self.assertEqual(self.unload_key(0x23, self.env_ptr), 0)
+            self.assertEqual(self.pending_exception, 0)
+            self.assertEqual(self.lifecycle_events[before:],
+                             [('stop', self.env_ptr, self.global_class, self.stop_method, None)])
+            self.assertEqual(ctypes.c_uint32.from_address(self.state + 8).value, 1)
+            self.assertEqual(ctypes.c_uint32.from_address(self.state + 12).value, 0)
+            self.assertEqual(ctypes.c_uint64.from_address(self.state + 24).value, self.global_class)
+            self.assertEqual(ctypes.c_uint64.from_address(self.state + 32).value, self.stop_method)
+            self.key_state = 0
+        self.stop_ack = 1
+        self.assertEqual(self.unload_key(0x23, self.env_ptr), 1)
+        self.assertEqual(self.lifecycle_events[-1], ('delete-global', self.env_ptr, self.global_class))
+        self.assertEqual(ctypes.c_uint32.from_address(self.state + 8).value, 0)
+        self.assertEqual(ctypes.c_uint32.from_address(self.state + 12).value, 1)
+        self.assertEqual(bytes(ctypes.string_at(self.state + 24, 16)), bytes(16))
         before = list(self.lifecycle_events)
         self.assertEqual(self.unload_key(0x23, self.env_ptr), 0)
         self.assertEqual(self.lifecycle_events, before)
@@ -365,9 +439,23 @@ class CompatExecutionTests(unittest.TestCase):
         self.assertEqual(ctypes.c_uint64.from_address(self.state + 24).value, self.global_class)
         self.assertEqual(ctypes.c_uint32.from_address(self.state + 12).value, 0)
         self.assertEqual(self.lifecycle_events[-1][0], 'stop')
+        self.assertEqual(self.pending_exception, 1)
         before = list(self.lifecycle_events)
         self.assertEqual(self.unload_key(0x23, self.env_ptr), 0)
         self.assertEqual(self.lifecycle_events, before)
+
+    def test_existing_jni_exception_does_not_call_stop_or_consume_ownership(self):
+        self.register(self.env_ptr, 0x1234, ctypes.addressof(self.entries), 2)
+        self.key_state = -32768
+        self.pending_exception = 1
+        before = list(self.lifecycle_events)
+        self.assertEqual(self.unload_key(0x23, self.env_ptr), 0)
+        self.assertEqual(self.pending_exception, 1)
+        self.assertEqual(self.lifecycle_events, before)
+        self.assertEqual(ctypes.c_uint32.from_address(self.state + 8).value, 1)
+        self.assertEqual(ctypes.c_uint32.from_address(self.state + 12).value, 0)
+        self.assertEqual(ctypes.c_uint64.from_address(self.state + 24).value, self.global_class)
+        self.assertEqual(ctypes.c_uint64.from_address(self.state + 32).value, self.stop_method)
 
     def test_missing_attached_env_defers_cleanup(self):
         self.register(self.env_ptr, 0x1234, ctypes.addressof(self.entries), 2)
@@ -422,7 +510,7 @@ class CompatExecutionTests(unittest.TestCase):
             for register in saved:
                 self.assertEqual(struct.unpack_from('<Q', context, registers[register])[0], 0xdead0000 + register)
 
-    def test_expanded_skin_buffer_reaches_last_compatibility_field(self):
+    def test_legacy_skin_scratch_is_retired_without_touching_its_destructor(self):
         P, I = ctypes.c_void_p, ctypes.c_int
         self.bind(0x720, ctypes.c_ubyte, [P], lambda env: 0)
         ctypes.c_uint64.from_address(self.base + 0x17e428).value = 0x1234
@@ -451,24 +539,29 @@ class CompatExecutionTests(unittest.TestCase):
         row, result = ctypes.create_string_buffer(0x178), ctypes.create_string_buffer(0x1c8)
         run = ctypes.WINFUNCTYPE(P, P, P, P)(self.base + 0x1200)
         self.assertFalse(run(self.env_ptr, ctypes.addressof(row) + 0x40, ctypes.addressof(result)))
-        self.assertEqual([event[0] for event in self.events], ['skin', 'destroy'])
-        self.assertEqual(self.events[0][1], self.events[1][1])
+        self.assertEqual(self.events, [], 'Legacy Skin getter/destructor must not execute')
         self.assertFalse(self.failures)
 
     def test_bot_results_use_expanded_stats_and_all_three_mode_flags(self):
         P, I = ctypes.c_void_p, ctypes.c_int
         profile = b'Adnin|12345678-1234-4567-89ab-123456789abc'
+        settings, publications = [], []
         ctypes.c_uint64.from_address(self.base + 0x17e428).value = 0x1234
         self.bind(0x720, ctypes.c_ubyte, [P], lambda env: 0)
         self.bind(0x538, P, [P, ctypes.c_char_p], lambda env, name: 1)
         self.bind(0x388, P, [P, P, ctypes.c_char_p, ctypes.c_char_p], lambda *args: 2)
-        self.bind(0x3a0, P, [P, P, P, P], lambda *args: 3)
+        def cached_profile(env, clazz, method, args):
+            settings.append(bool(ctypes.c_uint64.from_address(args+8).value))
+            return 3
+        self.bind(0x3a0, P, [P, P, P, P], cached_profile)
+        self.bind(0x478, None, [P, P, P, P], lambda env, clazz, method, args:
+            publications.append((ctypes.c_uint64.from_address(args).value,ctypes.c_uint64.from_address(args+8).value)))
         self.bind(0x520, I, [P, P], lambda *args: len(profile))
         self.bind(0x6e8, None, [P, P, I, I, P], lambda env, ref, start, size, target: ctypes.memmove(target, profile, len(profile)))
         self.bind(0xb8, None, [P, P], lambda env, ref: self.events.append(('delete', ref)))
         self.stub(0xbcf40, P, [P, P], lambda *args: 0)
         self.stub(0x7d540, I, [P], lambda uuid: 1)
-        self.stub(0xa9a10, ctypes.c_ubyte, [], lambda: 0)
+        self.stub(0xa9a10, ctypes.c_ubyte, [], lambda: self.skin_enabled)
         self.stub(0x93230, None, [P, I], lambda name, level: self.events.append(('name-queue', level)))
         self.stub(0x9c790, None, [P, P], lambda *args: self.events.append(('uuid-queue',)))
         def stats(uuid, target):
@@ -496,6 +589,7 @@ class CompatExecutionTests(unittest.TestCase):
         ctypes.memmove(self.base + 0x1200, caller, len(caller))
         run = ctypes.WINFUNCTYPE(P, P, P, P)(self.base + 0x1200)
         for self.mode_ready in (8, 0xc0, 0x100):
+            self.skin_enabled = self.mode_ready != 8
             row = ctypes.create_string_buffer(0x178)
             result = ctypes.create_string_buffer(0x1d0)
             name = ctypes.create_string_buffer(b'isa5')
@@ -512,6 +606,8 @@ class CompatExecutionTests(unittest.TestCase):
             self.assertEqual(result.raw[0x20:0x25], b'Adnin')
         self.assertEqual(sum(e[0] == 'uuid-queue' for e in self.events), 3)
         self.assertEqual(sum(e[0] == 'stats-copy' for e in self.events), 3)
+        self.assertEqual(settings,[False,True,True], 'Native Skin setting reaches the shared cache bridge')
+        self.assertEqual(publications,[(1,3)]*3, 'Success acknowledgment retains both JNI string arguments')
         # Replay reuses verified Bot results through the UUID-only queue.
         self.events.clear()
         self.bind(0x418, I, [P,P,P,P], lambda *args: 1)

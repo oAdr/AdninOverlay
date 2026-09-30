@@ -18,7 +18,8 @@ public final class AdninUrchinCacheTest {
         sameMatchAndStaleCompletion();
         clearPolicies();
         leastRecentlyUsed();
-        System.out.println("AdninUrchinCacheTest: " + checks + " checks passed; match-only scheduling, UUID/name normalization, 10min/45sec boundaries, negative cache, stale results, cross-world reuse and LRU");
+        inFlightAcrossMatches();
+        System.out.println("AdninUrchinCacheTest: " + checks + " checks passed; Seraph 10min/45sec policy, stale-readable content, identity/in-flight dedup, cross-world/key reuse and bounded LRU");
     }
 
     private static void successExpiry() {
@@ -31,6 +32,7 @@ public final class AdninUrchinCacheTest {
         eq(0, cache.beginMatch(2, roster("ALICE", UUID_A), 601000).size(), "exact 10 minute boundary still fresh");
         eq(tags("sniper: example reason"), cache.visibleTags().get("alice"), "fresh value reused in next match");
         eq(1, cache.beginMatch(3, roster("Alice", UUID_A), 601001).size(), "one millisecond after 10 minutes expires at match start");
+        eq(tags("sniper: example reason"), cache.visibleTags().get("alice"), "Stale successful content stays readable during refresh like Seraph");
     }
 
     private static void negativeAndFailureExpiry() {
@@ -123,6 +125,30 @@ public final class AdninUrchinCacheTest {
         eq(2, cache.size(), "insertion never exceeds capacity");
         eq(0, cache.beginMatch(74, roster("Alice", UUID_A), 5000).size(), "recently used identity survives eviction");
         eq(1, cache.beginMatch(75, roster("Bob", UUID_B), 6000).size(), "least recently used identity evicted");
+    }
+
+    private static void inFlightAcrossMatches() {
+        AdninUrchinCache cache = new AdninUrchinCache(4);
+        Map<String, String> jobs = cache.beginMatch(80, roster("Alice", UUID_A), 1000);
+        eq(1, jobs.size(), "Original match admits identity once");
+        cache.clearMatch();
+        eq(0, cache.beginMatch(81, roster("NewAlias", UUID_A), 1001).size(),
+            "A world transition does not schedule a duplicate while identity is in flight");
+        check(cache.complete(80, UUID_A, tags("sniper"), true, 1002),
+            "Prior-match in-flight completion populates identity cache");
+        eq(tags("sniper"), cache.visibleTags().get("newalias"), "Completion binds only to the current roster alias");
+        check(!cache.visibleTags().containsKey("alice"), "Old roster is not resurrected");
+        cache.clearPending(); cache.clearMatch();
+        eq(0, cache.beginMatch(82, roster("Alice", UUID_A), 1003).size(),
+            "Credential changes preserve completed content just like Seraph");
+        cache.beginMatch(83, roster("Bob", UUID_B), 2000);
+        cache.cancel(82, UUID_B);
+        eq(0, cache.beginMatch(84, roster("Bob", UUID_B), 2001).size(), "Wrong-token cancellation cannot retire in-flight owner");
+        cache.cancel(83, UUID_B);
+        eq(1, cache.beginMatch(85, roster("Bob", UUID_B), 2002).size(), "Retired unstarted jobs may retry at next game start");
+        check(!cache.complete(83, UUID_B, tags("stale"), true, 2003), "Cancelled job cannot overwrite replacement");
+        cache.clearPending();
+        check(!cache.complete(85, UUID_B, tags("old key"), true, 2004), "Changed-key in-flight response is rejected");
     }
 
     private static Map<String, String> roster(String... values) {

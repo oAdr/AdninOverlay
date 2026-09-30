@@ -28,6 +28,10 @@ import native_tick_hook
 import native_headers
 import native_scheduler
 import native_process_entry
+import native_game_state
+import native_skin_policy
+import native_input_hooks
+import native_chat_poll
 
 ROOT = Path(__file__).resolve().parents[1]
 MAGIC = b'ADNINB01'
@@ -47,14 +51,15 @@ META_FIELDS = (
 )
 HOOKS = (
     (0x19083, 0x38260, 'plainLocal'), (0x1917c, 0x38260, 'plainLocal'),
-    (0x6da3d, 0x38260, 'plain'), (0x6eb40, 0x38260, 'plain'),
+    (0x6da3d, 0x38260, 'plain'), (0x6eb40, 0x38260, 'plainDenick'),
     (0x6aeb7, 0x37f60, 'jsonTags'), (0x6b632, 0x38260, 'plainTags'),
-    (0x88048, 0x37f60, 'json'), (0x8804f, 0x38260, 'plain'),
-    (0x87f1d, 0x38260, 'plain'),  # Skin success bypasses the shared message queue
+    (0x88048, 0x37f60, 'jsonDenick'), (0x8804f, 0x38260, 'plainDenick'),
+    (0x87f1d, 0x38260, 'plainDenick'),  # Skin success bypasses the shared message queue
     (0x8e0e1, 0x8a360, 'prelayout'), (0x8e35f, 0x8c870, 'render'),
     (0x6aa7d, 0x68100, 'seraphPrefix'), (0x6b0dd, 0x68100, 'seraphPrefix'),
     (0x86cff, 0xba530, 'denicker'),
     (0x13f0d, 0x8a240, 'matchStart'),
+    (0x185ff, 0x12a20, 'gameActive'),
     (0x5fa4d, 0x5e850, 'columnCatalog'),
     (0x87433, 0x76340, 'replayStats'),
     (0x871f5, 0x72c0, 'replayUuidCopy'),
@@ -73,7 +78,9 @@ FUNCTION_NAMES = ('output', 'invoke', 'string', 'layout', 'render', 'denicker', 
                   'replayRdi', 'replayRbx', 'replayFrame',
                   'replayStats', 'replayStatsQueue', 'replayStatsCleanup', 'replayStatsFrameCleanup',
                   'replayDenickGate', 'replayNickName', 'replayUuidCopy', 'numberLock',
-                  'apiKeyReady', 'apiUuidReady', 'apiPingProxy', 'hypixelHttp', 'apiDecodeComponent', 'apiRefreshFailures', 'processEntry')
+                  'apiKeyReady', 'apiUuidReady', 'apiPingProxy', 'hypixelHttp', 'apiDecodeComponent', 'apiRefreshFailures', 'processEntry', 'gameActive')
+FUNCTION_NAMES += native_input_hooks.FUNCTION_NAMES
+FUNCTION_NAMES += ('chatPollTail',)
 LUNAR_FUNCTION_NAMES = FUNCTION_NAMES + ('lunarSchedule', 'lunarStop')
 LUNAR_UNLOAD_SITE = 0x150da
 LUNAR_UNLOAD_BEFORE = bytes.fromhex('ff1548a51100')
@@ -98,10 +105,13 @@ def call_bytes(site, target):
 
 
 def output_routing(hooks):
+    categories = {'players': 0, 'tags': 1, 'anticheatJavaOnly': 2, 'denick': 3, 'localOnly': 4}
+    entries = {'plain': 0, 'json': 0, 'plainTags': 1, 'jsonTags': 1,
+               'plainDenick': 3, 'jsonDenick': 3, 'plainLocal': 4}
     return dict(owner='AdninGui4', callback='nativeRenderGeneratedEvent', descriptor='(Ljava/lang/String;ZI)I',
-                categories={'players': 0, 'tags': 1, 'anticheatJavaOnly': 2, 'localOnly': 3},
-                sources=[dict(callRva=site, json=name.startswith('json'), category=3 if name.endswith('Local') else 1 if name.endswith('Tags') else 0)
-                         for site, _, name in hooks if name in ('plain','json','plainTags','jsonTags','plainLocal')],
+                categories=categories,
+                sources=[dict(callRva=site, json=name.startswith('json'), category=entries[name])
+                         for site, _, name in hooks if name in entries],
                 classification='verified native producer CALL site, independent of message text')
 
 
@@ -132,17 +142,23 @@ def read_metadata(payload, code_rva):
     require(not any(values[len(META_FIELDS):]), 'Nonzero bridge reserved metadata')
     for name in ('plain', 'json', 'prelayout', 'render', 'seraphPrefix', 'denicker', 'matchStart', 'columnCatalog'):
         require(result['headerSize'] <= result[name] < len(payload), 'Invalid bridge entry: ' + name)
-    output_at = payload.find(b'ADNOUT01')
-    require(output_at >= 160 and payload.find(b'ADNOUT01', output_at + 1) < 0
-            and output_at + 20 <= len(payload), 'Missing or ambiguous Output category metadata')
-    result['plainTags'], result['jsonTags'], result['plainLocal'] = struct.unpack_from('<3I', payload, output_at + 8)
-    for name in ('plainTags', 'jsonTags', 'plainLocal'):
+    output_at = payload.find(b'ADNOUT02')
+    require(output_at >= 160 and payload.find(b'ADNOUT02', output_at + 1) < 0
+            and output_at + 28 <= len(payload), 'Missing or ambiguous Output category metadata')
+    output_names = ('plainTags', 'jsonTags', 'plainLocal', 'plainDenick', 'jsonDenick')
+    result.update(zip(output_names, struct.unpack_from('<5I', payload, output_at + 8)))
+    for name in output_names:
         require(160 <= result[name] < len(payload), 'Invalid Output category entry: ' + name)
     header_at = payload.find(b'ADNHDR01')
     require(header_at >= 160 and payload.find(b'ADNHDR01', header_at + 1) < 0
             and header_at + 20 <= len(payload), 'Missing or ambiguous Overlay header metadata')
     begin, end, unwind = struct.unpack_from('<3I', payload, header_at + 8)
     result.update(header=begin, headerBegin=begin, headerEnd=end, headerUnwind=unwind)
+    game_at=payload.find(b'ADNGAM01')
+    require(game_at>=160 and payload.find(b'ADNGAM01',game_at+1)<0 and game_at+20<=len(payload),
+            'Missing or ambiguous game-state metadata')
+    begin,end,unwind=struct.unpack_from('<3I',payload,game_at+8)
+    result.update(gameActive=begin,gameActiveBegin=begin,gameActiveEnd=end,gameActiveUnwind=unwind)
     entry_at=payload.find(b'ADNENT01')
     require(entry_at>=160 and payload.find(b'ADNENT01',entry_at+1)<0 and entry_at+20<=len(payload),
             'Missing or ambiguous process-entry metadata')
@@ -203,16 +219,28 @@ def read_metadata(payload, code_rva):
                 'Invalid Lunar stop metadata')
         begin, end, unwind = struct.unpack_from('<3I', payload, stop_at + 8)
         result.update(lunarStop=begin, lunarStopBegin=begin, lunarStopEnd=end, lunarStopUnwind=unwind)
+    result.update(native_input_hooks.read_metadata(payload,code_rva,require))
+    chat_at = payload.find(b'ADNCHP01')
+    require(chat_at >= 160 and payload.find(b'ADNCHP01',chat_at+1)<0 and chat_at+20<=len(payload),
+            'Missing or ambiguous chat collector metadata')
+    begin,end,unwind = struct.unpack_from('<3I',payload,chat_at+8)
+    result.update(chatPollTail=begin,chatPollTailBegin=begin,chatPollTailEnd=end,chatPollTailUnwind=unwind)
     for name in (LUNAR_FUNCTION_NAMES if stop_at >= 0 else FUNCTION_NAMES):
         begin, end, unwind = (result[name + suffix] for suffix in ('Begin', 'End', 'Unwind'))
         require(result['headerSize'] <= begin < end <= len(payload), 'Invalid bridge function: ' + name)
         require(unwind % 4 == 0 and end <= unwind < len(payload), 'Invalid bridge unwind: ' + name)
         handlers = {'replayStats': 'replayStatsFrameCleanup', 'replayStatsQueue': 'replayStatsCleanup'}
-        expected_flags = 0x11 if name in handlers else 1
+        expected_flags = 0x21 if name == 'chatPollTail' else 0x11 if name in handlers else 1
         require(payload[unwind] == expected_flags, 'Unexpected bridge unwind flags: ' + name)
         code_count = payload[unwind + 2]
         tail = unwind + 4 + align(code_count, 2) * 2
         require(tail <= len(payload), 'Truncated bridge unwind')
+        if name == 'chatPollTail':
+            spec = native_chat_poll.PROFILES['lunar' if stop_at >= 0 else 'vanilla']
+            require(payload[unwind:unwind+4] == bytes.fromhex('21000000')
+                    and struct.unpack_from('<III',payload,tail) ==
+                    (spec['collector'],spec['collectorEnd'],spec['unwind']),
+                    'Chat collector chained unwind changed')
         if name in handlers:
             require(tail + 4 <= len(payload)
                     and struct.unpack_from('<I', payload, tail)[0] == code_rva + result[handlers[name]],
@@ -220,11 +248,12 @@ def read_metadata(payload, code_rva):
     return result
 
 
-def compile_bridge(nasm, rva, image_base):
+def compile_bridge(nasm, rva, image_base, state_rva=None):
     with tempfile.TemporaryDirectory(prefix='adnin-bridge-') as directory:
         output = Path(directory) / 'bridge.bin'
         command = [str(nasm), '-f', 'bin', '-Ox', '-I' + str(ROOT / 'src/native') + '/', '-DIMAGE_BASE=' + hex(image_base),
-                   '-DCODE_RVA=' + hex(rva), str(ROOT / 'src/native/adnin-bridge.asm'), '-o', str(output)]
+                   '-DCODE_RVA=' + hex(rva), '-DADNIN_STATE_RVA=' + hex(state_rva or rva+0x20000),
+                   str(ROOT / 'src/native/adnin-bridge.asm'), '-o', str(output)]
         result = subprocess.run(command, capture_output=True, text=True)
         require(result.returncode == 0, 'NASM bridge build failed:\n' + result.stdout + result.stderr)
         payload = output.read_bytes()
@@ -270,6 +299,9 @@ def rebuild(data, nasm):
     header_localization = native_headers.reviewed_patches(pe, 'lunar', rva, meta)
     scheduler = native_scheduler.reviewed_hook(pe,rva,meta)
     process_entry = native_process_entry.reviewed_patch(pe,'lunar',rva,meta)
+    game_state = native_game_state.reviewed_hook(pe,'lunar',rva,meta)
+    skin_policy = native_skin_policy.reviewed_patches(pe, 'lunar')
+    chat_poll = native_chat_poll.reviewed_patch(pe, 'lunar', rva, meta)
 
     exception = pe.OPTIONAL_HEADER.DATA_DIRECTORY[3]
     require(exception.VirtualAddress and exception.Size and exception.Size % 12 == 0,
@@ -290,13 +322,21 @@ def rebuild(data, nasm):
             'Overlapping runtime-function records')
     table_offset = align(len(payload), 4)
     table = b''.join(struct.pack('<III', *entry) for entry in functions)
+    state_rva = align(rva + table_offset + len(table), section_alignment)
+    final_payload, final_meta = compile_bridge(nasm,rva,pe.OPTIONAL_HEADER.ImageBase,state_rva)
+    require(len(final_payload)==len(payload) and final_meta==meta,'Input state relocation changed bridge layout')
+    payload = final_payload
+    input_hooks = native_input_hooks.reviewed_patches(pe,'lunar',rva,meta,state_rva,require)
     section_data = payload + bytes(table_offset - len(payload)) + table
     raw_size = align(len(section_data), file_alignment)
-    image_size = align(rva + len(section_data), section_alignment)
+    state = native_input_hooks.STATE_MAGIC + bytes(native_input_hooks.STATE_SIZE-8)
+    state_raw = raw + raw_size
+    state_raw_size = align(len(state),file_alignment)
+    image_size = align(state_rva + len(state), section_alignment)
     section_header = pe.sections[-1].get_file_offset() + 40
-    require(section_header + 40 <= pe.OPTIONAL_HEADER.SizeOfHeaders,
-            'No room for bridge section header')
-    require(not any(data[section_header:section_header + 40]), 'Section header padding is occupied')
+    require(section_header + 80 <= pe.OPTIONAL_HEADER.SizeOfHeaders,
+            'No room for bridge and input state section headers')
+    require(not any(data[section_header:section_header + 80]), 'Section header padding is occupied')
     result = bytearray(data)
     patches = []
 
@@ -321,23 +361,35 @@ def rebuild(data, nasm):
     patch(pe.get_offset_from_rva(replay_denick['gateRva']), bytes.fromhex(replay_denick['after']), replay_denick['reason'])
     for item in number_polling:
         patch(pe.get_offset_from_rva(item['branchRva']),bytes.fromhex(item['after']),item['reason'])
+    for item in skin_policy['patches']:
+        patch(pe.get_offset_from_rva(item['siteRva']),bytes.fromhex(item['after']),item['reason'])
     for item in api_policy['patches']:
         patch(pe.get_offset_from_rva(item['siteRva']),bytes.fromhex(item['after']),item['reason'])
     for item in header_localization['patches']:
         patch(pe.get_offset_from_rva(item['siteRva']), bytes.fromhex(item['after']), item['reason'])
+    for item in input_hooks['patches']:
+        patch(pe.get_offset_from_rva(item['siteRva']),bytes.fromhex(item['after']),item['reason'])
+    chat_site = chat_poll['siteRva']
+    patch(pe.get_offset_from_rva(chat_site), b'\xe9'+struct.pack('<i',chat_poll['bridgeTargetRva']-chat_site-5)+b'\x90',
+          chat_poll['reason'])
     patch(pe.get_offset_from_rva(LUNAR_UNLOAD_SITE), call_bytes(LUNAR_UNLOAD_SITE, rva + meta['lunarStop']) + b'\x90',
-          'Require Java game-module stop acknowledgement before Lunar End-key cleanup/unload')
+          'Require a client-authorized unload request and Java stop acknowledgement; never read system-wide End state')
     patch(pe.FILE_HEADER.get_field_absolute_offset('NumberOfSections'),
-          struct.pack('<H', pe.FILE_HEADER.NumberOfSections + 1), 'Append executable bridge section')
+          struct.pack('<H', pe.FILE_HEADER.NumberOfSections + 2), 'Append executable bridge and non-executable input state sections')
     patch(pe.OPTIONAL_HEADER.get_field_absolute_offset('SizeOfImage'), struct.pack('<I', image_size), 'Bridge image size')
     patch(pe.OPTIONAL_HEADER.get_field_absolute_offset('SizeOfCode'),
           struct.pack('<I', pe.OPTIONAL_HEADER.SizeOfCode + raw_size), 'Bridge code size')
+    patch(pe.OPTIONAL_HEADER.get_field_absolute_offset('SizeOfInitializedData'),
+          struct.pack('<I',pe.OPTIONAL_HEADER.SizeOfInitializedData+state_raw_size),'Input lifecycle state size')
     patch(exception.get_file_offset(), struct.pack('<II', rva + table_offset, len(table)), 'Merged x64 exception table')
     header = struct.pack('<8sIIIIIIHHI', b'.adncode', len(section_data), rva, raw_size, raw, 0, 0, 0, 0, 0x60000020)
     patch(section_header, header, 'Read-execute bridge section header')
+    patch(section_header+40,struct.pack('<8sIIIIIIHHI',b'.adnstat',len(state),state_rva,state_raw_size,state_raw,0,0,0,0,0xc0000040),
+          'Read-write non-executable input lifecycle state header')
     result.extend(bytes(raw - len(result)))
     result.extend(section_data)
     result.extend(bytes(raw_size - len(section_data)))
+    result.extend(state + bytes(state_raw_size-len(state)))
     checksum_offset = pe.OPTIONAL_HEADER.get_field_absolute_offset('CheckSum')
     checksum = pefile.PE(data=bytes(result)).generate_checksum()
     patch(checksum_offset, struct.pack('<I', checksum), 'PE checksum')
@@ -345,23 +397,29 @@ def rebuild(data, nasm):
     checked = pefile.PE(data=final)
     require(checked.OPTIONAL_HEADER.CheckSum == checked.generate_checksum(), 'Checksum self-check failed')
     require(checked.get_data(rva, 8) == MAGIC, 'Bridge marker self-check failed')
-    require(len(checked.sections) == len(pe.sections) + 1, 'Bridge section self-check failed')
+    require(len(checked.sections) == len(pe.sections) + 2, 'Bridge section self-check failed')
+    require(checked.get_data(state_rva,len(state))==state and not checked.sections[-1].Characteristics & 0x20000000,
+            'Input state or non-executable permission self-check failed')
     report = dict(inputSha256=sha(data), outputSha256=sha(final), fixedNativeSha256=reembed.FIXED_SHA256,
                   normalizedNativeTextSha256=TEXT_LINEAGE_SHA256, imageSize=image_size,
                   section=dict(name='.adncode', rva=rva, offset=raw, size=len(section_data), rawSize=raw_size,
                                executable=True, writable=False), marker=hex(MARKER), metadata=meta, hooks=hooks,
+                  stateSection=dict(name='.adnstat',rva=state_rva,offset=state_raw,size=len(state),rawSize=state_raw_size,
+                                    executable=False,writable=True), nativeInputHooks=input_hooks,
                   originalRuntimeFunctions=len(old_functions), bridgeRuntimeFunctions=bridge_functions,
                   runtimeFunctionTable=dict(rva=rva + table_offset, size=len(table), count=len(functions)),
                   patches=patches, legacyAnticheat=legacy_anticheat, gameTickHook=game_tick_hook,
                   replayOverlay=replay_overlay, replayStats=replay_stats, replayDenicker=replay_denick, numberPolling=number_polling,
-                  nativeApiPolicy=api_policy,
+                  nativeApiPolicy=api_policy, skinDenickerPolicy=skin_policy,
                   headerLocalization=header_localization, schedulerLocalReference=scheduler,
-                  processTerminationGuard=process_entry,
+                  processTerminationGuard=process_entry, nativeGameState=game_state, nativeChatPolling=chat_poll,
                   outputRouting=output_routing(HOOKS),
                   lunarUnloadGuard=dict(callRva=LUNAR_UNLOAD_SITE, bridgeTargetRva=rva + meta['lunarStop'],
                     originalIatRva=0x12f628, stopOwner='AdninGui4', stopMethod='nativeStopGameModules',
                     descriptor='()I', requiredAcknowledgement=1, initializerEnvStackOffset=0x30,
-                    failureAction='return no End key; defer native cleanup and unload'),
+                    systemKeyPolling=False, requiresClientAuthorizedRequest=True, originalPollIntervalMs=20,
+                    requestSurvivesKeyRelease=True,
+                    failureAction='return zero; defer native cleanup and unload'),
                   gameRuntimeTested=False, originalDllExecutedByBuild=False,
                   skinSuccessOutput=dict(callRva=0x87f1d, successGetterCallRva=0x87bfc,
                                          successGetterRva=0xaa620, noSuccessSkipRva=0x87f39,

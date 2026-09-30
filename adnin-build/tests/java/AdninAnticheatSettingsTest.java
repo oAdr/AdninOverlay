@@ -73,6 +73,7 @@ public final class AdninAnticheatSettingsTest {
             check(AdninAnticheat.nameColor(new ChatComponentText("\u00a7a[VIP] \u00a7rPlayerA"), "PlayerA") == 0,
                     "Format reset prevents inherited rank color from becoming a team");
             clockAndHistory();
+            settingsReuse();
             System.out.println("AdninAnticheatSettingsTest: " + checks + " checks passed");
         } finally { AdninAnticheat.loadSettings(original); }
     }
@@ -132,6 +133,52 @@ public final class AdninAnticheatSettingsTest {
         AdninAnticheat.diagnostics(null);
         AdninAnticheat.shutdown();
         check(engine.cooldownPlayers() == 0, "A real lifecycle shutdown retires all histories");
+    }
+    private static AdninAnticheatCore.Settings snapshot() {
+        try {
+            java.lang.reflect.Method method = AdninAnticheat.class.getDeclaredMethod("settings");
+            method.setAccessible(true);
+            return (AdninAnticheatCore.Settings) method.invoke(null);
+        } catch (ReflectiveOperationException error) { throw new AssertionError(error); }
+    }
+    private static void settingsReuse() {
+        AdninAnticheat.loadSettings(new Properties());
+        AdninAnticheat.ignoredPlayers = " PlayerA, PLAYERA, Friend_2, /wdr x ";
+        AdninAnticheatCore.Settings first = snapshot();
+        for (int i = 0; i < 10000; i++)
+            if (snapshot() != first) throw new AssertionError("Unchanged settings must not allocate a new snapshot");
+        check("playera,friend_2".equals(first.ignoredPlayers),
+                "Ten thousand reads reuse one sanitized snapshot without repeatedly parsing ignored names");
+        String firstSignature = first.signature();
+        for (String name : new String[] {"enabled", "flagSound", "autoBlock", "noFall", "noSlow",
+                "scaffold", "legitScaffold", "ignoreTeammates", "atlasOnly", "autoReport"}) {
+            try {
+                java.lang.reflect.Field option = AdninAnticheat.class.getField(name);
+                java.lang.reflect.Field copied = AdninAnticheatCore.Settings.class.getField(name);
+                AdninAnticheatCore.Settings previous = snapshot();
+                boolean old = option.getBoolean(null);
+                option.setBoolean(null, !old);
+                AdninAnticheatCore.Settings next = snapshot();
+                check(next != previous && copied.getBoolean(next) == !old && copied.getBoolean(previous) == old,
+                        "Direct UI change is visible without mutating a published snapshot: " + name);
+                option.setBoolean(null, old);
+                check(copied.getBoolean(snapshot()) == old, "Direct UI reset is visible: " + name);
+            } catch (ReflectiveOperationException error) { throw new AssertionError(error); }
+        }
+        check(firstSignature.equals(first.signature()), "Old settings signature stays immutable after later UI changes");
+        AdninAnticheat.intervalSeconds = 999;
+        AdninAnticheatCore.Settings clamped = snapshot();
+        AdninAnticheat.intervalSeconds = 60;
+        check(clamped.intervalSeconds == 60 && snapshot() == clamped, "Equivalent clamped interval reuses the same snapshot");
+        AdninAnticheat.ignoredPlayers = "OtherName";
+        check("othername".equals(snapshot().ignoredPlayers) && "playera,friend_2".equals(first.ignoredPlayers),
+                "Ignored-name changes refresh the new snapshot while preserving previous readers");
+        AdninAnticheat.ignoredPlayers = null;
+        check(snapshot().ignoredPlayers.isEmpty(), "Null ignored names clear cached exemptions");
+        Properties saved = new Properties(); AdninAnticheat.saveSettings(saved);
+        check("".equals(saved.getProperty("anticheat.ignoredPlayers")), "Saved settings use the current normalized snapshot");
+        AdninAnticheat.shutdown();
+        check(field("settingsCache") == null, "Shutdown releases the cached settings snapshot");
     }
     private static Object field(String name) {
         try {

@@ -103,7 +103,10 @@ public final class AdninLanguage {
         add(m,"In Chat","聊天栏显示","聊天欄顯示");
         add(m,"Teammate","包含队友","包含隊友");
         add(m,"Output: Player Data","组队输出：玩家数据","隊伍輸出：玩家資料");
+        add(m,"Output: Nick / Denick","组队输出：昵称 / 真实身份","隊伍輸出：暱稱 / 真實身分");
         add(m,"Output: Seraph / Urchin Tags","组队输出：Seraph / Urchin 标签","隊伍輸出：Seraph / Urchin 標籤");
+        add(m,"Include Self","包括自己","包含自己");
+        add(m,"Include Teammates","包括队友","包含隊友");
         add(m,"Output: Anticheat","组队输出：作弊检测","隊伍輸出：作弊偵測");
         add(m,"Thresholds","显示门槛","顯示門檻");
         add(m,"Bedwars Min Stars","起床战争最低星级","床戰最低星級");

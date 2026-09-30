@@ -95,7 +95,22 @@ public final class AdninResourceLifecycleTest {
         requests.add(new String[]{"5", "urchin", "Player", "Player", "test-key", "20"});
         discard.invoke(null); check(requests.size() == 2, "Independent current Bot and Urchin work survives");
         requests.clear();
+        AdninUrchinCache content=(AdninUrchinCache)field(owner,"urchinCache").get(null);
+        content.beginMatch(20,Collections.singletonMap("Player","Player"),1);
+        for(int i=0;i<128;i++) results.add(new String[]{"5","urchin","Other","","Other","20"});
+        Method publishFull=owner.getDeclaredMethod("publishResult",String[].class,String[].class);
+        publishFull.setAccessible(true);
+        publishFull.invoke(null,new String[]{"5","urchin","Player","Player","test-key","20"},
+            new String[]{"5","urchin","Player","","Player","20","sniper"});
+        check(content.beginMatch(21,Collections.singletonMap("Player","Player"),2).size()==1,
+            "Full result queue retires reservation instead of permanently blocking that identity");
+        Method retire=owner.getDeclaredMethod("retireFailedPublication",String[].class);retire.setAccessible(true);
+        retire.invoke(null,(Object)new String[]{"5","urchin","Player","Player","test-key","21"});
+        check(content.beginMatch(22,Collections.singletonMap("Player","Player"),3).size()==1,
+            "Unexpected worker failure also retires its own identity reservation");
+        results.clear();content.clear();
         field(owner, "world").set(null, new Object());
+        ((Map<String, String>)field(owner, "tagLabels").get(null)).put("player", "\u00a76CC\u00a7r");
         field(owner, "keySnapshot").set(null, "test-key");
         field(owner, "urlSnapshot").set(null, "fixture-key");
         Thread daemon = new Thread(new AdninFeatures(), "owned-feature-worker");
@@ -127,8 +142,8 @@ public final class AdninResourceLifecycleTest {
         check(field(owner,"world").get(null) == null, "Unload releases the last world reference");
         check("".equals(field(owner,"keySnapshot").get(null)) && "".equals(field(owner,"urlSnapshot").get(null)),
             "Unload releases worker configuration snapshots");
-        for (String name : new String[]{"requests","results","nickHints","matchRequests","botProfiles",
-                "candidateTimes","requested","tags","announced","present","displayNames","nametagNames","outbox","sent"}) {
+        for (String name : new String[]{"requests","results","nickHints","matchRequests","botCache","botProfiles",
+                "candidateTimes","requested","tags","tagLabels","announced","present","displayNames","nametagNames","outbox","sent"}) {
             Object value = field(owner,name).get(null);
             check(value instanceof Map ? ((Map<?,?>)value).isEmpty() : ((Collection<?>)value).isEmpty(),
                 "Unload clears " + name);

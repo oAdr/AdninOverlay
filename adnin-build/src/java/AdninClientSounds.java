@@ -51,7 +51,7 @@ public final class AdninClientSounds {
         }
         try {
             NetworkManager manager = mc.getNetHandler().getNetworkManager();
-            Channel channel = channelOf(manager);
+            Channel channel = channelFor(manager, mc.theWorld);
             if (channel == null || !channel.isOpen() || manager.isLocalChannel()) { shutdown(); return; }
             if (active == null || active.stopped || active.channel != channel || active.world != mc.theWorld) {
                 shutdown();
@@ -92,6 +92,16 @@ public final class AdninClientSounds {
     }
 
     private static long now() { return System.nanoTime() / 1000000L; }
+
+    // A stable connection already supplied this field. Keep short sound-drain
+    // ticks cheap, but rediscover it after a manager/world change or closure.
+    private static Channel channelFor(NetworkManager manager, Object world) {
+        if (manager == null) return null;
+        Session session = active;
+        if (session != null && !session.stopped && session.manager == manager
+                && session.world == world && session.channel.isOpen()) return session.channel;
+        return channelOf(manager);
+    }
 
     // Vanilla's Channel field is private; Lunar widens it. Type-based discovery
     // uses the same field without depending on either runtime's obfuscated name.
@@ -285,6 +295,7 @@ public final class AdninClientSounds {
         volatile long heartbeat;
         volatile ScheduledFuture<?> leaseCheck;
         long nextInstall=Long.MIN_VALUE;
+        private boolean installPending;
         Session(Minecraft mc, NetworkManager manager, Object world, Channel channel) {
             this(mc,manager,world,channel,new MinecraftPackets());
         }
@@ -301,34 +312,60 @@ public final class AdninClientSounds {
             if (previous && !soundsEnabled) clearSounds();
         }
         void requestInstall(long now) {
-            if (installed || now < nextInstall || !live()) return;
-            nextInstall = now + 1000;
+            synchronized (this) {
+                if (installed || installPending || now < nextInstall || !live()) return;
+                nextInstall = now + 1000;
+                installPending = true;
+            }
+            boolean submitted = false;
             try {
                 channel.eventLoop().execute(new Runnable() {
                     @Override public void run() {
-                        if (!live() || !channel.isOpen()) return;
-                        ChannelPipeline pipeline = channel.pipeline();
-                        if (pipeline.get(HANDLER_NAME) != null) return;
-                        String anchor = null;
-                        for (Map.Entry<String, ChannelHandler> entry : pipeline)
-                            if (entry.getValue() == manager) { anchor = entry.getKey(); break; }
-                        if (anchor == null && pipeline.get("packet_handler") != null) anchor = "packet_handler";
-                        if (anchor != null) {
-                            pipeline.addBefore(anchor,HANDLER_NAME,handler); installed=true; scheduleLeaseCheck();
+                        try {
+                            if (!live() || !channel.isOpen()) return;
+                            ChannelPipeline pipeline = channel.pipeline();
+                            ChannelHandler existing = pipeline.get(HANDLER_NAME);
+                            if (existing != null && existing != handler) return;
+                            if (existing == null) {
+                                String anchor = null;
+                                for (Map.Entry<String, ChannelHandler> entry : pipeline)
+                                    if (entry.getValue() == manager) { anchor = entry.getKey(); break; }
+                                if (anchor == null && pipeline.get("packet_handler") != null) anchor = "packet_handler";
+                                if (anchor == null) return;
+                                pipeline.addBefore(anchor,HANDLER_NAME,handler);
+                            }
+                            installed=true;
+                            scheduleLeaseCheck();
+                        } catch (RuntimeException unavailable) {
+                            // A failed optional install may retry after the throttle.
+                        } catch (LinkageError unavailable) {
+                            // Mapping failure cannot break the channel's task queue.
+                        } finally {
+                            finishInstall();
                         }
                     }
                 });
+                submitted = true;
             } catch (RejectedExecutionException ignored) { }
+              finally { if (!submitted) finishInstall(); }
         }
+        private synchronized void finishInstall() { installPending = false; }
         void scheduleLeaseCheck() {
-            if (!owned()) return;
-            ScheduledFuture<?> previous=leaseCheck;
-            if (previous!=null) previous.cancel(false);
-            try {
-                leaseCheck=channel.eventLoop().schedule(new Runnable() {
-                    @Override public void run() { checkLease(); }
-                },1000L,TimeUnit.MILLISECONDS);
-            } catch (RejectedExecutionException ignored) { retire(this); }
+            boolean failed=false;
+            synchronized (this) {
+                if (!owned()) return;
+                ScheduledFuture<?> previous=leaseCheck;
+                if (previous!=null) previous.cancel(false);
+                try {
+                    leaseCheck=channel.eventLoop().schedule(new Runnable() {
+                        @Override public void run() { checkLease(); }
+                    },1000L,TimeUnit.MILLISECONDS);
+                } catch (RuntimeException unavailable) { failed=true; }
+                  catch (LinkageError unavailable) { failed=true; }
+            }
+            // Do not acquire the class lifecycle lock while retaining Session's
+            // lock: client tick/stop use the opposite order.
+            if (failed) retire(this);
         }
         void checkLease() {
             if (!retireIfExpired(this)) scheduleLeaseCheck();
@@ -385,18 +422,24 @@ public final class AdninClientSounds {
             for (Deferred event; (event=deferred.poll()) != null;) event.forward();
         }
         void stop() {
-            stopped=true; sounds=false; observe=false; clearSounds();
-            ScheduledFuture<?> timer=leaseCheck;
-            leaseCheck=null;
+            ScheduledFuture<?> timer;
+            synchronized (this) {
+                if (stopped) return;
+                stopped=true; sounds=false; observe=false;
+                timer=leaseCheck;
+                leaseCheck=null;
+            }
+            clearSounds();
             if (timer!=null) timer.cancel(false);
             try {
                 channel.eventLoop().execute(new Runnable() {
                     @Override public void run() {
-                        if (channel.pipeline().get(HANDLER_NAME) == handler) channel.pipeline().remove(HANDLER_NAME);
-                        installed=false;
+                        try {
+                            if (channel.pipeline().get(HANDLER_NAME) == handler) channel.pipeline().remove(HANDLER_NAME);
+                        } finally { installed=false; }
                     }
                 });
-            } catch (RejectedExecutionException ignored) { }
+            } catch (RejectedExecutionException ignored) { installed=false; }
         }
     }
 

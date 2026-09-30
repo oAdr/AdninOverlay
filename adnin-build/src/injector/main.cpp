@@ -17,6 +17,7 @@
 #include "payload.h"
 #include "result-ui.h"
 #include "remote-lease.h"
+#include "crash-monitor.h"
 
 namespace {
 class Handle {
@@ -415,6 +416,8 @@ int execute(const Options& options, adnin::ResultReport& report) {
     report.events.emplace_back("Matching DLL already loaded; no second load attempted");
     std::cout << "DLL is already loaded in this process.\n";
     wait_for_runtime(process.get(), *loaded, profile, options.timeout_ms, report);
+    report.events.emplace_back(adnin::start_crash_monitor(process.get(), target.client, profile)
+        ? "Background crash diagnostics requested" : "Background crash diagnostics unavailable; injection remains ready");
     return 0;
   }
   const auto dll_text = dll.wstring();
@@ -449,6 +452,8 @@ int execute(const Options& options, adnin::ResultReport& report) {
     throw Failure(7, "LoadLibraryW completed but DLL is absent from target modules");
   report.events.emplace_back("DLL presence in the target module list verified");
   wait_for_runtime(process.get(), *loaded, profile, options.timeout_ms, report);
+  report.events.emplace_back(adnin::start_crash_monitor(process.get(), target.client, profile)
+      ? "Background crash diagnostics requested" : "Background crash diagnostics unavailable; injection remains ready");
   return 0;
 }
 }  // namespace
@@ -514,6 +519,8 @@ int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR, int) {
   int argc = 0;
   wchar_t** argv = CommandLineToArgvW(GetCommandLineW(), &argc);
   if (!argv) return 2;
+  const int monitor = adnin::crash_monitor_entry(argc, argv);
+  if (monitor >= 0) { LocalFree(argv); return monitor; }
   const bool preview = argc > 1 && std::wstring(argv[1]) == L"--preview-ui";
   if (argc > 1 && !preview) {
     auto usable = [](DWORD id) {

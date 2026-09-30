@@ -1,11 +1,14 @@
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ChatComponentText;
 import org.lwjgl.input.Keyboard;
+import org.lwjgl.opengl.Display;
 
 /** Client-thread entry shared by the native pump and HUD. No Forge dependency. */
 public final class AdninGameModules {
     private static final Object LIFECYCLE = new Object();
-    private static boolean stopped;
+    private static volatile boolean stopped;
+    private static boolean unloadKeyArmed;
+    private static volatile boolean hotkeyUnloadRequested;
     private static long nextSoundTick = Long.MIN_VALUE;
     private static boolean soundFailure, anticheatFailure;
     private static Object uiWorld;
@@ -35,11 +38,14 @@ public final class AdninGameModules {
     }
 
     private static void tick(Minecraft mc, boolean gameTick) {
-        if (mc == null || !mc.isCallingFromMinecraftThread()) return;
+        if (mc == null || !mc.isCallingFromMinecraftThread() || stopped) return;
         // Keep stop's optional-worker barrier outside LIFECYCLE: the Features
         // callback holds its own monitor while entering this tick.
-        if (Keyboard.isCreated() && Keyboard.isKeyDown(Keyboard.KEY_END)) {
+        if (pollUnloadKey(mc)) {
             stop();
+            // Publish only after client-side stop has completed. Native polling
+            // may acknowledge this request after key release or packet draining.
+            hotkeyUnloadRequested = true;
             return;
         }
         synchronized (LIFECYCLE) {
@@ -52,11 +58,13 @@ public final class AdninGameModules {
                   catch (LinkageError unavailable) { /* Optional GL cleanup cannot abort the HUD tick. */ }
             }
             AdninReplay.tick(mc);
+            AdninMatchTeams.tick(mc);
             long now = System.nanoTime();
             if (now >= nextSoundTick) {
                 nextSoundTick = now + 5000000L;
                 try {
-                    AdninClientSounds.tick(mc, AdninGui4.clientSideSounds, AdninAnticheat.enabled);
+                    AdninClientSounds.tick(mc, AdninGui4.clientSideSounds,
+                        AdninAnticheat.enabled && AdninFeatures.outputContextAllowed());
                     soundFailure = false;
                 } catch (Exception | LinkageError failure) {
                     AdninClientSounds.shutdown();
@@ -80,6 +88,35 @@ public final class AdninGameModules {
         }
     }
 
+    /** Native workers read this latch; they never inspect or consume game input. */
+    public static boolean isHotkeyUnloadRequested() { return hotkeyUnloadRequested; }
+
+    private static boolean pollUnloadKey(Minecraft mc) {
+        try {
+            // End remains an ordinary editing/navigation key in every screen,
+            // and another application's key presses must never unload the mod.
+            if (mc.currentScreen != null || !mc.inGameHasFocus
+                    || mc.theWorld == null || mc.thePlayer == null
+                    || !Display.isCreated() || !Display.isActive() || !Keyboard.isCreated()) {
+                unloadKeyArmed = false;
+                return false;
+            }
+            if (!Keyboard.isKeyDown(Keyboard.KEY_END)) {
+                unloadKeyArmed = true;
+                return false;
+            }
+            boolean accepted = unloadKeyArmed;
+            unloadKeyArmed = false;
+            return accepted;
+        } catch (RuntimeException unavailable) {
+            unloadKeyArmed = false;
+            return false;
+        } catch (LinkageError unavailable) {
+            unloadKeyArmed = false;
+            return false;
+        }
+    }
+
     /** Called by the existing unload barrier; safe on its native worker thread. */
     public static void stop() {
         synchronized (LIFECYCLE) {
@@ -88,9 +125,14 @@ public final class AdninGameModules {
             AdninSessionHud.enabled = false;
             uiWorld = null;
             AdninReplay.shutdown();
+            AdninMatchTeams.clear();
             AdninClientSounds.shutdown();
             AdninAnticheat.shutdown();
         }
+        // Packet pipeline teardown is queued on Netty; never wait for its
+        // EventLoop while stopping the client task pump.
+        AdninPacketLog.shutdown();
+        AdninPartyQueueQuery.shutdown();
         AdninFeatures.shutdown();
         // OpenGL deletion must run on the client thread even when the native
         // unload barrier is entered by its worker. This callback is Java-only.

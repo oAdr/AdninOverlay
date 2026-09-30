@@ -34,11 +34,13 @@ def sha(data):
 
 
 def default_classpath(root):
-    """Use normalized transformed classes first, then local runtime libraries."""
+    """Prefer stable named vanilla APIs, then locally installed libraries."""
     workspace = root.parents[1]
-    named = workspace / "work/dependencies/lunar-1.8-local.jar"
+    named = workspace / "work/dependencies/vanilla-1.8.9-named.jar"
     if not named.is_file():
-        raise ValueError("No normalized local Lunar jar; provide --classpath with the transformed 1.8.9 classes")
+        named = workspace / "work/dependencies/lunar-1.8-local.jar"
+    if not named.is_file():
+        raise ValueError("No named local Minecraft jar; provide --classpath with named 1.8.9 classes")
     home = Path.home()
     candidates = [named]
     candidates.extend(sorted((home / ".lunarclient/offline/multiver").glob("*.jar")))

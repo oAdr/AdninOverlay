@@ -78,8 +78,8 @@ public final class AdninMessagesRenderTest {
             check(AdninMessages.renderGenerated(json,true,0)==1,"JSON delivery acknowledged");
             check(((ChatComponentText)GuiNewChat.last).text.contains("/wdr UnitPlayer"),"Original click payload reaches JSON parser");
             fallback("ordinary server chat",false,0,"Unknown template");
-            fallback(NICK,false,3,"Local-only category rejects Nick");
-            check(AdninMessages.renderGenerated("[Adnin] Invalid Hypixel API key. Check your key in settings.",false,3)==1,"Local-only API error delivered");
+            fallback(NICK,false,4,"Local-only category rejects Nick");
+            check(AdninMessages.renderGenerated("[Adnin] Invalid Hypixel API key. Check your key in settings.",false,4)==1,"Local-only API error delivered");
             Minecraft.instance=null; fallback(NICK,false,0,"Missing client"); Minecraft.instance=mc;
             mc.clientThread=false; fallback(NICK,false,0,"Wrong thread"); mc.clientThread=true;
             net.minecraft.client.gui.GuiIngame hud=mc.ingameGUI;

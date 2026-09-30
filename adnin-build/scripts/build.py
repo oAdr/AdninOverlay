@@ -40,8 +40,8 @@ def run_java_tests(jdk, out):
             if selected not in cp.split(os.pathsep): additions.append(selected)
     test_cp=os.pathsep.join([str(out/'java-runtime'), cp, *additions])
     testout=out/'test-java'; testout.mkdir(exist_ok=True)
-    names=('AdninLanguageTest','AdninMessagesTest','AdninScaffoldPortTest','AdninApiTest','AdninOutputTest','AdninMetricsTest','AdninColumnOrderTest','AdninColumnSettingsTest','AdninUrchinCacheTest','AdninUrchinWorkerTest','AdninFeaturePolicyTest','AdninFeaturePresentationTest','AdninTabEligibilityTest','AdninFeatureLinkageTest','AdninBootstrapVerify',
-           'AdninAnticheatCoreTest','AdninAnticheatSettingsTest','AdninClientSoundsTest','AdninModuleIntegrationTest','AdninUiInteractionTest','AdninReplayTest','AdninReplayProfilesTest','AdninReplayApiTest','AdninOutputCategoriesTest','AdninResourceLifecycleTest')
+    names=('AdninLanguageTest','AdninMessagesTest','AdninScaffoldPortTest','AdninEaglePortTest','AdninApiTest','AdninOutputTest','AdninMetricsTest','AdninColumnOrderTest','AdninColumnSettingsTest','AdninUrchinCacheTest','AdninUrchinWorkerTest','AdninFeaturePolicyTest','AdninFeaturePresentationTest','AdninTabEligibilityTest','AdninFeatureLinkageTest','AdninBootstrapVerify',
+           'AdninAnticheatCoreTest','AdninAnticheatSettingsTest','AdninClientSoundsTest','AdninPacketLogConcurrencyTest','AdninPacketLogAccessorTest','AdninPartyQueueQueryTest','AdninPartyQueueScopeTest','AdninModuleIntegrationTest','AdninUiInteractionTest','AdninReplayTest','AdninReplayProfilesTest','AdninReplayApiTest','AdninOutputCategoriesTest','AdninBotCacheTest','AdninResourceLifecycleTest')
     sources=[ROOT/'tests/java'/(name+'.java') for name in names]
     compiler=subprocess.run([str(jdk/'bin/javac.exe'),'-J-Duser.language=en','-J-Dfile.encoding=UTF-8','--release','8','-encoding','UTF-8','-proc:none',
                              '-cp',test_cp,'-d',str(testout),*[str(source) for source in sources]],
@@ -49,7 +49,7 @@ def run_java_tests(jdk, out):
     if compiler.returncode:
         raise RuntimeError('Java test compilation failed:\n'+(compiler.stdout+compiler.stderr)[-10000:])
     report=json.loads((out/'java-runtime/java-build-report.json').read_text(encoding='utf8'))
-    invocations=[('AdninLanguageTest',[]),('AdninMessagesTest',[]),('AdninScaffoldPortTest',[]),('AdninApiTest',[]),('AdninOutputTest',[]),('AdninMetricsTest',[ROOT/'src/java']),('AdninUrchinCacheTest',[]),('AdninUrchinWorkerTest',[]),
+    invocations=[('AdninLanguageTest',[]),('AdninMessagesTest',[]),('AdninScaffoldPortTest',[]),('AdninEaglePortTest',[]),('AdninApiTest',[]),('AdninOutputTest',[]),('AdninMetricsTest',[ROOT/'src/java']),('AdninUrchinCacheTest',[]),('AdninUrchinWorkerTest',[]),
                  ('AdninColumnOrderTest',[]),('AdninColumnSettingsTest',[]),
                  ('AdninFeaturePolicyTest',[ROOT/'src/java',out/'java-runtime']),('AdninFeaturePresentationTest',[]),
                  ('AdninTabEligibilityTest',[ROOT/'src/java']),
@@ -57,8 +57,8 @@ def run_java_tests(jdk, out):
                  ('AdninFeatureLinkageTest',[out/'java-runtime/AdninAnticheat.class']),
                  ('AdninFeatureLinkageTest',[out/'java-runtime/AdninClientSounds.class']),
                  ('AdninAnticheatCoreTest',[]),('AdninAnticheatSettingsTest',[]),
-                 ('AdninClientSoundsTest',[]),('AdninModuleIntegrationTest',[]),('AdninUiInteractionTest',[]),('AdninReplayTest',[]),('AdninReplayProfilesTest',[]),('AdninReplayApiTest',[]),('AdninOutputCategoriesTest',[]),
-                 ('AdninResourceLifecycleTest',[]),('AdninBootstrapVerify',[out/'java-runtime',*report['helperOrder']])]
+                 ('AdninClientSoundsTest',[]),('AdninPacketLogConcurrencyTest',[]),('AdninPacketLogAccessorTest',[]),('AdninPartyQueueQueryTest',[]),('AdninPartyQueueScopeTest',[]),('AdninModuleIntegrationTest',[]),('AdninUiInteractionTest',[]),('AdninReplayTest',[]),('AdninReplayProfilesTest',[]),('AdninReplayApiTest',[]),('AdninOutputCategoriesTest',[]),
+                 ('AdninBotCacheTest',[]),('AdninResourceLifecycleTest',[]),('AdninBootstrapVerify',[out/'java-runtime',*report['helperOrder']])]
     transcript=['Java tests use offline fixtures and a loopback HTTP server; no game messages or real API keys.',
                 'Linkage uses locally installed log4j-api and fastutil when present.']
     for name, extra in invocations:
@@ -128,6 +128,14 @@ def main():
         raise RuntimeError('Replay must cover both render paths and model/enabled gates without changing game state')
     if not lunar_bridge.get('lunarUnloadGuard') or not compat_bridge.get('unloadGuard'):
         raise RuntimeError('Both profiles require a Java stop barrier before native unload')
+    for profile_report in (lunar_bridge, compat_bridge):
+        skin_policy = profile_report.get('skinDenickerPolicy', {})
+        if not (skin_policy.get('originalSkinResolutionRetired')
+                and skin_policy.get('nativeSettingPreserved')
+                and skin_policy.get('numberPriorityPreserved')
+                and skin_policy.get('actorIdentityPreserved')
+                and len(skin_policy.get('patches', [])) == 6):
+            raise RuntimeError('Both profiles require the reviewed Mellow Skin replacement policy')
     forge_free_classes = {kind:verify_forge_free(out/directory)
                           for kind,directory in (('lunar','java-runtime'),('vanilla','java-vanilla'))}
     runtimes = [runtime_build.descriptor(final,'lunar',101,runtime_build.lunar_metadata(lunar_bridge)),
@@ -186,6 +194,12 @@ def main():
     run([sys.executable,ROOT/'tests/test_headers.py','--jdk',args.jdk,'--classes',out/'java-runtime'])
     run([sys.executable,ROOT/'tests/test_ui_lifecycle.py','--jdk',args.jdk,'--classes',out/'java-runtime'])
     run([sys.executable,ROOT/'tests/test_game_tick.py','--jdk',args.jdk,'--classes',out/'java-runtime'])
+    run([sys.executable,ROOT/'tests/test_ui_input_lifecycle.py','--jdk',args.jdk,'--classes',out/'java-runtime'])
+    run([sys.executable,ROOT/'tests/test_ui_performance_equivalence.py','--jdk',args.jdk,'--classes',out/'java-runtime'])
+    run([sys.executable,ROOT/'tests/test_party_queue_adapter.py','--jdk',args.jdk,'--classes',out/'java-runtime'])
+    run([sys.executable,ROOT/'tests/test_urchin_scope.py','--jdk',args.jdk,'--classes',out/'java-runtime'])
+    run([sys.executable,ROOT/'tests/test_match_teams.py','--jdk',args.jdk,'--classes',out/'java-runtime'])
+    run([sys.executable,ROOT/'tests/test_skin_denicker.py','--jdk',args.jdk,'--classes',out/'java-runtime'])
     run([sys.executable,ROOT/'tests/test_replay_roster.py','--jdk',args.jdk,'--classes',out/'java-runtime'])
     run([sys.executable,ROOT/'tests/test_anticheat_adapter.py','--jdk',args.jdk,'--classes',out/'java-runtime'])
     packet_tests = [sys.executable,ROOT/'tests/test_party_packet.py','--jdk',args.jdk,
@@ -209,10 +223,14 @@ def main():
     report=dict(formatVersion=2,nativeSource='Reviewed native image assembly with targeted Java bridges; not a complete C++ rewrite',nativeFunctionsPreserved=2493,
                 injectorSource='C++20',featureSource='Java 8',gameRuntimeTested=False,allFeaturesTested=False,
                 standaloneExecutable=True,embeddedPayloadVerified=True,iconEmbeddedVerified=True,
+                automaticCrashDiagnostics=True,crashDiagnosticsMemoryDump=False,crashDiagnosticsUpload=False,
                 forgeRequired=False,forgeFreeClassesChecked=forge_free_classes,legacyAnticheatDisabled=True,
                 fixedPhaseGameTick=True,replayOverlayEnabled=True,javaStopBeforeNativeUnload=True,
                 ravenSourceCommit='14b0a03e8b3af4f109d7c05bc5d0b98d42470179',thirdPartyNoticesEmbedded=True,
                 mellowScaffoldSourceCommit='17ef9b7466754a33ee8c8ed87fa7ea717573d775',
+                mellowEagleSourceCommit='17ef9b7466754a33ee8c8ed87fa7ea717573d775',
+                mellowSkinSourceCommit='17ef9b7466754a33ee8c8ed87fa7ea717573d775',
+                legacySkinResolutionRetired=True,skinUsesLocalTextureMetadata=True,
                 interfaceLanguages=['en','zh_CN','zh_TW'],interfaceScalePercent=[70,140],
                 iconSizes=icon_sizes,iconSha256=hashlib.sha256(icon_data).hexdigest(),artifacts=artifacts,
                 runtimePayloads=runtimes,sourceInputsSha256=source_inputs,

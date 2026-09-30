@@ -45,7 +45,7 @@ public final class AdninMessages {
     /** Null means retain the original native renderer, including unknown templates. */
     public static String translateGenerated(String text, boolean json, int category) {
         if (text == null || text.isEmpty() || text.length() > MAX_TEXT
-                || "en".equals(AdninLanguage.getLanguage()) || (category != 0 && category != 1 && category != 3)) return null;
+                || "en".equals(AdninLanguage.getLanguage()) || (category != 0 && category != 1 && category != 3 && category != 4)) return null;
         try {
             if (!json) return translatedText(text, category);
             if (!boundedJson(text)) return null;
@@ -93,7 +93,7 @@ public final class AdninMessages {
 
     private static List<Change> generatedChanges(String plain, int category) {
         List<Change> changes = new ArrayList<Change>();
-        if (category == 3) {
+        if (category == 4) {
             apiChanges(plain, changes, true);
         } else if (category == 1) {
             Matcher seraph = SERAPH.matcher(plain);

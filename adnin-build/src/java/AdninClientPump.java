@@ -11,6 +11,12 @@ implements Runnable {
         } catch (Exception failure) {
             // A failed optional feature must not stop the native client pump.
         }
+        try {
+            // Lunar's recovered native loop omits Vanilla's delayed mode query.
+            AdninPartyQueueQuery.tick();
+        } catch (Exception | LinkageError unavailable) {
+            // Optional queue detection must not interrupt the client task loop.
+        }
     }
 
     private static native void nativeClientPump();

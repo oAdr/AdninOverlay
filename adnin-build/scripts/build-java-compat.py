@@ -82,6 +82,11 @@ def compatibility_chat_source(path):
     public int k() { return this.delegate.i(); }
     private static native void nativeClientTick();
     public static void adninStopClientPump() { AdninCompatPump.stop(); }
+    public static int adninTryStopClientPump() {
+        if (!AdninGameModules.isHotkeyUnloadRequested()) return 0;
+        AdninCompatPump.stop();
+        return AdninPacketLog.isQuiescent() ? 1 : 0;
+    }
     @Override public void run() {
         try {
             AdninFeatures.tick();
@@ -256,7 +261,8 @@ def main():
                   'compatibilityTickOwner':'AdninGuiNewChat.run()V via Minecraft.addScheduledTask','nativeClientPumpRequired':False,
                   'compatibilityScheduler':{'daemonIntervalMs':50,'maxQueuedCallbacks':1,'runsInMenus':True,
                                             'startOwner':'AdninGuiNewChat.<init>',
-                                            'stopOwner':'AdninGuiNewChat.adninStopClientPump()V',
+                                            'stopOwner':'AdninGuiNewChat.adninTryStopClientPump()I',
+                                            'legacyStopAbiPreserved':'AdninGuiNewChat.adninStopClientPump()V',
                                             'unloadWaitsForRunningCallback':True,
                                             'queuedCallbacksBecomeInertAfterStop':True,'restartAfterStop':False},
                   'compatibilityHeartbeatNative':'AdninGuiNewChat.nativeClientTick()V',

@@ -3,11 +3,13 @@
  */
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
-import java.lang.reflect.GenericDeclaration;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Arrays;
 import java.util.UUID;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelPipeline;
 
 public class AdninPacketLog {
     public static volatile int seenSpawnPlayerCount = 0;
@@ -16,7 +18,21 @@ public class AdninPacketLog {
     private static final String HANDLER_KEY = "adnin_packet_log";
     private static final String CL_SPAWN_OBF = "fp";
     private static final String CL_SPAWN_MCP = "net.minecraft.network.play.server.S0CPacketSpawnPlayer";
+    // Initialized before install's monitor release/EventLoop submission publishes
+    // the handler; retain the recovered field modifiers for the native ABI audit.
     private static Class<?> s_spawnPlayerClass = null;
+    private static final Object INSTALL_LOCK = new Object();
+    private static volatile boolean stopped;
+    private static int activeObservations;
+    private static volatile InstallRequest current;
+    // At most one queued/running EventLoop action and one installed observer.
+    // A rapid connection change replaces only current, never grows a task queue.
+    private static InstallRequest pending, installed;
+    private static final Object ACCESSOR_LOCK = new Object();
+    private static final Object[] NO_ARGUMENTS = new Object[0];
+    private static volatile SpawnAccessors spawnAccessors;
+    // Counts class-resolution work only, never packet traffic or player data.
+    private static long accessorResolutionCount;
 
     private static void ensureSpawnPlayerClass(Object object) {
         if (s_spawnPlayerClass != null) {
@@ -139,81 +155,334 @@ public class AdninPacketLog {
         return null;
     }
 
+    /** One immutable table; replacing the packet class cannot grow a class map. */
+    private static SpawnAccessors accessorsFor(Class<?> packetClass) {
+        SpawnAccessors found = spawnAccessors;
+        if (found != null && found.packetClass == packetClass) return found;
+        synchronized (ACCESSOR_LOCK) {
+            found = spawnAccessors;
+            if (found != null && found.packetClass == packetClass) return found;
+            found = new SpawnAccessors(packetClass);
+            accessorResolutionCount++;
+            // Reflection resolution and invocation never hold INSTALL_LOCK.
+            // Publish briefly under it so shutdown cannot be followed by a late
+            // retained-class publication from an already admitted observation.
+            synchronized (INSTALL_LOCK) {
+                if (!stopped) spawnAccessors = found;
+            }
+            return found;
+        }
+    }
+
+    private static final class SpawnAccessors {
+        final Class<?> packetClass;
+        final AccessorChain entity, uuid, x, y, z, yaw, pitch, item;
+        SpawnAccessors(Class<?> packetClass) {
+            this.packetClass = packetClass;
+            entity = new AccessorChain(packetClass, "b", "getEntityID", "func_148943_d");
+            // Add compatible names after the recovered candidates so an object
+            // exposing more than one alias keeps the original precedence.
+            uuid = new AccessorChain(packetClass, "c", "getPlayerUUID", "func_179819_c", "getPlayer");
+            x = new AccessorChain(packetClass, "d", "getX", "func_148942_f");
+            y = new AccessorChain(packetClass, "e", "getY", "func_148949_g");
+            z = new AccessorChain(packetClass, "f", "getZ", "func_148946_h");
+            yaw = new AccessorChain(packetClass, "g", "getYaw", "func_148941_i");
+            pitch = new AccessorChain(packetClass, "h", "getPitch", "func_148938_j", "func_148945_j");
+            item = new AccessorChain(packetClass, "i", "getCurrentItemID", "func_149009_m", "func_148947_k");
+        }
+    }
+
+    /** Cache available and absent aliases, retaining invocation-time fallbacks. */
+    private static final class AccessorChain {
+        final AccessibleObject[] candidates;
+        AccessorChain(Class<?> packetClass, String... aliases) {
+            AccessibleObject[] resolved = new AccessibleObject[aliases.length * 2];
+            int size = 0;
+            for (String alias : aliases) {
+                try {
+                    Method method = packetClass.getMethod(alias, new Class[0]);
+                    method.setAccessible(true);
+                    resolved[size++] = method;
+                } catch (Exception unavailable) { }
+                try {
+                    Field field = packetClass.getDeclaredField(alias);
+                    field.setAccessible(true);
+                    resolved[size++] = field;
+                } catch (Exception unavailable) { }
+            }
+            candidates = Arrays.copyOf(resolved, size);
+        }
+
+        int integer(Object packet) {
+            for (AccessibleObject candidate : candidates) {
+                try {
+                    if (candidate instanceof Method) {
+                        return ((Number) ((Method) candidate).invoke(packet, NO_ARGUMENTS)).intValue();
+                    }
+                    return ((Field) candidate).getInt(packet);
+                } catch (Exception unavailable) { }
+            }
+            return 0;
+        }
+
+        int byteInteger(Object packet) {
+            for (AccessibleObject candidate : candidates) {
+                try {
+                    if (candidate instanceof Method) {
+                        Object value = ((Method) candidate).invoke(packet, NO_ARGUMENTS);
+                        if (value instanceof Number) return ((Number) value).intValue();
+                    } else {
+                        return ((Field) candidate).getByte(packet) & 0xFF;
+                    }
+                } catch (Exception unavailable) { }
+            }
+            return 0;
+        }
+
+        UUID uuid(Object packet) {
+            for (AccessibleObject candidate : candidates) {
+                try {
+                    Object value = candidate instanceof Method
+                        ? ((Method) candidate).invoke(packet, NO_ARGUMENTS) : ((Field) candidate).get(packet);
+                    if (value instanceof UUID) return (UUID) value;
+                } catch (Exception unavailable) { }
+            }
+            return null;
+        }
+    }
+
     private static void logSpawnPlayerIfNeeded(Object object) {
-        if (object == null || s_spawnPlayerClass == null) {
+        if (stopped || object == null || s_spawnPlayerClass == null) {
             return;
         }
         if (!s_spawnPlayerClass.isInstance(object)) {
             return;
         }
+        synchronized (INSTALL_LOCK) {
+            if (stopped) return;
+            activeObservations++;
+        }
         try {
             String string;
             ++seenSpawnPlayerCount;
-            int n = AdninPacketLog.readIntNoArg(object, "b", "getEntityID", "func_148943_d");
-            UUID uUID = AdninPacketLog.readUuidNoArg(object, "c", "getPlayerUUID", "func_179819_c");
-            int n2 = AdninPacketLog.readIntNoArg(object, "d", "getX", "func_148942_f");
-            int n3 = AdninPacketLog.readIntNoArg(object, "e", "getY", "func_148949_g");
-            int n4 = AdninPacketLog.readIntNoArg(object, "f", "getZ", "func_148946_h");
-            int n5 = AdninPacketLog.readByteAsInt(object, "g", "getYaw", "func_148941_i");
-            int n6 = AdninPacketLog.readByteAsInt(object, "h", "getPitch", "func_148938_j");
-            int n7 = AdninPacketLog.readIntNoArg(object, "i", "getCurrentItemID", "func_149009_m");
+            SpawnAccessors accessors = accessorsFor(object.getClass());
+            int n = accessors.entity.integer(object);
+            UUID uUID = accessors.uuid.uuid(object);
+            int n2 = accessors.x.integer(object);
+            int n3 = accessors.y.integer(object);
+            int n4 = accessors.z.integer(object);
+            int n5 = accessors.yaw.byteInteger(object);
+            int n6 = accessors.pitch.byteInteger(object);
+            int n7 = accessors.item.integer(object);
             lastSpawnLine = string = "S0CPacketSpawnPlayer entityId=" + n + " uuid=" + (uUID != null ? uUID.toString() : "") + " x=" + n2 + " y=" + n3 + " z=" + n4 + " yaw=" + n5 + " pitch=" + n6 + " item=" + n7;
-            AdninPacketLog.nativeOnSpawnPlayerEntity(n);
+            if (!stopped) AdninPacketLog.nativeOnSpawnPlayerEntity(n);
         }
         catch (Exception exception) {
             // empty catch block
         }
+        catch (LinkageError unavailable) {
+            // A retired observer must never interrupt the game's packet flow.
+        }
+        finally {
+            synchronized (INSTALL_LOCK) { activeObservations--; }
+        }
     }
 
-    public static void install(Object object2) {
+    public static void install(Object netHandler) {
+        if (stopped || netHandler == null) return;
         try {
-            Object object3;
-            GenericDeclaration genericDeclaration;
-            installState = "install:start";
-            AdninPacketLog.ensureSpawnPlayerClass(object2);
+            AdninPacketLog.ensureSpawnPlayerClass(netHandler);
             if (s_spawnPlayerClass == null) {
                 installState = "install:no_spawn_class";
                 return;
             }
-            Object object4 = AdninPacketLog.readFieldByNames(object2, "c", "netManager", "networkManager");
-            if (object4 == null) {
+            Object manager = AdninPacketLog.readFieldByNames(netHandler, "c", "netManager", "networkManager");
+            if (manager == null) {
                 installState = "install:no_network_manager";
                 return;
             }
-            Object object5 = AdninPacketLog.readFieldByNames(object4, "k", "channel");
-            if (object5 == null) {
+            Object value = AdninPacketLog.readFieldByNames(manager, "k", "channel");
+            if (!(value instanceof Channel)) {
                 installState = "install:no_channel";
                 return;
             }
-            Method method2 = object5.getClass().getMethod("pipeline", new Class[0]);
-            method2.setAccessible(true);
-            Object object6 = method2.invoke(object5, new Object[0]);
-            if (object6 == null) {
-                installState = "install:no_pipeline";
+            Channel channel = (Channel) value;
+            synchronized (INSTALL_LOCK) {
+                if (stopped) return;
+                if (!channel.isOpen()) {
+                    if (current != null && current.channel == channel) {
+                        current.closed = true; current = null; dispatchLocked();
+                    }
+                    installState = "install:closed";
+                    return;
+                }
+                if (current != null && current.channel == channel && !current.closed) return;
+                current = installed != null && installed.channel == channel && !installed.closed
+                    ? installed : new InstallRequest(channel);
+                installState = "install:queued";
+                dispatchLocked();
+            }
+        } catch (Exception failure) {
+            installState = "install:exception:" + failure.getClass().getSimpleName();
+        } catch (LinkageError failure) {
+            installState = "install:unavailable";
+        }
+    }
+
+    /** Disable new native observations immediately; never wait for an EventLoop. */
+    public static void shutdown() {
+        synchronized (INSTALL_LOCK) {
+            stopped = true; current = null;
+            spawnAccessors = null;
+            installState = "install:stopped";
+            dispatchLocked();
+        }
+    }
+
+    /** Stable unload acknowledgement: stopped forbids new observations. */
+    public static boolean isQuiescent() {
+        synchronized (INSTALL_LOCK) { return stopped && activeObservations == 0; }
+    }
+
+    /** Called only with INSTALL_LOCK. execute() queues work, never awaits a Future. */
+    private static void dispatchLocked() {
+        if (pending != null) return;
+        // A rejected removal can be followed by one latest installation. There
+        // are only two live slots, so even rejection cannot create a retry loop.
+        for (int attempt = 0; attempt < 2; attempt++) {
+            InstallRequest next;
+            int action;
+            if (installed != null && installed != current) { next = installed; action = 2; }
+            else if (!stopped && current != null && installed != current) { next = current; action = 1; }
+            else return;
+            pending = next; next.action = action;
+            try {
+                next.channel.eventLoop().execute(next);
                 return;
+            } catch (RuntimeException unavailable) {
+                pending = null; next.closed = true;
+                if (current == next) current = null;
+                if (installed == next) installed = null;
+                next.handler = null;
+                if (!stopped) installState = "install:executor_unavailable";
+            }
+        }
+    }
+
+    private static void closed(InstallRequest owner) {
+        synchronized (INSTALL_LOCK) {
+            owner.closed = true;
+            if (current == owner) current = null;
+            dispatchLocked();
+        }
+    }
+
+    private static void removed(InstallRequest owner) {
+        synchronized (INSTALL_LOCK) {
+            if (installed == owner) installed = null;
+            if (current == owner) current = null;
+            owner.handler = null;
+            if (!stopped) installState = "install:removed";
+            dispatchLocked();
+        }
+    }
+
+    private static final class InstallRequest implements Runnable {
+        final Channel channel;
+        volatile boolean closed;
+        ChannelHandler handler;
+        int action;
+        InstallRequest(Channel channel) { this.channel = channel; }
+        boolean observes() { return !stopped && !closed && current == this; }
+
+        @Override public void run() {
+            synchronized (INSTALL_LOCK) {
+                if (pending != this) return;
             }
             try {
-                genericDeclaration = AdninPacketLog.findMethodByName(object6.getClass(), "remove", String.class);
-                if (genericDeclaration != null) {
-                    ((Method)genericDeclaration).setAccessible(true);
-                    ((Method)genericDeclaration).invoke(object6, HANDLER_KEY);
+                // Netty 4.0 remove() submits a PromiseTask and waits when used
+                // off this executor. Every pipeline read/write stays here.
+                synchronized (INSTALL_LOCK) {
+                    if (action == 2) {
+                        if (installed != this || current == this && !stopped && !closed) return;
+                        ChannelPipeline pipeline = channel.pipeline();
+                        if (pipeline.get(HANDLER_KEY) == handler && handler != null) pipeline.remove(HANDLER_KEY);
+                        if (installed == this) installed = null;
+                        handler = null;
+                    } else {
+                        if (!observes() || !channel.isOpen()) {
+                            if (current == this) current = null;
+                            return;
+                        }
+                        ChannelPipeline pipeline = channel.pipeline();
+                        ChannelHandler existing = pipeline.get(HANDLER_KEY);
+                        if (existing != null) {
+                            if (existing == handler) { installed = this; installState = "install:ok:existing"; }
+                            else { current = null; installState = "install:handler_conflict"; }
+                            return;
+                        }
+                        if (handler == null) handler = createHandler(this);
+                        for (String anchor : new String[]{"packet_handler", "decoder", "inbound_handler", "splitter", "encoder"}) {
+                            if (pipeline.get(anchor) == null) continue;
+                            pipeline.addBefore(anchor, HANDLER_KEY, handler);
+                            installed = this; installState = "install:ok:" + anchor;
+                            return;
+                        }
+                        pipeline.addLast(HANDLER_KEY, handler);
+                        installed = this; installState = "install:ok:addLast";
+                    }
+                }
+            } catch (Exception failure) {
+                failed("install:exception:" + failure.getClass().getSimpleName());
+            } catch (LinkageError failure) {
+                failed("install:unavailable");
+            } finally {
+                synchronized (INSTALL_LOCK) {
+                    if (pending == this) pending = null;
+                    dispatchLocked();
                 }
             }
-            catch (Exception exception) {
-                // empty catch block
+        }
+
+        private void failed(String state) {
+            synchronized (INSTALL_LOCK) {
+                closed = true;
+                if (current == this) current = null;
+                if (action == 2) {
+                    // An unavailable executor/pipeline must not resubmit a
+                    // failing removal forever. The disabled proxy only forwards.
+                    if (installed == this) installed = null;
+                    handler = null;
+                    if (!stopped) installState = state;
+                    return;
+                }
+                // A partially added handler must remain owned until its
+                // scheduled removal; it never observes packets once closed.
+                try {
+                    if (handler != null && channel.pipeline().get(HANDLER_KEY) == handler) installed = this;
+                    else { if (installed == this) installed = null; handler = null; }
+                } catch (RuntimeException unavailable) {
+                    if (installed == this) installed = null;
+                    handler = null;
+                }
+                if (!stopped) installState = state;
             }
-            genericDeclaration = Class.forName("io.netty.channel.ChannelInboundHandler");
-            ClassLoader classLoader = ((Class)genericDeclaration).getClassLoader();
+        }
+    }
+
+    private static ChannelHandler createHandler(final InstallRequest owner) throws Exception {
+            Class<?> inbound = Class.forName("io.netty.channel.ChannelInboundHandler");
+            ClassLoader classLoader = inbound.getClassLoader();
             Method[] methodArray = new Method[]{null};
             Method[] methodArray2 = new Method[]{null};
             Method[] methodArray3 = new Method[8];
-            Object object7 = Proxy.newProxyInstance(classLoader, new Class[]{(Class<?>)genericDeclaration}, (object, method, objectArray) -> {
+            Object object7 = Proxy.newProxyInstance(classLoader, new Class[]{inbound}, (object, method, objectArray) -> {
                 String string = method.getName();
                 Object channelContext = objectArray != null && objectArray.length > 0 ? objectArray[0] : null;
                 switch (string) {
                     case "channelRead": {
                         if (objectArray != null && objectArray.length >= 2) {
-                            AdninPacketLog.logSpawnPlayerIfNeeded(objectArray[1]);
+                            if (owner.observes()) AdninPacketLog.logSpawnPlayerIfNeeded(objectArray[1]);
                             if (channelContext != null) {
                                 if (methodArray[0] == null) {
                                     methodArray[0] = AdninPacketLog.findMethodByName(channelContext.getClass(), "fireChannelRead", Object.class);
@@ -255,6 +524,7 @@ public class AdninPacketLog {
                         return null;
                     }
                     case "channelInactive": {
+                        AdninPacketLog.closed(owner);
                         if (channelContext != null) {
                             AdninPacketLog.invokeFireNoArg(channelContext, "fireChannelInactive", methodArray3, 3);
                         }
@@ -283,8 +553,11 @@ public class AdninPacketLog {
                         }
                         return null;
                     }
-                    case "handlerAdded": 
+                    case "handlerAdded": {
+                        return null;
+                    }
                     case "handlerRemoved": {
+                        AdninPacketLog.removed(owner);
                         return null;
                     }
                     case "equals": {
@@ -305,40 +578,7 @@ public class AdninPacketLog {
                 }
                 return null;
             });
-            Method method3 = AdninPacketLog.findAddBefore(object6.getClass());
-            if (method3 != null) {
-                method3.setAccessible(true);
-                object3 = new String[]{"packet_handler", "decoder", "inbound_handler", "splitter", "encoder"};
-                for (Object object8 : (String[])object3) {
-                    try {
-                        method3.invoke(object6, object8, HANDLER_KEY, object7);
-                        installState = "install:ok:" + (String)object8;
-                        return;
-                    }
-                    catch (Exception exception) {
-                    }
-                }
-            }
-            if ((object3 = AdninPacketLog.findMethodByName(object6.getClass(), "addLast", String.class, Class.forName("io.netty.channel.ChannelHandler"))) == null) {
-                for (Method method4 : object6.getClass().getMethods()) {
-                    Class<?>[] classArray;
-                    if (!"addLast".equals(method4.getName()) || (classArray = method4.getParameterTypes()).length != 2 || classArray[0] != String.class) continue;
-                    object3 = method4;
-                    ((Method)object3).setAccessible(true);
-                    break;
-                }
-            }
-            if (object3 != null) {
-                ((Method)object3).setAccessible(true);
-                ((Method)object3).invoke(object6, HANDLER_KEY, object7);
-                installState = "install:ok:addLast";
-                return;
-            }
-            installState = "install:no_addBefore";
-        }
-        catch (Exception exception) {
-            installState = "install:exception:" + exception.getClass().getSimpleName();
-        }
+            return (ChannelHandler) object7;
     }
 
     private static Method findMethodByName(Class<?> clazz, String string, Class<?> ... classArray) {

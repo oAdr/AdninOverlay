@@ -46,7 +46,11 @@ EVIDENCE_FILES = ('bridge-tests.txt', 'denicker-tests.txt', 'java-tests.txt',
                   'anticheat-audit-v13.md', 'anticheat-audit-baseline-v13.json', 'anticheat-tests-v13.json',
                   'replay-native-v13-audit.md', 'replay-identities-v13.md', 'replay-format-v14.md',
                   'replay-denick-output-v15.md', 'ui-replay-api-v16.md',
-                  'ui-api-scaffold-language-v17.md', 'stability-v18.md')
+                  'ui-api-scaffold-language-v17.md', 'stability-v18.md',
+                  'output-cache-team-v19.md', 'lunar-hang-v20.md',
+                  'stability-performance-v21.md', 'nick-skin-output-v22.md',
+                  'lobby-eagle-crash-v22.md', 'input-performance-v22.md',
+                  'input-hook-review-v22.md', 'native-chat-prune-v22.md')
 PRIVATE_NAMES = {
     'toggles.json', 'adnin-features.properties', 'adnin-runtime-status.properties',
     'options.txt', 'accounts.json', 'launcher_accounts.json', 'credentials.json',

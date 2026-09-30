@@ -1,16 +1,16 @@
 {
   "kind": "Adnin hybrid: reconstructed native DLL plus rebuilt and renamed Java",
   "inputSha256": "c1ad1b6978c381c21b8a519ef852ac71f3c70195712eda83ef8eb4d973702cca",
-  "outputSha256": "c8c542c34e670c42944519ef42cb378a3c219ea323a611f235793913133a8b8e",
-  "bytes": 2384896,
+  "outputSha256": "fbc1ff018b5df0f3db9cf19e72445cb1909e976f34167db4b4a44ec74955b0b7",
+  "bytes": 2604544,
   "gameRuntimeTested": false,
   "stubClassesEmbedded": false,
   "section": {
     "name": ".adnin",
     "rva": 1810432,
     "offset": 1780224,
-    "virtualSize": 604173,
-    "rawSize": 604672,
+    "virtualSize": 824320,
+    "rawSize": 824320,
     "characteristics": 1073741888
   },
   "classes": [
@@ -46,8 +46,8 @@
       "originalSize": 50167,
       "offset": 1782336,
       "rva": 1812544,
-      "size": 322097,
-      "sha256": "facbc6ac92bf130a96e8324e804a850c4f94bcdb2c6ffcb86953e60eb601b993",
+      "size": 432463,
+      "sha256": "e9f3147fb6df184a0c5451b90c61ded6d371e516ac92c8903efec229ebe18d9c",
       "leaRva": 85592,
       "lengthRva": 85584
     },
@@ -57,8 +57,8 @@
       "mode": "relocated",
       "originalOffset": 1487920,
       "originalSize": 498,
-      "offset": 2104448,
-      "rva": 2134656,
+      "offset": 2214800,
+      "rva": 2245008,
       "size": 390,
       "sha256": "f13c51eb39d30edf83c8a10cbc39f259c9b056a4168a3260b6b01df4c83c9bed",
       "leaRva": 301834,
@@ -70,8 +70,8 @@
       "mode": "relocated",
       "originalOffset": 1488432,
       "originalSize": 1214,
-      "offset": 2104848,
-      "rva": 2135056,
+      "offset": 2215200,
+      "rva": 2245408,
       "size": 1065,
       "sha256": "0c259931ff942e523a852c7b5cd66ba98babdce6d5d886a22db6f78907133579",
       "leaRva": 302084,
@@ -83,8 +83,8 @@
       "mode": "relocated",
       "originalOffset": 1507680,
       "originalSize": 534,
-      "offset": 2105920,
-      "rva": 2136128,
+      "offset": 2216272,
+      "rva": 2246480,
       "size": 808,
       "sha256": "aa0b5800bc5eeab2689a33457d58e2655ddc0b0090320316e1559344fe463173",
       "leaRva": 797746,
@@ -96,8 +96,8 @@
       "mode": "relocated",
       "originalOffset": 1508224,
       "originalSize": 1709,
-      "offset": 2106736,
-      "rva": 2136944,
+      "offset": 2217088,
+      "rva": 2247296,
       "size": 1804,
       "sha256": "0c34cced52afce3b374272e42fc78cbd66b65b1e459d0506fbef1cfa68e8c479",
       "leaRva": 798233,
@@ -109,8 +109,8 @@
       "mode": "relocated",
       "originalOffset": 1509936,
       "originalSize": 1192,
-      "offset": 2108544,
-      "rva": 2138752,
+      "offset": 2218896,
+      "rva": 2249104,
       "size": 1039,
       "sha256": "6e189b744ad4f859aadf2a55c667b7585753e4563c18bbefe8bf10c68b65eae8",
       "leaRva": 797988,
@@ -122,10 +122,10 @@
       "mode": "relocated",
       "originalOffset": 1515904,
       "originalSize": 10961,
-      "offset": 2109584,
-      "rva": 2139792,
-      "size": 10217,
-      "sha256": "6c85919ddb54b94b10247be4606c32a78bab32aa4686f52325bb909eb20f50b3",
+      "offset": 2219936,
+      "rva": 2250144,
+      "size": 12963,
+      "sha256": "eccbb2a9e5f81c5364b0b49b82baa551fb505258de34d852b5cd28cb1a8ae746",
       "leaRva": 848131,
       "lengthRva": 848141
     },
@@ -135,10 +135,10 @@
       "mode": "relocated",
       "originalOffset": 1530080,
       "originalSize": 327,
-      "offset": 2119808,
-      "rva": 2150016,
-      "size": 264589,
-      "sha256": "35b21a209ff4be2468621de8f3351d3eaca2f7bb3a42193192f07167cb1a93c2",
+      "offset": 2232912,
+      "rva": 2263120,
+      "size": 371632,
+      "sha256": "1df4ab789da4ac6d25a2820192cc32720a098ad33f2bec74604db1e0e9b0f20d",
       "leaRva": 874770,
       "lengthRva": 874805
     }
@@ -190,7 +190,7 @@
       "offset": 82516,
       "rva": 85588,
       "before": "f7c30000",
-      "after": "31ea0400",
+      "after": "4f990600",
       "reason": "AdninGui4 DefineClass size"
     },
     {
@@ -204,7 +204,7 @@
       "offset": 298765,
       "rva": 301837,
       "before": "1f2f1200",
-      "after": "6ff71b00",
+      "after": "7fa61d00",
       "reason": "AdninRenderGlobal DefineClass pointer"
     },
     {
@@ -225,7 +225,7 @@
       "offset": 299015,
       "rva": 302087,
       "before": "25301200",
-      "after": "05f81b00",
+      "after": "15a71d00",
       "reason": "AdninHitboxInstaller DefineClass pointer"
     },
     {
@@ -246,7 +246,7 @@
       "offset": 794677,
       "rva": 797749,
       "before": "27eb0a00",
-      "after": "076c1400",
+      "after": "171b1600",
       "reason": "AdninIngameGui DefineClass pointer"
     },
     {
@@ -267,7 +267,7 @@
       "offset": 795164,
       "rva": 798236,
       "before": "60eb0a00",
-      "after": "506d1400",
+      "after": "601c1600",
       "reason": "AdninSessionHud DefineClass pointer"
     },
     {
@@ -288,7 +288,7 @@
       "offset": 794919,
       "rva": 797991,
       "before": "05f30a00",
-      "after": "55751400",
+      "after": "65241600",
       "reason": "AdninSessionHudInstaller DefineClass pointer"
     },
     {
@@ -309,14 +309,14 @@
       "offset": 845062,
       "rva": 848134,
       "before": "76460a00",
-      "after": "86b51300",
+      "after": "96641500",
       "reason": "AdninPacketLog DefineClass pointer"
     },
     {
       "offset": 845073,
       "rva": 848145,
       "before": "d12a0000",
-      "after": "e9270000",
+      "after": "a3320000",
       "reason": "AdninPacketLog DefineClass size"
     },
     {
@@ -330,14 +330,14 @@
       "offset": 871701,
       "rva": 874773,
       "before": "c7150a00",
-      "after": "67751300",
+      "after": "372f1500",
       "reason": "AdninClientPump DefineClass pointer"
     },
     {
       "offset": 871737,
       "rva": 874809,
       "before": "47010000",
-      "after": "8d090400",
+      "after": "b0ab0500",
       "reason": "AdninClientPump DefineClass size"
     },
     {
@@ -848,7 +848,7 @@
       "offset": 776,
       "rva": 776,
       "before": "00000000000000000000000000000000000000000000000000000000000000000000000000000000",
-      "after": "2e61646e696e00000d38090000a01b00003a0900002a1b0000000000000000000000000040000040",
+      "after": "2e61646e696e000000940c0000a01b0000940c00002a1b0000000000000000000000000040000040",
       "reason": "read-only Adnin class section"
     },
     {
@@ -862,21 +862,21 @@
       "offset": 352,
       "rva": 352,
       "before": "00a01b00",
-      "after": "00e02400",
+      "after": "00402800",
       "reason": "SizeOfImage"
     },
     {
       "offset": 304,
       "rva": 304,
       "before": "00700800",
-      "after": "00aa1100",
+      "after": "00041500",
       "reason": "SizeOfInitializedData"
     },
     {
       "offset": 360,
       "rva": 360,
       "before": "00000000",
-      "after": "cafa2400",
+      "after": "fcd62700",
       "reason": "PE checksum"
     }
   ],

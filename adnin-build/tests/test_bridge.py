@@ -1,8 +1,9 @@
 """PE regression and isolated Windows x64 bridge execution tests.
 
-The original DLL is never loaded or executed. Execution tests allocate a fresh
-private mock image containing only the new bridge, fake JNI callbacks and tiny
-jump stubs replacing each original function. No game or network is touched.
+The original DLL is never loaded. Execution tests allocate fresh private mock
+images with fake JNI callbacks and stubs for external functions. The chat-tail
+equivalence check also copies the unchanged consumer into this owned fixture;
+all of its external calls are mocked. No game or network is touched.
 """
 import argparse
 import ctypes
@@ -29,7 +30,11 @@ import api_policy_checks
 import header_checks
 import scheduler_checks
 import process_entry_checks
+import game_state_checks
 import hypixel_http_checks
+import skin_policy_checks
+import input_hooks_checks
+import chat_poll_prune_checks
 
 parser = argparse.ArgumentParser(add_help=False)
 parser.add_argument('--input', type=Path, default=ROOT.parent / 'lunar-full-build/build/bin/ChatReaderLunar.dll')
@@ -54,6 +59,21 @@ def fixture():
 
 
 class BridgePETests(unittest.TestCase):
+    def test_chat_poll_pruning_preserves_consumer_boundary_abi_refs_and_chained_unwind(self):
+        chat_poll_prune_checks.verify(self,self.input,self.output,self.report,'lunar')
+        chat_poll_prune_checks.execute(self,self.output,self.report,'lunar',ARGS.nasm)
+
+    def test_input_binding_lifecycle_and_ordinary_message_transparency(self):
+        input_hooks_checks.verify(self,self.input,self.output,self.report,'lunar')
+        input_hooks_checks.execute(self,self.output,self.report,'lunar',ARGS.nasm)
+
+    def test_mellow_skin_retires_hash_scans_without_changing_setting_or_other_denickers(self):
+        skin_policy_checks.verify(self,self.input,self.output,self.report,'lunar')
+
+    def test_game_state_published_after_parser_with_strict_predicate_and_safe_jni(self):
+        game_state_checks.verify(self,self.input,self.output,self.report,'lunar')
+        game_state_checks.execute(self,self.output,self.report,'lunar',ARGS.nasm)
+
     def test_process_exit_guard_preserves_explicit_unload_attach_and_abi(self):
         process_entry_checks.verify(self,self.input,self.output,self.report,'lunar')
         process_entry_checks.execute(self,self.output,self.report,'lunar',ARGS.nasm)
@@ -117,7 +137,10 @@ class BridgePETests(unittest.TestCase):
         self.assertEqual(self.after.get_data(site, 6), bridge.call_bytes(site, item['bridgeTargetRva']) + b'\x90')
         self.assertEqual((item['stopOwner'], item['stopMethod'], item['descriptor'], item['requiredAcknowledgement']),
                          ('AdninGui4', 'nativeStopGameModules', '()I', 1))
-        for rva, size in ((0x150d5, 5), (0x150e0, 5), (0x15120, 0x112), (0x14d2e, 5)):
+        self.assertFalse(item['systemKeyPolling'])
+        self.assertTrue(item['requiresClientAuthorizedRequest'] and item['requestSurvivesKeyRelease'])
+        self.assertEqual(item['originalPollIntervalMs'], 20)
+        for rva, size in ((0x150d5, 5), (0x150e0, 5), (0x1510e, 0x11), (0x15120, 0x112), (0x14d2e, 5)):
             self.assertEqual(self.after.get_data(rva, size), self.before.get_data(rva, size))
 
     def test_original_native_lineage_is_pinned(self):
@@ -128,8 +151,8 @@ class BridgePETests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'lineage mismatch'):
             bridge.rebuild(bytes(modified), ARGS.nasm)
 
-    def test_twenty_seven_verified_call_sites(self):
-        self.assertEqual(len(self.report['hooks']), 27)
+    def test_twenty_eight_verified_call_sites(self):
+        self.assertEqual(len(self.report['hooks']), 28)
         for item in self.report['hooks']:
             site = item['callRva']
             self.assertEqual(self.before.get_data(site, 5), bridge.call_bytes(site, item['originalTargetRva']))
@@ -160,7 +183,7 @@ class BridgePETests(unittest.TestCase):
 
     def test_skin_success_hook_preserves_success_guard_and_plain_abi(self):
         hook = next(h for h in self.report['hooks'] if h['callRva'] == 0x87f1d)
-        self.assertEqual((hook['originalTargetRva'], hook['callback']), (0x38260, 'plain'))
+        self.assertEqual((hook['originalTargetRva'], hook['callback']), (0x38260, 'plainDenick'))
         self.assertEqual(self.before.get_data(0x87f1d, 5), bytes.fromhex('e83e03fbff'))
         for rva, expected in ((0x87bfc, 'e81f2a020084c00f8430030000'),
                               (0x87f0a, '4c8d8d302500004d8b4608488b542458498bcd'),
@@ -218,13 +241,15 @@ class BridgePETests(unittest.TestCase):
     def test_read_execute_section_and_existing_layout(self):
         for old, new in zip(self.before.sections, self.after.sections):
             self.assertEqual(old.__pack__(), new.__pack__())
-        section = self.after.sections[-1]
+        section,state = self.after.sections[-2:]
         self.assertEqual(section.Name.rstrip(b'\0'), b'.adncode')
         self.assertEqual(section.Characteristics, 0x60000020)
         self.assertEqual(section.PointerToRawData, len(self.input))
         self.assertEqual(self.after.get_data(section.VirtualAddress, 8), bridge.MAGIC)
         self.assertEqual(self.after.OPTIONAL_HEADER.SizeOfImage,
-                         bridge.align(section.VirtualAddress + section.Misc_VirtualSize, 0x1000))
+                         bridge.align(state.VirtualAddress + state.Misc_VirtualSize, 0x1000))
+        self.assertEqual(state.Name.rstrip(b'\0'),b'.adnstat')
+        self.assertEqual(state.Characteristics,0xc0000040)
 
     def test_exports_imports_relocations_tls_unchanged(self):
         def exports(pe):
@@ -240,7 +265,7 @@ class BridgePETests(unittest.TestCase):
             return list(struct.iter_unpack('<III', pe.get_data(directory.VirtualAddress, directory.Size)))
         old, new = table(self.before), table(self.after)
         self.assertEqual(new[:len(old)], old)
-        self.assertEqual(len(new), len(old) + 30)
+        self.assertEqual(len(new), len(old) + len(bridge.LUNAR_FUNCTION_NAMES))
         self.assertEqual(new, sorted(new))
         for entry in self.report['bridgeRuntimeFunctions']:
             self.assertIn((entry['begin'], entry['end'], entry['unwind']), new)
@@ -252,13 +277,21 @@ class BridgePETests(unittest.TestCase):
                     'denicker': (0x370, [15, 14, 13, 12, 7, 6, 3]),
                     'metrics': (0x30, [7, 6, 3]), 'match': (0x20, [7, 6, 3]),
                     'column': (0x20, [3]), 'header': (0x40, [13, 12, 7, 6, 3]), 'lunarStop': (0x30, [3]),
-                    'lunarSchedule': (0x30,[3]),
+                    'lunarSchedule': (0x30,[3]), 'gameActive': (0x30,[7,6,3]),
+                    'inputResolve':(0x20,[7,6,3]),'inputMaintain':(0x30,[7,6,3]),
+                    'inputDetach':(0x50,[3]),'inputProc':(0x40,[12,5,7,6,3]),
+                    'inputInitialize':(0x28,[]),
                     'replayStats': (0x2d0, [15, 14, 13, 12, 7, 6, 3]),
                     'replayStatsQueue': (0x30, [3]), 'replayStatsCleanup': (0x28, []),
                     'replayStatsFrameCleanup': (0x20, [3]), 'replayNickName': (0x30, [7, 6, 3]),
                     'numberLock': (0x28,[6,3]), 'hypixelHttp':(0x348,[15,14,13,12,7,6,5,3])}
         for item in self.report['bridgeRuntimeFunctions']:
             data = self.after.get_data(item['unwind'], 24)
+            if item['name']=='chatPollTail':
+                spec=bridge.native_chat_poll.PROFILES['lunar']
+                self.assertEqual(data[:16],bytes.fromhex('21000000')+
+                    struct.pack('<III',spec['collector'],spec['collectorEnd'],spec['unwind']))
+                continue
             if item['name'] in ('replayRdi', 'replayRbx', 'replayFrame', 'replayDenickGate'):
                 self.assertEqual(data[:12], bytes.fromhex('011004f5100308011e000150'))
                 continue
@@ -286,7 +319,7 @@ class BridgePETests(unittest.TestCase):
         self.assertEqual(self.after.OPTIONAL_HEADER.CheckSum, self.after.generate_checksum())
         header = bridge.generated_header(self.report)
         self.assertIn(f'0x{self.after.OPTIONAL_HEADER.SizeOfImage:x}u', header)
-        self.assertIn(f'0x{self.after.sections[-1].VirtualAddress:x}u', header)
+        self.assertIn(f'0x{self.report["section"]["rva"]:x}u', header)
         self.assertIn(f'0x{bridge.MARKER:x}ull', header)
         self.assertFalse(self.report['gameRuntimeTested'])
         self.assertFalse(self.report['originalDllExecutedByBuild'])
@@ -343,7 +376,7 @@ class BridgeExecutionTests(unittest.TestCase):
         self.table = (ctypes.c_void_p * 233)()
         self.env = (ctypes.c_void_p * 1)(ctypes.addressof(self.table))
         self.env_ptr = ctypes.addressof(self.env)
-        self.methods = {'nativeRenderGeneratedEvent': 1, 'nativeUrchinWidth': 2, 'nativeUrchinHeader': 3,
+        self.methods = {'setGameActive': 9, 'nativeRenderGeneratedEvent': 1, 'nativeUrchinWidth': 2, 'nativeUrchinHeader': 3,
                         'nativeUrchinRow': 4, 'nativeOverlayRow': 5, 'nativeMatchStarted': 6,
                         'nativeOrderedOverlayRow': 7, 'nativeStopGameModules': 8}
         P, I = ctypes.c_void_p, ctypes.c_int
@@ -381,6 +414,8 @@ class BridgeExecutionTests(unittest.TestCase):
             if name == 'nativeMatchStarted':
                 self.assertIsNone(args)
                 values = ()
+            elif name == 'setGameActive':
+                values = (bool(ctypes.c_uint64.from_address(args).value),)
             elif name == 'nativeRenderGeneratedEvent':
                 ref = ctypes.c_uint64.from_address(args).value
                 values = (self.refs[ref], bool(ctypes.c_ubyte.from_address(args + 8).value),
@@ -497,8 +532,8 @@ class BridgeExecutionTests(unittest.TestCase):
 
     def test_lunar_unload_barrier_acknowledgement_and_jni_failures(self):
         run = ctypes.WINFUNCTYPE(ctypes.c_short, ctypes.c_void_p, ctypes.c_int)(self.base + 0x1200)
-        cases = [(0, 1, None, False, True, True, 0), (1, 1, None, False, True, True, 1),
-                 (-32768, 1, None, False, True, True, -32768), (-32767, 1, None, False, True, True, -32767),
+        cases = [(0, 1, None, False, True, True, 1), (1, 1, None, False, True, True, 1),
+                 (-32768, 1, None, False, True, True, 1), (-32767, 1, None, False, True, True, 1),
                  (1, 0, None, False, True, True, 0), (1, 2, None, False, True, True, 0),
                  (1, -1, None, False, True, True, 0), (1, 1, 'method-null', False, True, True, 0),
                  (1, 1, 'method-exception', False, True, True, 0),
@@ -512,14 +547,32 @@ class BridgeExecutionTests(unittest.TestCase):
                 self.events.clear()
                 self.assertEqual(run(self.env_ptr if env else None, 0x23), expected)
                 self.assertEqual(self.pending, pending)
-                self.assertEqual(self.events[0], ('key', 0x23))
-                if key == 0 or not gui or not env: self.assertEqual(len(self.events), 1)
+                self.assertFalse(any(e[0] == 'key' for e in self.events))
+                if not gui or not env: self.assertFalse(self.events)
                 for event in self.events:
                     if event[0] == 'method':
                         self.assertEqual(event[1:], (self.env_ptr, 0x12340000, 'nativeStopGameModules', '()I'))
                     elif event[0] == 'stop':
                         self.assertEqual(event[1:], (self.env_ptr, 0x12340000, 8, None))
                 if pending: self.assertFalse(any(e[0] in ('method', 'stop', 'clear') for e in self.events))
+
+    def test_lunar_unload_retries_client_request_after_system_key_release(self):
+        run = ctypes.WINFUNCTYPE(ctypes.c_short, ctypes.c_void_p, ctypes.c_int)(self.base + 0x1200)
+        for key, acknowledgement, expected in ((-32768, 0, 0), (0, 0, 0), (0, 1, 1)):
+            self.key_state, self.stop_ack = key, acknowledgement
+            self.events.clear()
+            self.assertEqual(run(self.env_ptr, 0x23), expected)
+            self.assertEqual(len([e for e in self.events if e[0] == 'stop']), 1)
+            self.assertFalse(any(e[0] == 'key' for e in self.events))
+
+    def test_lunar_java_ack_cannot_release_an_active_input_callback(self):
+        run=ctypes.WINFUNCTYPE(ctypes.c_short,ctypes.c_void_p,ctypes.c_int)(self.base+0x1200)
+        active=ctypes.c_uint32.from_address(self.base+self.report['nativeInputHooks']['activeCounterRva'])
+        self.stop_ack=1
+        active.value=1
+        self.assertEqual(run(self.env_ptr,0x23),0)
+        active.value=0
+        self.assertEqual(run(self.env_ptr,0x23),1)
 
     def bind(self, offset, result, args, callback):
         native = ctypes.WINFUNCTYPE(result, *args)(callback)
@@ -563,7 +616,7 @@ class BridgeExecutionTests(unittest.TestCase):
     def output_call(self, text='hello', json=False, category=0, consumed=False, **kwargs):
         value = self.string(text, **kwargs)
         args = (self.env_ptr, 0x112233, 0x223344, ctypes.addressof(value))
-        entry = ('json' if json else 'plain') + ('Tags' if category == 1 else 'Local' if category == 3 else '')
+        entry = ('json' if json else 'plain') + ('Tags' if category == 1 else 'Denick' if category == 3 else 'Local' if category == 4 else '')
         result = self.function(entry, 4)(*args)
         self.assertEqual(result, 1 if consumed else 0x4455 if json else 0x3344)
         originals = [e for e in self.events if e[0] == 'original']
@@ -648,7 +701,7 @@ class BridgeExecutionTests(unittest.TestCase):
 
     def test_output_consumes_exactly_one_successful_localized_delivery(self):
         for json_mode in (False, True):
-            for category in (0, 1):
+            for category in (0, 1, 3):
                 self.events.clear()
                 self.output_ack = 1
                 self.output_call('[Adnin] UnitPlayer is nicked', json=json_mode, category=category, consumed=True)
@@ -671,8 +724,8 @@ class BridgeExecutionTests(unittest.TestCase):
         for ack in (0, 1):
             self.events.clear()
             self.output_ack = ack
-            self.output_call(text, category=3, consumed=ack == 1)
-            self.assertEqual(self.callbacks()[0][4], (text, False, 3))
+            self.output_call(text, category=4, consumed=ack == 1)
+            self.assertEqual(self.callbacks()[0][4], (text, False, 4))
             self.assertFalse(self.refs)
 
     def test_retired_detector_is_not_called_and_owned_pump_continuation_runs(self):
@@ -693,8 +746,8 @@ class BridgeExecutionTests(unittest.TestCase):
 
     def test_skin_success_plain_payload_keeps_local_chat_and_emits_one_event(self):
         text = '\u00a77[\u00a71Adnin\u00a77] \u00a7bisa5 \u00a77-> \u00a7aAdnin'
-        self.output_call(text)
-        self.assertEqual(self.callbacks(), [('callback', self.env_ptr, 0x12340000, 'nativeRenderGeneratedEvent', (text, False, 0))])
+        self.output_call(text, category=3)
+        self.assertEqual(self.callbacks(), [('callback', self.env_ptr, 0x12340000, 'nativeRenderGeneratedEvent', (text, False, 3))])
         self.assertFalse(self.refs)
 
     def match_call(self, env=None):

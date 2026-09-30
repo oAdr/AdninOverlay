@@ -233,7 +233,10 @@ def check_simple_unwind(test,base,report):
         frames={'replayNickName':(0x30,[7,6,3]),'replayUuidCopy':(0,[]),'numberLock':(0x28,[6,3]),
                 'header':(0x40,[13,12,7,6,3]),
                 'lunarSchedule':(0x30,[3]),
-                'processEntry':(0,[]),
+                'inputResolve':(0x20,[7,6,3]),'inputMaintain':(0x30,[7,6,3]),
+                'inputDetach':(0x50,[3]),'inputProc':(0x40,[12,5,7,6,3]),
+                'inputInitialize':(0x28,[]),
+                'processEntry':(0,[]), 'gameActive':(0x30,[7,6,3]),
                 'apiKeyReady':(0,[]),'apiUuidReady':(0,[]),'apiPingProxy':(0,[]),
                 'hypixelHttp':(0x348,[15,14,13,12,7,6,5,3]),'apiDecodeComponent':(0,[]),'apiRefreshFailures':(0,[])}
         if item['name'] not in frames: continue

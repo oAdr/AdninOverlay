@@ -1,40 +1,50 @@
 Java tests use offline fixtures and a loopback HTTP server; no game messages or real API keys.
 Linkage uses locally installed log4j-api and fastutil when present.
-AdninLanguageTest: 1327 checks passed; no settings or network accessed
+AdninLanguageTest: 1348 checks passed; no settings or network accessed
 AdninMessagesTest: 146 checks passed; template/JSON/session fixtures only
 AdninScaffoldPortTest: 375 checks passed; Mellow boundaries/weighted VL, five-point math, isolated state, discontinuities, Replay/Nick admission and existing output cooldowns; entirely offline
+AdninEaglePortTest: 232 checks passed; Mellow Eagle 1/2-tick release timing, fresh unique events, 15-tick window, exact weighted VL/variance, resets and existing admission/output policy; offline
 AdninApiTest: 409 checks passed
-AdninOutputTest: 363 checks passed; no network or game messages sent
-2026-09-29T05:08:29.489788300Z main ERROR Log4j API could not find a logging provider.
+AdninOutputTest: 364 checks passed; no network or game messages sent
+2026-09-30T17:43:31.146629600Z main ERROR Log4j API could not find a logging provider.
 AdninMetricsTest: 398 checks passed; native prestige-cell parsing, FK/level rules and Urchin labels, aliases, per-tag colors, full reasons and safe resets
-AdninUrchinCacheTest: 54 checks passed; match-only scheduling, UUID/name normalization, 10min/45sec boundaries, negative cache, stale results, cross-world reuse and LRU
+AdninUrchinCacheTest: 65 checks passed; Seraph 10min/45sec policy, stale-readable content, identity/in-flight dedup, cross-world/key reuse and bounded LRU
 AdninUrchinWorkerTest: 213 checks passed; real worker preserves HTTP/TLS/parse failures and recovers with empty and populated tags, without network or game initialization
 AdninColumnOrderTest: 28 checks passed; exact mixed-column order, mode filters, legacy aliases, duplicate IDs and independent parse results
 AdninColumnSettingsTest: 48 checks passed; actual Gui4 live arrows, active/edit modes, visibility, persistence round trip and duplicate config recovery
-2026-09-29T05:08:35.427212600Z main ERROR Log4j API could not find a logging provider.
-AdninFeaturePolicyTest: 186 checks passed; Bot-only scheduler, independent epochs, Urchin match gates and serial-only native callbacks verified without network or game initialization
-2026-09-29T05:08:35.795410200Z main ERROR Log4j API could not find a logging provider.
-AdninFeaturePresentationTest: 231 checks passed; real-name colors, team priority, per-tag presentation and verified-only Bot party queue; no game, network, settings or sends
-2026-09-29T05:08:36.209397500Z main ERROR Log4j API could not find a logging provider.
+2026-09-30T17:43:37.422131500Z main ERROR Log4j API could not find a logging provider.
+AdninFeaturePolicyTest: 189 checks passed; Bot-only scheduler, independent epochs, Urchin match gates and serial-only native callbacks verified without network or game initialization
+2026-09-30T17:43:37.802441700Z main ERROR Log4j API could not find a logging provider.
+AdninFeaturePresentationTest: 256 checks passed; real-name colors, team priority, per-tag presentation and verified-only Bot party queue; no game, network, settings or sends
+2026-09-30T17:43:38.179543700Z main ERROR Log4j API could not find a logging provider.
 AdninTabEligibilityTest: 92 checks passed; v1/v4 and name boundaries, shared live-Tab source guards and filtered cached announcements; no game initialization or network
-AdninFeatureLinkageTest: 166 JVM member references resolved (29 Minecraft/Mojang), no class initialization or game actions
-AdninFeatureLinkageTest: 185 JVM member references resolved (67 Minecraft/Mojang), no class initialization or game actions
-AdninFeatureLinkageTest: 30 JVM member references resolved (7 Minecraft/Mojang), no class initialization or game actions
-AdninAnticheatCoreTest: 3664 checks passed
-AdninAnticheatSettingsTest: 83 checks passed
-AdninClientSoundsTest: 432 checks passed; placement rules, duplicate suppression and in-memory packet pass-through; no game, audio, settings or network
-Sep 29, 2026 1:08:38 PM io.netty.util.internal.PlatformDependent <clinit>
+AdninFeatureLinkageTest: 207 JVM member references resolved (29 Minecraft/Mojang), no class initialization or game actions
+AdninFeatureLinkageTest: 195 JVM member references resolved (64 Minecraft/Mojang), no class initialization or game actions
+AdninFeatureLinkageTest: 32 JVM member references resolved (7 Minecraft/Mojang), no class initialization or game actions
+AdninAnticheatCoreTest: 3464 checks passed
+AdninAnticheatSettingsTest: 114 checks passed
+AdninClientSoundsTest: 1529 checks passed; placement rules, packet pass-through, bounded blocked-EventLoop lifecycle and channel reuse; no game, audio, settings or network
+Oct 01, 2026 1:43:40 AM io.netty.util.internal.PlatformDependent <clinit>
 INFO: Your platform does not provide complete low-level API for accessing direct buffers reliably. Unless explicitly requested, heap buffer will always be preferred to avoid potential system unstability.
+2026-09-30T17:43:40.391642800Z main ERROR Log4j API could not find a logging provider.
+AdninPacketLogConcurrencyTest: 439 checks passed; actual registered Netty LocalChannels, blocked event loop, duplicate and stale work, shutdown, spawn decoding and packet pass-through; no game, native library, settings or network
+Oct 01, 2026 1:43:41 AM io.netty.util.internal.PlatformDependent <clinit>
+INFO: Your platform does not provide complete low-level API for accessing direct buffers reliably. Unless explicitly requested, heap buffer will always be preferred to avoid potential system unstability.
+AdninPacketLogAccessorTest: 63 checks passed; bounded current-Class cache, cached misses, aliases, invocation fallback, concurrent publication and shutdown; no game, settings, native library or network
+AdninPartyQueueQueryTest: 185 checks passed; 500ms boundary, explicit enable cycles, 5s throttling, mandatory waiting/domain/footer scope, 250ms probes, failure retirement and weak lifecycle; no game, settings, native library or network
+AdninPartyQueueScopeTest: 94 checks passed; real sidebar selection, complete footer, team formatting, last-15 visibility and bounded input; no game instance, private settings, native library or network
 AdninModuleIntegrationTest: 209 checks passed; actual Gui4 AC options, disabled controls, interval limits, actual +/- drawing/hover, scroll/clipping, sounds, settings and legacy ABI; no game, OpenGL, native code or IO
-2026-09-29T05:08:40.636522600Z main ERROR Log4j API could not find a logging provider.
-AdninUiInteractionTest: 707 checks passed; real layout and transformed click handlers, clipping, scroll reach, API clearing, close hitbox and closing input freeze; no settings, network, game, GL or native payload
-2026-09-29T05:08:40.979796Z main ERROR Log4j API could not find a logging provider.
-AdninReplayTest: 80 checks passed; real offline scoreboard title, selected team slot, last-15 visibility, formatting, hidden rows and state clearing; no game or network
-AdninReplayProfilesTest: 132 checks passed; synthetic identities, no network
+2026-09-30T17:43:43.668618Z main ERROR Log4j API could not find a logging provider.
+AdninUiInteractionTest: 960 checks passed; real layout and transformed click handlers, clipping, scroll reach, API clearing, close hitbox and closing input freeze; no settings, network, game, GL or native payload
+2026-09-30T17:43:44.041381Z main ERROR Log4j API could not find a logging provider.
+AdninReplayTest: 2100 checks passed; real offline scoreboard title, selected team slot, last-15 visibility, formatting, hidden rows and state clearing; no game or network
+AdninReplayProfilesTest: 138 checks passed; synthetic identities, no network
 AdninReplayApiTest: 759 checks passed; actual API/cache behind fake HTTP, no network, game or settings
-AdninOutputCategoriesTest: 231 checks passed; independent categories, owned queues/GUI/Replay fixtures, no network, settings or sends
-2026-09-29T05:08:41.944467700Z main ERROR Log4j API could not find a logging provider.
-AdninResourceLifecycleTest: 8035 checks; 2000 match transitions, bounded complete tag content, in-flight cancellation and daemon retirement; no IO or messages
-2026-09-29T05:08:42.447506900Z main ERROR Log4j API could not find a logging provider.
-Bootstrap verified on Java 17.0.20.1: 50 helpers defined in owner loader, no helper files, duplicate calls passed
+AdninOutputCategoriesTest: 418 checks passed; independent categories, owned queues/GUI/Replay fixtures, no network, settings or sends
+2026-09-30T17:43:45.051687400Z main ERROR Log4j API could not find a logging provider.
+AdninBotCacheTest: 2379 checks passed; real result/cache/scheduler paths, precise TTL boundaries, cross-match presentation, provider isolation and bounded unload; no IO or sends
+2026-09-30T17:43:45.476909700Z main ERROR Log4j API could not find a logging provider.
+AdninResourceLifecycleTest: 8039 checks; 2000 match transitions, bounded complete tag content, in-flight cancellation and daemon retirement; no IO or messages
+2026-09-30T17:43:45.947343Z main ERROR Log4j API could not find a logging provider.
+Bootstrap verified on Java 17.0.20.1: 73 helpers defined in owner loader, no helper files, duplicate calls passed
 All Java tests passed. Live Minecraft behavior is verified separately.

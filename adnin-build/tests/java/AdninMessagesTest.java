@@ -39,7 +39,7 @@ public final class AdninMessagesTest {
                     String source = "[Adnin] \u00a7c" + key + "\u00a77. Check your key in settings.";
                     eq("[Adnin] " + AdninLanguage.text(key) + AdninLanguage.text(". Check your key in settings."),
                         plain(AdninMessages.translateGenerated(source, false, 0)), "Exact native API status template");
-                    eq(AdninMessages.translateGenerated(source, false, 0), AdninMessages.translateGenerated(source, false, 3),
+                    eq(AdninMessages.translateGenerated(source, false, 0), AdninMessages.translateGenerated(source, false, 4),
                         "Local-only producer category translates the same fixed error");
                 }
                 for (String prefix : new String[]{"Fetching stats for ", "Unable to fetch stats for: "})
@@ -48,8 +48,8 @@ public final class AdninMessagesTest {
                 jsonComponents(apiData);
                 sessionRows();
                 fallbackCases(nick);
-                eq(null, AdninMessages.translateGenerated(nick, false, 3), "Local-only API producer rejects Nick template");
-                eq(null, AdninMessages.translateGenerated("[Adnin] Fetching stats for Player", false, 3), "Local-only API producer allows only exact key errors");
+                eq(null, AdninMessages.translateGenerated(nick, false, 4), "Local-only API producer rejects Nick template");
+                eq(null, AdninMessages.translateGenerated("[Adnin] Fetching stats for Player", false, 4), "Local-only API producer allows only exact key errors");
             }
         } finally { AdninLanguage.setLanguage("en"); }
         System.out.println("AdninMessagesTest: " + checks + " checks passed; template/JSON/session fixtures only");

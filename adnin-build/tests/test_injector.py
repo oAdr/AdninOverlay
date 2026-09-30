@@ -45,7 +45,43 @@ USER.PostMessageW.argtypes = [W.HWND, W.UINT, W.WPARAM, W.LPARAM]
 USER.IsWindow.argtypes = [W.HWND]
 USER.GetWindowLongPtrW.argtypes = [W.HWND, C.c_int]
 USER.GetWindowLongPtrW.restype = C.c_ssize_t
+USER.GetClassLongPtrW.argtypes = [W.HWND, C.c_int]
+USER.GetClassLongPtrW.restype = C.c_ssize_t
+USER.GetForegroundWindow.restype = W.HWND
 USER.GetLayeredWindowAttributes.argtypes = [W.HWND, C.POINTER(W.DWORD), C.POINTER(W.BYTE), C.POINTER(W.DWORD)]
+KERNEL.OpenProcess.argtypes = [W.DWORD, W.BOOL, W.DWORD]
+KERNEL.OpenProcess.restype = W.HANDLE
+KERNEL.CloseHandle.argtypes = [W.HANDLE]
+KERNEL.GetSystemDirectoryW.argtypes = [W.LPWSTR, W.UINT]
+PSAPI = C.WinDLL('psapi', use_last_error=True)
+PSAPI.GetModuleFileNameExW.argtypes = [W.HANDLE, W.HMODULE, W.LPWSTR, W.DWORD]
+
+
+def system_input_indicator(pid, hwnd, title, cls):
+    # An unswitched private desktop can expose these OS input-language widgets
+    # after BM_CLICK. Require their exact classes, empty titles, nonactivation,
+    # and registration by the actual System32 InputSwitch.dll. Keep all other
+    # windows, including unexpected dialogs and console/error windows, visible
+    # to the one-application-window assertion. Inspect only our owned fixture.
+    if cls not in ('UAC_InputIndicatorOverlayWnd', 'UAC Input Indicator') or title:
+        return False
+    if not USER.GetWindowLongPtrW(hwnd, -20) & 0x08000000:
+        return False
+    module = USER.GetClassLongPtrW(hwnd, -16)  # GCLP_HMODULE.
+    if not module:
+        return False
+    process = KERNEL.OpenProcess(0x410, False, pid)  # QUERY_INFORMATION | VM_READ.
+    if not process:
+        return False
+    try:
+        registered, system = C.create_unicode_buffer(1024), C.create_unicode_buffer(1024)
+        if not PSAPI.GetModuleFileNameExW(process, module, registered, 1024):
+            return False
+        if not KERNEL.GetSystemDirectoryW(system, 1024):
+            return False
+        return Path(registered.value) == Path(system.value) / 'InputSwitch.dll'
+    finally:
+        KERNEL.CloseHandle(process)
 
 
 class GUIThreadInfo(C.Structure):
@@ -91,7 +127,8 @@ def windows(pid):
             title, cls = C.create_unicode_buffer(512), C.create_unicode_buffer(128)
             USER.GetWindowTextW(hwnd, title, len(title))
             USER.GetClassNameW(hwnd, cls, len(cls))
-            found.append((hwnd, title.value, cls.value))
+            if not system_input_indicator(pid, hwnd, title.value, cls.value):
+                found.append((hwnd, title.value, cls.value))
         return True
     USER.EnumWindows(visit, 0)
     return found
@@ -296,6 +333,11 @@ class InjectorTests(unittest.TestCase):
                 process, hwnd = self.preview(executable, ['--preview-ui', status])
                 try:
                     self.assertEqual(bool(USER.GetDlgItem(hwnd, 1001)), status == 'failed')
+                    self.assertEqual(bool(USER.GetWindowLongPtrW(hwnd, -20) & 0x08000000),
+                                     status == 'success')  # WS_EX_NOACTIVATE only for passive success.
+                    if status == 'success':
+                        self.assertNotEqual(USER.GetForegroundWindow(), hwnd,
+                                            'Success must not activate over another application')
                     capture(hwnd, ARGS.work / ('preview-' + status + '.bmp'))
                 finally:
                     self.close(process, hwnd)
@@ -306,6 +348,7 @@ class InjectorTests(unittest.TestCase):
         self.assertTrue(any(0 < value < 255 for value in fade_in), fade_in)
         self.assertTrue(all(later >= earlier for earlier, later in zip(fade_in, fade_in[1:])), fade_in)
         fully_visible = time.monotonic()
+        self.assertNotEqual(USER.GetForegroundWindow(), hwnd, 'Success fade-in must not take focus')
         label = USER.GetDlgItem(hwnd, 1003)
         self.assertTrue(label)
         self.assertEqual(window_text(label), 'Closing in 2s')
@@ -315,6 +358,8 @@ class InjectorTests(unittest.TestCase):
         labels, fade_out, first_fade = set(), [], None
         deadline = fully_visible + 4
         while time.monotonic() < deadline and process.poll() is None:
+            self.assertNotEqual(USER.GetForegroundWindow(), hwnd,
+                                'Success hold/fade-out must not take focus')
             value = alpha(hwnd)
             if value is not None:
                 labels.add(window_text(label))

@@ -81,7 +81,7 @@ compat_register:
     mov rcx, rbx
     mov rdx, rsi
     lea r8, [compat_stop_name]
-    lea r9, [compat_tick_sig]
+    lea r9, [compat_stop_sig]
     mov rax, [rcx]
     call [rax+0x388]                ; GetStaticMethodID before constructor starts
     mov rdi, rax
@@ -134,22 +134,21 @@ compat_client_tick:
     ret
 compat_client_tick_end:
 
-; The pinned initializer calls GetAsyncKeyState(End) at 0x15205 with its
-; attached-thread JNIEnv in [caller_rsp+0x30]. Return a pressed key only after
-; Java's lifecycle barrier has stopped every scheduled callback. A JNI error
-; returns zero, keeping the original polling loop before any cleanup/unload.
+; Replaces the pinned initializer's former system-wide End poll at 0x15205.
+; Its attached-thread JNIEnv remains in [caller_rsp+0x30]. Java accepts a fresh
+; End gesture only in focused gameplay, then acknowledges drained lifecycle work.
+; No system key state is read here; pending requests survive physical key release.
+; Missing requests/pump, busy work and errors return zero without waiting for
+; Netty, keeping the original polling loop before any cleanup/unload.
 compat_unload_key:
     push rbx
 .p1:
     sub rsp, 0x30
 .prolog:
     mov rbx, [rsp+0x70]             ; entry_rsp+0x38 == caller_rsp+0x30
-    call [rel $$-CODE_RVA+0x132640] ; original GetAsyncKeyState IAT
-    mov [rsp+0x20], eax
-    test ax, ax
-    jz .done
+    mov dword [rsp+0x20], 0
     cmp dword [rel $$-CODE_RVA+ADNIN_STATE_RVA+8], 1
-    jne .done                     ; no constructor/pump was allowed to start
+    jne .done                     ; an absent pump cannot authorize an unload
     test rbx, rbx
     jz .blocked
     mov rcx, rbx
@@ -166,12 +165,18 @@ compat_unload_key:
     jz .blocked
     xor r9d, r9d
     mov rax, [rcx]
-    call [rax+0x478]                ; CallStaticVoidMethodA(stop, no arguments)
+    call [rax+0x418]                ; CallStaticIntMethodA(tryStop, no arguments)
+    mov [rsp+0x24], eax             ; preserve acknowledgement across ExceptionCheck
     mov rcx, rbx
     mov rax, [rcx]
     call [rax+0x720]
     test al, al
     jnz .blocked
+    cmp dword [rsp+0x24], 1
+    jne .blocked                   ; retain method/class/state for the next poll
+    call input_detach              ; only acknowledged End can request window-thread detach
+    cmp eax,1
+    jne .blocked                   ; preserve JNI refs while an outer subclass still depends on us
     mov rcx, rbx
     mov rdx, [rel $$-CODE_RVA+ADNIN_STATE_RVA+24]
     mov rax, [rcx]
@@ -180,6 +185,7 @@ compat_unload_key:
     mov qword [rel $$-CODE_RVA+ADNIN_STATE_RVA+32], 0
     mov dword [rel $$-CODE_RVA+ADNIN_STATE_RVA+8], 0
     mov dword [rel $$-CODE_RVA+ADNIN_STATE_RVA+12], 1
+    mov dword [rsp+0x20], 1        ; synthesize the original caller's nonzero AX
 .done:
     mov eax, [rsp+0x20]
     add rsp, 0x30
@@ -192,7 +198,8 @@ compat_unload_key_end:
 
 compat_tick_name: db 'nativeClientTick',0
 compat_tick_sig: db '()V',0
-compat_stop_name: db 'adninStopClientPump',0
+compat_stop_name: db 'adninTryStopClientPump',0
+compat_stop_sig: db '()I',0
 align 4, db 0
 compat_register_unwind:
     db 1, compat_register.prolog-compat_register, 4, 0

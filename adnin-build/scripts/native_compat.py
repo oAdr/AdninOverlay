@@ -75,13 +75,14 @@ def profile():
 
 HOOKS = (
     (0x19288, 0x39f40, 'plainLocal'), (0x19381, 0x39f40, 'plainLocal'),
-    (0x6e4a2, 0x39f40, 'plain'), (0x6f5b0, 0x39f40, 'plain'),
+    (0x6e4a2, 0x39f40, 'plain'), (0x6f5b0, 0x39f40, 'plainDenick'),
     (0x6b907, 0x39c40, 'jsonTags'), (0x6c082, 0x39f40, 'plainTags'),
-    (0x89938, 0x39c40, 'json'), (0x8993f, 0x39f40, 'plain'),
-    (0x89819, 0x39f40, 'plain'),  # Skin success bypasses the shared message queue
+    (0x89938, 0x39c40, 'jsonDenick'), (0x8993f, 0x39f40, 'plainDenick'),
+    (0x89819, 0x39f40, 'plainDenick'),  # Skin success bypasses the shared message queue
     (0x8f921, 0x8ba70, 'prelayout'), (0x8fb9f, 0x8e0b0, 'render'),
     (0x6b4cd, 0x68b50, 'seraphPrefix'), (0x6bb2d, 0x68b50, 'seraphPrefix'),
     (0x885a4, 0xbcf40, 'denicker'), (0x1407d, 0x8b950, 'matchStart'),
+    (0x186df, 0x12b90, 'gameActive'),
     (0x6045d, 0x5f220, 'columnCatalog'),
     (0x88d08, 0x77040, 'replayStats'),
     (0x88aca, 0x70c0, 'replayUuidCopy'),
@@ -202,6 +203,10 @@ def build_bridge(data, nasm):
     api_policy = native_api_policy.reviewed_patches(pe, 'vanilla', code_rva, meta)
     header_localization = bridge.native_headers.reviewed_patches(pe, 'vanilla', code_rva, meta)
     process_entry = bridge.native_process_entry.reviewed_patch(pe,'vanilla',code_rva,meta)
+    game_state = bridge.native_game_state.reviewed_hook(pe,'vanilla',code_rva,meta)
+    skin_policy = bridge.native_skin_policy.reviewed_patches(pe, 'vanilla')
+    chat_poll = bridge.native_chat_poll.reviewed_patch(pe, 'vanilla', code_rva, meta)
+    input_hooks = bridge.native_input_hooks.reviewed_patches(pe,'vanilla',code_rva,meta,state_rva,require)
     added = []
     for name in function_names:
         entry = tuple(code_rva + meta[name + suffix] for suffix in ('Begin', 'End', 'Unwind'))
@@ -215,7 +220,7 @@ def build_bridge(data, nasm):
     state_raw = code_raw + code_raw_size
     # +8 registered u32; +12 stopped u32; +16 heartbeat u64;
     # +24 NewChat global jclass; +32 static stop jmethodID.
-    state = STATE_MAGIC + bytes(32)
+    state = STATE_MAGIC + bytes(bridge.native_input_hooks.STATE_SIZE-8)
     state_raw_size = align(len(state), file_align)
     image_size = align(state_rva + len(state), section_align)
     header_at = pe.sections[-1].get_file_offset() + 40
@@ -239,7 +244,7 @@ def build_bridge(data, nasm):
     hooks.append(dict(callRva=REGISTER_SITE, originalTargetRva=None, bridgeTargetRva=register_target, callback='registerClientTick'))
     unload_target = code_rva + meta['unloadKey']
     patch(pe.get_offset_from_rva(UNLOAD_KEY_SITE), bridge.call_bytes(UNLOAD_KEY_SITE, unload_target) + b'\x90',
-          'Stop scheduled callbacks before End-key cleanup or DLL unload; defer unload on JNI error')
+          'Require client-authorized unload request before stopping callbacks; never read system-wide End state')
     hooks.append(dict(callRva=UNLOAD_KEY_SITE, originalTargetRva=None, bridgeTargetRva=unload_target, callback='stopClientPumpBeforeUnload'))
     patch(pe.get_offset_from_rva(legacy_anticheat['callRva']), native_anticheat.REPLACEMENT,
           legacy_anticheat['reason'])
@@ -250,10 +255,17 @@ def build_bridge(data, nasm):
     patch(pe.get_offset_from_rva(replay_denick['gateRva']), bytes.fromhex(replay_denick['after']), replay_denick['reason'])
     for item in number_polling:
         patch(pe.get_offset_from_rva(item['branchRva']),bytes.fromhex(item['after']),item['reason'])
+    for item in skin_policy['patches']:
+        patch(pe.get_offset_from_rva(item['siteRva']),bytes.fromhex(item['after']),item['reason'])
     for item in api_policy['patches']:
         patch(pe.get_offset_from_rva(item['siteRva']),bytes.fromhex(item['after']),item['reason'])
     for item in header_localization['patches']:
         patch(pe.get_offset_from_rva(item['siteRva']), bytes.fromhex(item['after']), item['reason'])
+    for item in input_hooks['patches']:
+        patch(pe.get_offset_from_rva(item['siteRva']),bytes.fromhex(item['after']),item['reason'])
+    chat_site = chat_poll['siteRva']
+    patch(pe.get_offset_from_rva(chat_site), b'\xe9'+struct.pack('<i',chat_poll['bridgeTargetRva']-chat_site-5)+b'\x90',
+          chat_poll['reason'])
     patch(pe.FILE_HEADER.get_field_absolute_offset('NumberOfSections'), struct.pack('<H', len(pe.sections) + 2), 'Append code and state sections')
     patch(pe.OPTIONAL_HEADER.get_field_absolute_offset('SizeOfImage'), struct.pack('<I', image_size), 'Compatibility image size')
     patch(pe.OPTIONAL_HEADER.get_field_absolute_offset('SizeOfCode'), struct.pack('<I', pe.OPTIONAL_HEADER.SizeOfCode + code_raw_size), 'Compatibility code size')
@@ -295,8 +307,9 @@ def build_bridge(data, nasm):
                   runtimeFunctionTable=dict(rva=code_rva + table_offset, size=len(table), count=len(functions)),
                   patches=patches, runtime_metadata=runtime, legacyAnticheat=legacy_anticheat,
                   gameTickHook=game_tick_hook, replayOverlay=replay_overlay, replayStats=replay_stats, replayDenicker=replay_denick, numberPolling=number_polling,
-                  nativeApiPolicy=api_policy, headerLocalization=header_localization,
-                  processTerminationGuard=process_entry,
+                  nativeApiPolicy=api_policy, skinDenickerPolicy=skin_policy, headerLocalization=header_localization,
+                  processTerminationGuard=process_entry, nativeGameState=game_state,
+                  nativeInputHooks=input_hooks, nativeChatPolling=chat_poll,
                   outputRouting=bridge.output_routing(HOOKS),
                   gameRuntimeTested=False, originalDllExecutedByBuild=False,
                   denickerLayout=dict(rowSize=0x178, uuidOffset=0x148, statsSize=0x180, skinScratchSize=0x280,
@@ -309,8 +322,12 @@ def build_bridge(data, nasm):
                                   source='bounded scheduled client callback after Features.tick; independent of sessionStats and world rendering',
                                   originalNativeMethodsPreserved=2),
                   unloadGuard=dict(callRva=UNLOAD_KEY_SITE, stopOwner='AdninGuiNewChat',
-                                   stopMethod='adninStopClientPump', descriptor='()V',
-                                   jniErrorAction='return no End key; keep cleanup and unload deferred',
+                                   stopMethod='adninTryStopClientPump', descriptor='()I', acknowledgement=1,
+                                   systemKeyPolling=False, requiresClientAuthorizedRequest=True, originalPollIntervalMs=20,
+                                   requestSurvivesKeyRelease=True,
+                                   busyAction='return zero; retain class/method and retry without waiting for Netty',
+                                   legacyStopAbiPreserved='AdninGuiNewChat.adninStopClientPump()V',
+                                   jniErrorAction='return zero; keep cleanup and unload deferred',
                                    classGlobalRefRva=state_rva + 24, stopMethodRva=state_rva + 32,
                                    stoppedFlagRva=state_rva + 12))
     return final, report

@@ -39,6 +39,7 @@ std::string diagnostic_text(const ResultReport& report);
 // leaves it empty so an explicit Export log click writes to the user's Desktop.
 // Success stays fully visible for two seconds before fading out. Failure stays
 // open until closed; all manual close paths share the same fade-out transition.
+// Success does not activate its window or take keyboard focus from the game.
 bool show_result_window(const ResultReport& report,
                         const std::filesystem::path& export_directory = {});
 }  // namespace adnin

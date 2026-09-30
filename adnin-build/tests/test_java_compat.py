@@ -3,6 +3,7 @@ import importlib.util
 import json
 import os
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import sys
@@ -138,11 +139,59 @@ public class AdninProbe extends Parent {
         self.assertIn('extends avt implements Runnable',chat)
         self.assertIn('AdninCompatPump.start(ave2, this);',chat)
         self.assertIn('public static void adninStopClientPump() { AdninCompatPump.stop(); }',chat)
+        self.assertIn('public static int adninTryStopClientPump()',chat)
+        self.assertIn('return AdninPacketLog.isQuiescent() ? 1 : 0;',chat)
         self.assertIn('if (AdninCompatPump.isRunning()) AdninGuiNewChat.nativeClientTick();',chat)
         self.assertIn('public void a(int n) {\n        this.delegate.a(n);',chat)
         self.assertEqual(compat.BOOTSTRAP_OWNERS,('AdninGui4','AdninGuiNewChat'))
         self.assertNotIn('AdninClientPump',compat.ACTIVE_CLASSES)
         self.assertIn('AdninGuiNewChat',compat.ACTIVE_CLASSES)
+
+    def test_stop_ack_preserves_void_abi_and_retries_busy_without_exception(self):
+        chat = compat.compatibility_chat_source(ROOT / 'src/java/AdninGuiNewChat.java')
+        methods = []
+        for return_type, name in (('void', 'adninStopClientPump'), ('int', 'adninTryStopClientPump')):
+            match = re.search(r'public static ' + return_type + r' ' + name + r'\(\)\s*\{[^}]*\}', chat)
+            self.assertIsNotNone(match, name)
+            methods.append(match.group(0))
+        directory = self.work / 'stop-ack-src'
+        directory.mkdir()
+        snippets = {
+            'AdninGameModules.java': 'public final class AdninGameModules { public static boolean requested; public static boolean isHotkeyUnloadRequested() { return requested; } }',
+            'AdninCompatPump.java': 'public final class AdninCompatPump { public static int stops; public static void stop() { ++stops; } }',
+            'AdninPacketLog.java': 'public final class AdninPacketLog { public static boolean ready; public static boolean isQuiescent() { return ready; } }',
+            'AdninStopGateProbe.java': 'public final class AdninStopGateProbe {\n' + '\n'.join(methods) + '''
+    public static void main(String[] args) {
+        if (adninTryStopClientPump() != 0 || AdninCompatPump.stops != 0)
+            throw new AssertionError("An unrequested native poll must leave the client scheduler running");
+        AdninPacketLog.ready = true;
+        if (adninTryStopClientPump() != 0 || AdninCompatPump.stops != 0)
+            throw new AssertionError("Packet quiescence is not an authorized unload gesture");
+        AdninGameModules.requested = true; AdninPacketLog.ready = false;
+        if (adninTryStopClientPump() != 0 || AdninCompatPump.stops != 1)
+            throw new AssertionError("Busy stop must report zero without throwing");
+        AdninPacketLog.ready = true;
+        if (adninTryStopClientPump() != 1 || AdninCompatPump.stops != 2)
+            throw new AssertionError("Ready retry must stop and acknowledge one");
+        adninStopClientPump();
+        if (AdninCompatPump.stops != 3) throw new AssertionError("Legacy void ABI must still stop");
+        System.out.print("Stop ack and legacy ABI verified");
+    }
+}''',
+        }
+        sources = []
+        for name, text in snippets.items():
+            path = directory / name
+            path.write_text(text, encoding='utf8')
+            sources.append(path)
+        output = self.work / 'stop-ack-classes'
+        common.compile_sources(self.javac, sources, str(directory), output, self.work / 'stop-ack.args')
+        info = read_class((output / 'AdninStopGateProbe.class').read_bytes())
+        abi = {(method['name'], method['descriptor'], method['access']) for method in info['methods']}
+        self.assertIn(('adninStopClientPump', '()V', 9), abi)
+        self.assertIn(('adninTryStopClientPump', '()I', 9), abi)
+        result = common.run([self.java, '-Xverify:all', '-cp', output, 'AdninStopGateProbe'], 'Stop acknowledgement fixture', 15)
+        self.assertIn('Stop ack and legacy ABI verified', result)
 
     def test_reviewed_mapping_has_no_external_secrets_or_game_code(self):
         data = json.loads((ROOT / 'resources/java-compat-1.8.9.json').read_text())

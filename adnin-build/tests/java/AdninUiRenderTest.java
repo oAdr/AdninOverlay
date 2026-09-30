@@ -43,7 +43,7 @@ public class AdninUiRenderTest {
             GL11.glMatrixMode(GL11.GL_MODELVIEW); GL11.glLoadIdentity();
             AdninGui4 screen=new AdninGui4(); screen.width=800;screen.height=560;screen.layoutForViewport();
             AdninAnticheat.enabled=true; AdninAnticheat.scaffold=true; AdninAnticheat.noFall=true;
-            AdninGui4.chatOutput=true; AdninGui4.chatOutputTags=true; AdninGui4.chatOverlay=true;
+            AdninGui4.chatOutput=true; AdninGui4.chatOutputDenick=true; AdninGui4.chatOutputTags=true; AdninGui4.chatOverlay=true;
             for(String language : new String[]{"en","zh_CN","zh_TW"}) {
             AdninLanguage.setLanguage(language);
             for(int panel=0;panel<7;panel++) for(int lower=0;lower<2;lower++) {
@@ -67,6 +67,12 @@ public class AdninUiRenderTest {
                 check(GL11.glGetError()==GL11.GL_NO_ERROR,"GL state valid for panel "+panel);
                 ImageIO.write(capture(width,height),"png",out.resolve(("en".equals(language)?"":language+"-")+"panel-"+panel+(lower==0?"":"-bottom")+".png").toFile());
             }
+            AdninGui4.chatOutputTags=false;
+            GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
+            prepare(screen,4,0); screen.drawScreen(-100,-100,0);
+            check(GL11.glGetError()==GL11.GL_NO_ERROR,"disabled tag subcontrols render correctly in "+language);
+            ImageIO.write(capture(width,height),"png",out.resolve(language+"-chat-tags-disabled.png").toFile());
+            AdninGui4.chatOutputTags=true;
             }
             AdninLanguage.setLanguage("en");
             GL13.glActiveTexture(GL13.GL_TEXTURE0);GL11.glMatrixMode(GL11.GL_MODELVIEW);
@@ -91,6 +97,7 @@ public class AdninUiRenderTest {
             screen.width=320;screen.height=180;screen.layoutForViewport();
             GL11.glMatrixMode(GL11.GL_PROJECTION);GL11.glLoadIdentity();GL11.glOrtho(0,320,180,0,-1,1);
             GL11.glMatrixMode(GL11.GL_MODELVIEW);GL11.glLoadIdentity();
+            GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
             prepare(screen,4,0);screen.drawScreen(-100,-100,0);
             check(GL11.glGetError()==GL11.GL_NO_ERROR,"fractional viewport renders without GL error");
             ImageIO.write(capture(width,height),"png",out.resolve("compact-viewport.png").toFile());
@@ -102,6 +109,7 @@ public class AdninUiRenderTest {
                 GL11.glMatrixMode(GL11.GL_MODELVIEW);GL11.glLoadIdentity();
                 Method heightMethod=AdninGui4.class.getDeclaredMethod("getPanelContentHeight",int.class);heightMethod.setAccessible(true);
                 int floor=Math.min(0,screen.winH-56-16-32-5-(Integer)heightMethod.invoke(screen,0));
+                GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
                 prepare(screen,0,floor);screen.drawScreen(-100,-100,0);
                 check(GL11.glGetError()==GL11.GL_NO_ERROR,"localized scaled settings renders without GL error");
                 ImageIO.write(capture(width,height),"png",out.resolve(language+"-scale-"+percent+".png").toFile());

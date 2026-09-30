@@ -23,8 +23,11 @@ public final class AdninReplay {
     private static volatile String status = "not-observed";
     private static volatile long observations, failures;
     private static volatile int tabProfiles, formattedTabProfiles, validTabProfiles;
-    private static volatile RosterCounts rosterCounts = new RosterCounts();
+    // This instance is only published/read; refreshActors owns a separate builder.
+    private static final RosterCounts EMPTY_ROSTER_COUNTS = new RosterCounts();
+    private static volatile RosterCounts rosterCounts = EMPTY_ROSTER_COUNTS;
     private static volatile Map<EntityPlayer, String> actors = Collections.emptyMap();
+    private static final ObservationWindow observation = new ObservationWindow();
     private static Object world;
     private static long nextRoster;
     private static final AdninReplayProfiles profiles = new AdninReplayProfiles(
@@ -39,10 +42,9 @@ public final class AdninReplay {
     public static boolean isReplay() { return replay; }
 
     public static void clear() {
-        replay = false; status = "inactive"; world = null; nextRoster = 0;
-        actors = Collections.emptyMap(); profiles.publish(Collections.<String, String>emptyMap());
-        tabProfiles = 0; formattedTabProfiles = 0; validTabProfiles = 0;
-        rosterCounts = new RosterCounts();
+        replay = false; status = "inactive";
+        observation.clear();
+        clearRoster();
     }
 
     public static void shutdown() {
@@ -99,36 +101,82 @@ public final class AdninReplay {
     }
 
     public static void tick(Minecraft mc) {
+        tick(mc, System.nanoTime());
+    }
+
+    /** Package-private monotonic clock seam for offline lifecycle regressions. */
+    static void tick(Minecraft mc, long now) {
         boolean nextReplay = false;
         String nextStatus = "no-world";
-        observations++;
         try {
-            if (mc != null && mc.theWorld != null && mc.thePlayer != null) {
-                Scoreboard board = mc.theWorld.getScoreboard();
-                ScoreObjective objective = sidebar(board, mc.thePlayer.getName());
-                nextReplay = detect(board, objective);
-                nextStatus = nextReplay ? "active" : objective == null ? "no-sidebar" : "ordinary";
-                if (nextReplay) {
-                    long now = AdninReplayProfiles.now();
-                    if (world != mc.theWorld || now >= nextRoster) {
-                        refreshActors(mc);
-                        world = mc.theWorld; nextRoster = now + 250L;
-                    }
+            if (mc == null || mc.theWorld == null || mc.thePlayer == null) {
+                clear(); status = "no-world"; return;
+            }
+            Object connection = mc.getNetHandler();
+            if (connection == null) { clear(); status = "no-connection"; return; }
+            // Check identities before the time gate: old-world actor admission
+            // must never survive a fast world/player/connection replacement.
+            if (!observation.sameContext(mc.theWorld, mc.thePlayer, connection)) {
+                replay = false;
+                clearRoster();
+            }
+            if (!observation.claim(now, mc.theWorld, mc.thePlayer, connection)) return;
+            observations++;
+            Scoreboard board = mc.theWorld.getScoreboard();
+            ScoreObjective objective = sidebar(board, mc.thePlayer.getName());
+            nextReplay = detect(board, objective);
+            nextStatus = nextReplay ? "active" : objective == null ? "no-sidebar" : "ordinary";
+            if (nextReplay) {
+                long rosterNow = now / 1000000L;
+                if (world != mc.theWorld || rosterNow >= nextRoster) {
+                    refreshActors(mc);
+                    world = mc.theWorld; nextRoster = rosterNow + 250L;
                 }
             }
         } catch (Exception failure) { failures++; nextStatus = "observation-error"; }
           catch (LinkageError failure) { failures++; nextStatus = "linkage-error"; }
         if (!nextReplay || !"active".equals(nextStatus)) {
-            if (world != null || !actors.isEmpty()) {
-                actors = Collections.emptyMap(); profiles.publish(Collections.<String, String>emptyMap());
-            }
-            world = null; nextRoster = 0;
-            tabProfiles = 0; formattedTabProfiles = 0; validTabProfiles = 0;
-            rosterCounts = new RosterCounts();
+            clearRoster();
         }
-        // Publish once; native readers never see an intermediate false value.
+        // Stable-context scans publish once. Context replacements above first
+        // invalidate the old admission before observing the new world/roster.
         replay = nextReplay && "active".equals(nextStatus);
         status = nextStatus;
+    }
+
+    private static void clearRoster() {
+        if (world != null || !actors.isEmpty()) {
+            actors = Collections.emptyMap(); profiles.publish(Collections.<String, String>emptyMap());
+        }
+        world = null; nextRoster = 0;
+        tabProfiles = 0; formattedTabProfiles = 0; validTabProfiles = 0;
+        rosterCounts = EMPTY_ROSTER_COUNTS;
+    }
+
+    /** Paused/rewound Replay entity ticks cannot stall this wall-independent gate. */
+    static final class ObservationWindow {
+        static final long INTERVAL_NS = 50000000L;
+        private Object world, player, connection;
+        private long lastScan;
+        private boolean scanned;
+
+        boolean sameContext(Object nextWorld, Object nextPlayer, Object nextConnection) {
+            return world == nextWorld && player == nextPlayer && connection == nextConnection;
+        }
+
+        boolean claim(long now, Object nextWorld, Object nextPlayer, Object nextConnection) {
+            if (nextWorld == null || nextPlayer == null || nextConnection == null) { clear(); return false; }
+            if (sameContext(nextWorld, nextPlayer, nextConnection) && scanned
+                    && now - lastScan < INTERVAL_NS) return false;
+            world = nextWorld; player = nextPlayer; connection = nextConnection;
+            lastScan = now; scanned = true;
+            return true;
+        }
+
+        void clear() {
+            world = null; player = null; connection = null;
+            lastScan = 0; scanned = false;
+        }
     }
 
     private static void refreshActors(Minecraft mc) {

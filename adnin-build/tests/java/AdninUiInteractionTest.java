@@ -14,7 +14,9 @@ public final class AdninUiInteractionTest {
     private static final String[] GUI_FIELDS = {"api_hypixel", "api_seraph", "api_aurora", "api_urchin",
         "vegaProxy", "listeningHoldRdKey", "holdRdKeyCode", "listeningQuickbuyIndex",
         "overlayGamemodeEdit", "overlayColumnsBedwars", "overlayColumnsSkywars", "overlayColumnsDuel",
-        "overlayColumnsBedwarsduels", "overlayColumnEnabled", "overlayColumnOrder", "uiScalePercent"};
+        "overlayColumnsBedwarsduels", "overlayColumnEnabled", "overlayColumnOrder", "uiScalePercent",
+        "chatOutput", "chatOutputDenick", "chatOutputTags", "chatOutputTagsSelf", "chatOutputTagsTeammates",
+        "chatOutputAnticheat", "chatOverlay", "chatOverlayMinStars", "chatOverlayMinFkdr", "chatOverlayMinSwKdr"};
     private static final Method LAYOUT = method("layoutForViewport");
     private static final Method CLICK = method("mouseClicked", int.class, int.class, int.class);
     private static final Method KEY = method("keyTyped", char.class, int.class);
@@ -52,6 +54,7 @@ public final class AdninUiInteractionTest {
                 bottomReach(screen);
                 overlayHeaderClipping(screen);
                 apiControls(screen);
+                outputControls(screen);
                 closing(screen);
             }
             uiScaleAndLanguage();
@@ -104,6 +107,71 @@ public final class AdninUiInteractionTest {
         }
     }
 
+    private static void outputControls(AdninGui4 screen) throws Exception {
+        screen.selectedTheme = 4;
+        field(GUI, "drawnTheme").setInt(screen, -1);
+        SET_SCROLL.invoke(screen, 4, 0);
+        AdninGui4.chatOutput = false; AdninGui4.chatOutputDenick = false;
+        AdninGui4.chatOutputTags = false; AdninGui4.chatOutputAnticheat = false;
+        AdninGui4.chatOutputTagsSelf = true; AdninGui4.chatOutputTagsTeammates = true;
+        AdninGui4.chatOverlay = false;
+        int x = contentX(screen), width = panelWidth(screen), base = top(screen) + 5;
+        int card = base + constant("CHAT_MAIN_Y");
+        int subY = card + constant("CHAT_OUTPUT_TAG_FILTERS_Y") + 11;
+        int filterWidth = (width - 32) / 2;
+        int selfX = x + 20 + filterWidth / 2, teamX = x + 24 + filterWidth + filterWidth / 2;
+        saves.set(null);
+        click(screen, selfX, subY, 0); click(screen, teamX, subY, 0);
+        check(AdninGui4.chatOutputTagsSelf && AdninGui4.chatOutputTagsTeammates,
+            "disabled tag filters retain their preferences");
+        check(saves.get() == null, "disabled tag filter clicks neither save nor invalidate output");
+        click(screen, x + 40, card + constant("CHAT_OUTPUT_DENICK_Y") + 11, 0);
+        check(AdninGui4.chatOutputDenick && !AdninGui4.chatOutput && !AdninGui4.chatOutputTags
+            && !AdninGui4.chatOutputAnticheat, "Nick/Denick toggles independently at actual scaled coordinates");
+        check(AdninGui4.chatOverlay, "enabling Nick/Denick enables its local source");
+        eq("true", saves.get().getProperty("chat.output.denick"), "Nick/Denick reaches production settings save");
+        click(screen, x + 40, card + constant("CHAT_OUTPUT_PLAYERS_Y") + 11, 0);
+        check(AdninGui4.chatOutput && AdninGui4.chatOutputDenick, "player output preserves independent denick output");
+        click(screen, x + 40, card + constant("CHAT_OUTPUT_TAGS_Y") + 11, 0);
+        check(AdninGui4.chatOutputTags, "tag output enables at its expanded row position");
+        click(screen, selfX, subY, 0);
+        check(!AdninGui4.chatOutputTagsSelf && AdninGui4.chatOutputTagsTeammates,
+            "Self tag filter only changes itself");
+        eq("false", saves.get().getProperty("chat.output.tags.self"), "Self filter reaches production save");
+        click(screen, teamX, subY, 0);
+        check(!AdninGui4.chatOutputTagsSelf && !AdninGui4.chatOutputTagsTeammates,
+            "Teammates tag filter only changes itself");
+        eq("false", saves.get().getProperty("chat.output.tags.teammates"), "Teammates filter reaches production save");
+        click(screen, x + 40, card + constant("CHAT_OUTPUT_ANTICHEAT_Y") + 11, 0);
+        check(AdninGui4.chatOutputAnticheat && AdninGui4.chatOutput && AdninGui4.chatOutputDenick
+            && AdninGui4.chatOutputTags, "all four output categories enable independently");
+        click(screen, x + 40, card + constant("CHAT_OUTPUT_TAGS_Y") + 11, 0);
+        Properties saved = saves.get();
+        click(screen, selfX, subY, 0); click(screen, teamX, subY, 0);
+        check(!AdninGui4.chatOutputTagsSelf && !AdninGui4.chatOutputTagsTeammates && saved == saves.get(),
+            "disabled tag filters preserve explicit off preferences as well");
+        click(screen, x + 40, card + constant("CHAT_OUTPUT_TAGS_Y") + 11, 0);
+        check(!AdninGui4.chatOutputTagsSelf && !AdninGui4.chatOutputTagsTeammates,
+            "reenabling tag output does not silently reset child filters");
+        for (String language : new String[]{"zh_CN", "zh_TW"}) {
+            AdninLanguage.setLanguage(language);
+            for (String label : new String[]{"Output: Nick / Denick", "Include Self", "Include Teammates"})
+                check(!label.equals(AdninLanguage.text(label)), "new output label is localized in " + language);
+        }
+        AdninLanguage.setLanguage("en");
+        int cardBottom = constant("CHAT_MAIN_Y") + constant("CHAT_MAIN_H");
+        check(cardBottom < constant("CHAT_THRESH_Y") - 12, "expanded outputs never overlap Thresholds title");
+        int content = (Integer) HEIGHT.invoke(screen, 4);
+        int scroll = (Integer) CLAMP.invoke(screen, -10000, content, viewport(screen) - 5);
+        SET_SCROLL.invoke(screen, 4, scroll);
+        int lastInputY = top(screen) + 5 + scroll + constant("CHAT_THRESH_Y") + 8 + 96;
+        click(screen, x + 14, lastInputY + 10, 0);
+        eq(7, field(GUI, "activeInput").getInt(screen), "last threshold remains reachable after output card expansion");
+        AdninGui4.chatOverlayMinSwKdr = "3.2";
+        click(screen, x + width - 14, lastInputY + 10, 0);
+        eq("", AdninGui4.chatOverlayMinSwKdr, "expanded bottom threshold clear button remains aligned");
+    }
+
     private static void uiScaleAndLanguage() throws Exception {
         Properties settings = new Properties();
         AdninGui4.api_hypixel = "test-key";
@@ -138,6 +206,7 @@ public final class AdninUiInteractionTest {
                 bottomReach(screen);
                 overlayHeaderClipping(screen);
                 apiControls(screen);
+                outputControls(screen);
             }
             AdninGui4.uiScalePercent = 100;
             AdninGui4 screen = new AdninGui4(); screen.width = size[0]; screen.height = size[1];

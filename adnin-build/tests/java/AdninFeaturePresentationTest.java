@@ -32,8 +32,10 @@ public final class AdninFeaturePresentationTest {
         teamPriority();
         urchinMessages();
         botMessages();
+        skinMessages();
         urchinErrorThrottle();
         tabTagTypes();
+        overlayNamesAndLabels();
         botPartyPolicy();
         check(!field("initialized").getBoolean(null), "Presentation never starts feature integration");
         check(field("settingsPath").get(null) == null, "Presentation never reads or writes personal settings");
@@ -41,6 +43,55 @@ public final class AdninFeaturePresentationTest {
         check(field("apiCompleted").getLong(null) == 0, "Presentation performs no API work");
         System.out.println("AdninFeaturePresentationTest: " + checks
                 + " checks passed; real-name colors, team priority, per-tag presentation and verified-only Bot party queue; no game, network, settings or sends");
+    }
+
+    private static void skinMessages() {
+        String message = AdninFeatures.formattedSkinMessage("UnitNick", "\u00a76[VIP] \u00a7bUnitNick", "RealPlayer");
+        eq("Skin Denicker UnitNick → RealPlayer", plain(message), "Skin denick keeps both verified identities");
+        wordColor(message, "Skin Denicker", '6', "Skin label is gold");
+        wordColor(message, "UnitNick", 'b', "Skin nick follows its actual nametag color");
+        wordColor(message, "RealPlayer", 'b', "Resolved Skin name inherits the visible nick color");
+        neutralSeparators(message, '→');
+        check(message.endsWith("\u00a7r"), "Skin success resets its trailing name color");
+        String numeric = AdninFeatures.formattedSkinMessage("12345", "\u00a7c[VIP]\u00a7r 12345", "RealPlayer");
+        wordColor(numeric, "12345", 'f', "Numeric Skin nickname obeys its explicit reset color");
+        wordColor(numeric, "RealPlayer", 'f', "Reset-white nickname passes white to Skin owner");
+        check(numeric.endsWith("\u00a7r"), "Numeric Skin nickname cannot leak formatting");
+        eq("/pc Skin Denicker UnitNick → RealPlayer", AdninFeatures.partyCommands(message).get(0),
+                "Skin output uses the same plain party formatting");
+        eq("", AdninFeatures.formattedSkinMessage("Bad Name", null, "RealPlayer"), "Invalid Skin nick cannot inject text");
+        eq("", AdninFeatures.formattedSkinMessage("UnitNick", null, "Bad Name"), "Invalid resolved Skin name cannot inject text");
+        AdninFeatures.setGameActive(false);
+        check(!AdninFeatures.skinResolved("UnitNick", "RealPlayer"), "Out-of-game Skin result cannot consume later presentation");
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void overlayNamesAndLabels() throws Exception {
+        Method player = AdninFeatures.class.getDeclaredMethod("overlayPlayer", String.class);
+        player.setAccessible(true);
+        Set<String> present = (Set<String>) field("present").get(null);
+        Map<String, String> labels = (Map<String, String>) field("tagLabels").get(null);
+        AdninUrchinCache cache = (AdninUrchinCache) field("urchinCache").get(null);
+        Method apply = AdninFeatures.class.getDeclaredMethod("applyUrchinContent"); apply.setAccessible(true);
+        try {
+            present.add("xiaoshu_sky2026"); present.add("12345"); present.add("unitplayer");
+            eq("xiaoshu_sky2026", (String) player.invoke(null, "\u00a7b[MVP+] \u00a7aXiaoShu_SKY2026"),
+                    "Overlay matches the complete colored Replay name");
+            eq("12345", (String) player.invoke(null, "\u00a7e12345"), "Numeric roster names remain supported");
+            check(player.invoke(null, "XUnitPlayerX") == null, "Larger name tokens cannot become another player's row");
+            check(player.invoke(null, "XiaoShu_SKY202") == null, "Truncated names cannot become the full player's row");
+            eq("unitplayer", (String) player.invoke(null, "[12345] UnitPlayer"), "Last complete roster token remains the displayed name");
+            present.clear();
+            cache.beginMatch(100L, java.util.Collections.singletonMap("UnitPlayer", NAME), NOW);
+            cache.complete(100L, NAME, Arrays.asList("confirmed_cheater: reason", "legit_sniper", "legit_sniper"), true, NOW);
+            apply.invoke(null);
+            eq("Confirmed, LS", plain(labels.get("unitplayer")), "Urchin abbreviations are prepared when content changes");
+            cache.clearMatch(); apply.invoke(null);
+            check(labels.isEmpty(), "An empty visible snapshot releases prior Urchin labels");
+        } finally {
+            present.clear(); cache.clear(); labels.clear();
+            ((Map<?, ?>) field("tags").get(null)).clear();
+        }
     }
 
     private static void playerColors() {
@@ -216,10 +267,11 @@ public final class AdninFeaturePresentationTest {
         Map<String, String> oldProfiles = new HashMap<String, String>(profiles);
         Map<String, Long> oldRequested = new HashMap<String, Long>(requested);
         int oldEpoch = epoch.getInt(null);
-        boolean oldOutput = AdninGui4.chatOutput;
+        boolean oldOutput = AdninGui4.chatOutputDenick;
+        AdninFeatures.setGameActive(true);
         try {
             epoch.setInt(null, 31);
-            AdninGui4.chatOutput = true;
+            AdninGui4.chatOutputDenick = true;
             for (String[] failure : new String[][]{
                     result("", "", ""), result("request-failed", "", ""), result("profile-unavailable", "RealPlayer", ""),
                     result("request-failed", "RealPlayer", UUID4), result("", "Invalid Name", UUID4),
@@ -247,23 +299,25 @@ public final class AdninFeaturePresentationTest {
             check(AdninFeatures.pollPartyCommand(NOW + 1) != null, "No-results followed by success can emit once");
             check(AdninFeatures.pollPartyCommand(NOW + 1) == null, "Success enqueues only one message");
             reset(present, announced, profiles, requested);
-            AdninGui4.chatOutput = false;
+            AdninGui4.chatOutputDenick = false;
             invoke(apply, result("", "RealPlayer", UUID4), NOW);
             check(AdninFeatures.pollPartyCommand(NOW) == null && profiles.containsKey("unitnick"), "Output disabled preserves verified identity locally without party output");
-            AdninGui4.chatOutput = true;
+            AdninGui4.chatOutputDenick = true;
             reset(present, announced, profiles, requested);
             String[] stale = result("", "RealPlayer", UUID4); stale[0] = "30";
             invoke(apply, stale, NOW);
             check(announced.isEmpty() && profiles.isEmpty() && AdninFeatures.pollPartyCommand(NOW) == null, "Stale settings epoch is ignored");
             present.clear();
             invoke(apply, result("", "RealPlayer", UUID4), NOW);
-            check(announced.isEmpty() && profiles.isEmpty() && AdninFeatures.pollPartyCommand(NOW) == null, "Departed player cannot enter party output");
+            check(announced.isEmpty() && profiles.containsKey("unitnick")
+                    && AdninFeatures.pollPartyCommand(NOW) == null,
+                    "Departed player result is cached without entering party output");
             for (String[] malformed : new String[][]{null, new String[0], new String[]{"31", "bot"}}) invoke(apply, malformed, NOW);
             check(AdninFeatures.pollPartyCommand(NOW) == null, "Malformed callback arrays are ignored");
         } finally {
             present.clear(); present.addAll(oldPresent); announced.clear(); announced.addAll(oldAnnounced);
             profiles.clear(); profiles.putAll(oldProfiles); requested.clear(); requested.putAll(oldRequested);
-            epoch.setInt(null, oldEpoch); AdninGui4.chatOutput = oldOutput; AdninFeatures.clearPartyQueue();
+            epoch.setInt(null, oldEpoch); AdninGui4.chatOutputDenick = oldOutput; AdninFeatures.clearPartyQueue();
         }
     }
 

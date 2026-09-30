@@ -10,7 +10,7 @@ public final class AdninUrchinCache {
     private final LinkedHashMap<String, Entry> entries = new LinkedHashMap<String, Entry>(16, 0.75f, true);
     private final Map<String, String> roster = new LinkedHashMap<String, String>();
     private final Map<String, List<String>> visible = new LinkedHashMap<String, List<String>>();
-    private final Set<String> pending = new HashSet<String>();
+    private final Map<String, Long> pending = new HashMap<String, Long>();
     private long activeToken = Long.MIN_VALUE;
 
     private static final class Entry {
@@ -50,9 +50,13 @@ public final class AdninUrchinCache {
             String id = identity(lookup);
             roster.put(name.toLowerCase(Locale.ROOT), id);
             Entry cached = entries.get(id);
+            // Like Seraph, the last successful content stays readable while a
+            // refresh is pending; TTL controls request admission, not rendering.
+            if (cached != null && cached.success) visible.put(name.toLowerCase(Locale.ROOT), cached.values);
             if (cached != null && cached.fresh(now)) {
-                if (cached.success) visible.put(name.toLowerCase(Locale.ROOT), cached.values);
-            } else if (pending.add(id)) {
+                continue;
+            } else if (!pending.containsKey(id)) {
+                pending.put(id, token);
                 batch.put(name, lookup);
             }
         }
@@ -62,7 +66,9 @@ public final class AdninUrchinCache {
     /** Both tagged and empty successful responses are cached; errors have a cooldown. */
     public boolean complete(long token, String lookup, List<String> values, boolean success, long now) {
         String id = identity(lookup);
-        if (token != activeToken || !pending.remove(id)) return false;
+        Long owner = pending.get(id);
+        if (owner == null || owner.longValue() != token) return false;
+        pending.remove(id);
         Entry result = new Entry(success && values != null ? values : Collections.<String>emptyList(), success, now);
         Entry previous = entries.remove(id);
         if (previous != null) contentBytes -= previous.bytes;
@@ -88,14 +94,22 @@ public final class AdninUrchinCache {
         return Collections.unmodifiableMap(new LinkedHashMap<String, List<String>>(visible));
     }
 
-    /** World changes discard match state while preserving cross-match response content. */
+    /** World changes discard display state, preserving content and in-flight identities. */
     public void clearMatch() {
         activeToken = Long.MIN_VALUE;
-        roster.clear(); visible.clear(); pending.clear();
+        roster.clear(); visible.clear();
     }
 
-    /** Changing the API key discards data obtained with the previous key. */
-    public void clear() { clearMatch(); entries.clear(); contentBytes = 0; }
+    /** Retire an unstarted job without cancelling another match's identity owner. */
+    public void cancel(long token, String lookup) {
+        String id = identity(lookup);
+        Long owner = pending.get(id);
+        if (owner != null && owner.longValue() == token) pending.remove(id);
+    }
+
+    /** Changed credentials retire pending work; completed content follows Seraph's cache. */
+    public void clearPending() { pending.clear(); }
+    public void clear() { clearMatch(); clearPending(); entries.clear(); contentBytes = 0; }
     public int size() { return entries.size(); }
     long retainedContentBytes() { return contentBytes; }
 

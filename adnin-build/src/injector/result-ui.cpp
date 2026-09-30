@@ -434,7 +434,11 @@ bool show_result_window(const ResultReport& report, const std::filesystem::path&
   const int width = state.px(420), height = state.px(280);
   const std::wstring title = std::wstring(L"Adnin - ") + (report.preview ? L"preview - " : L"")
                              + (report.status == 0 ? translated(L"success",L"成功",L"成功") : translated(L"failed",L"失败",L"失敗"));
-  HWND window = CreateWindowExW(WS_EX_APPWINDOW | WS_EX_LAYERED, result_window_class, title.c_str(),
+  // A timed success notification must not take keyboard focus from gameplay.
+  // Failure remains interactive so its diagnostic-export controls are reachable.
+  const DWORD extended_style = WS_EX_APPWINDOW | WS_EX_LAYERED
+                               | (report.status == 0 ? WS_EX_NOACTIVATE : 0);
+  HWND window = CreateWindowExW(extended_style, result_window_class, title.c_str(),
                                 WS_POPUP | WS_SYSMENU | WS_MINIMIZEBOX,
                                 work.left + (work.right - work.left - width) / 2,
                                 work.top + (work.bottom - work.top - height) / 2,
@@ -468,7 +472,7 @@ bool show_result_window(const ResultReport& report, const std::filesystem::path&
       if (timer_ready && report.status == 0) countdown(state, 2);
       else KillTimer(window, animation_timer);
     }
-    ShowWindow(window, SW_SHOWNORMAL);
+    ShowWindow(window, report.status == 0 ? SW_SHOWNOACTIVATE : SW_SHOWNORMAL);
     UpdateWindow(window);
     state.phase_started = GetTickCount64();
     MSG message{};

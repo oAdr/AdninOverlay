@@ -61,8 +61,14 @@ output_plain_tags:
 output_json_tags:
     mov r10d, 3
     jmp output_common
-output_plain_local:
+output_plain_denick:
     mov r10d, 6
+    jmp output_common
+output_json_denick:
+    mov r10d, 7
+    jmp output_common
+output_plain_local:
+    mov r10d, 8
     jmp output_common
 
 ; RCX env, RDX Minecraft, R8 Minecraft class, R9 MSVC std::string*.
@@ -552,9 +558,10 @@ render_end:
 
 output_name: db 'nativeRenderGeneratedEvent',0
 output_sig: db '(Ljava/lang/String;ZI)I',0
-db 'ADNOUT01'
+db 'ADNOUT02'
 dd output_plain_tags-$$, output_json_tags-$$
 dd output_plain_local-$$
+dd output_plain_denick-$$, output_json_denick-$$
 row_name: db 'nativeOrderedOverlayRow',0
 row_sig: db '(Ljava/lang/String;FFFFFLjava/lang/String;Ljava/lang/String;)V',0
 seraph_label: db 0xc2,0xa7,'d[Seraph]',0xc2,0xa7,'r ',0
@@ -595,6 +602,7 @@ render_unwind:
 %include "adnin-denicker.asm"
 %include "adnin-metrics.asm"
 %include "adnin-match.asm"
+%include "adnin-game-state.asm"
 %include "adnin-columns.asm"
 %include "adnin-headers.asm"
 %include "adnin-replay.asm"
@@ -603,6 +611,8 @@ render_unwind:
 %include "adnin-number-poll.asm"
 %include "adnin-api-policy.asm"
 %include "adnin-process-entry.asm"
+%include "adnin-input-hooks.asm"
+%include "adnin-chat-poll.asm"
 %ifdef ADNIN_COMPAT_PROFILE
 %include "adnin-compat.asm"
 %else

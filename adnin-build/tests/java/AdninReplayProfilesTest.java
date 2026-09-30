@@ -128,38 +128,39 @@ public final class AdninReplayProfilesTest {
             check(profiles.accountName(invalid).isEmpty(), "Invalid or departed alias has no account mapping");
         check(profiles.lookup("ReplayAlias", 0).isEmpty(), "Pending does not imply Nick");
         check(profiles.resolveOne(0), "Explicit absent-account outcome completes");
-        check("NICK".equals(profiles.lookup("REPLAYALIAS", 44999)), "Exact Nick marker uses the bounded absence cache");
+        check("NICK".equals(profiles.lookup("REPLAYALIAS", 599999)), "Exact Nick marker uses the ten-minute absence cache at its last valid millisecond");
         check(profiles.completions() == 1 && profiles.failures() == 1 && profiles.absences() == 1,
                 "Absent account is distinct and never counted as a verified UUID");
         check("player-not-found".equals(profiles.lastError()), "Absent outcome exposes only its fixed category");
-        check(profiles.lookup("ReplayAlias", 45000).isEmpty() && profiles.requests() == 2,
-                "Nick expires at 45 seconds and queues one refresh");
+        check(profiles.lookup("ReplayAlias", 600000).isEmpty() && profiles.requests() == 2,
+                "Nick expires at ten minutes and queues one refresh at the exact boundary");
         answer[0] = id;
-        check(profiles.resolveOne(45000), "Expired Nick can recover to a real profile");
-        check(("absentname|" + id).equals(profiles.lookup("ReplayAlias", 644999)),
+        check(profiles.resolveOne(600000), "Expired Nick can recover to a real profile");
+        check(("absentname|" + id).equals(profiles.lookup("ReplayAlias", 1199999)),
                 "Recovered UUID uses the ten-minute success TTL");
         check(profiles.completions() - profiles.failures() == 1 && profiles.absences() == 1,
                 "Existing successful-resolution arithmetic remains correct after Nick recovery");
         check("none".equals(profiles.lastError()), "Success clears a prior fixed absence category");
-        check(profiles.lookup("ReplayAlias", 645000).isEmpty(), "Recovered success expires at its own boundary");
+        check(profiles.lookup("ReplayAlias", 1200000).isEmpty(), "Recovered success expires at its own boundary");
         failure[0] = new IOException("API error rate-limited");
-        profiles.resolveOne(645000);
-        check(profiles.lookup("ReplayAlias", 689999).isEmpty(), "Transient error never restores an old Nick marker");
+        profiles.resolveOne(1200000);
+        check(profiles.lookup("ReplayAlias", 1244999).isEmpty(), "Transient error never restores an old Nick marker before its retry boundary");
         check("rate-limited".equals(profiles.lastError()) && profiles.absences() == 1,
                 "Transient failure does not increment authoritative absence");
-        check(profiles.lookup("ReplayAlias", 690000).isEmpty(), "Transient cache eventually allows retry");
-        failure[0] = null; answer[0] = "NICK"; profiles.resolveOne(690000);
-        check("NICK".equals(profiles.lookup("ReplayAlias", 690001)), "A later explicit absence may restore Nick");
+        check(profiles.lookup("ReplayAlias", 1245000).isEmpty() && profiles.requests() == 4,
+                "Transient cache expires after exactly 45 seconds and queues one retry");
+        failure[0] = null; answer[0] = "NICK"; profiles.resolveOne(1245000);
+        check("NICK".equals(profiles.lookup("ReplayAlias", 1245001)), "A later explicit absence may restore Nick");
         profiles.publish(Collections.<String, String>emptyMap());
         check(profiles.accountName("ReplayAlias").isEmpty(), "Roster departure immediately removes its name mapping");
-        check(profiles.lookup("ReplayAlias", 690002).isEmpty(), "Departed aliases cannot expose cached Nick");
+        check(profiles.lookup("ReplayAlias", 1245002).isEmpty(), "Departed aliases cannot expose cached Nick");
         profiles.publish(roster);
-        check("NICK".equals(profiles.lookup("ReplayAlias", 690003)), "Same current account may reuse unexpired absence");
+        check("NICK".equals(profiles.lookup("ReplayAlias", 1245003)), "Same current account may reuse unexpired absence across roster reentry");
         profiles.publish(Collections.singletonMap("ReplayAlias", "OtherName"));
         check("OtherName".equals(profiles.accountName("ReplayAlias")), "Alias reassignment exposes only the new current account");
-        check(profiles.lookup("ReplayAlias", 690004).isEmpty(), "Alias reassignment cannot inherit another account's Nick");
-        answer[0] = id; profiles.resolveOne(690004);
-        check(("othername|" + id).equals(profiles.lookup("ReplayAlias", 690005)),
+        check(profiles.lookup("ReplayAlias", 1245004).isEmpty(), "Alias reassignment cannot inherit another account's Nick");
+        answer[0] = id; profiles.resolveOne(1245004);
+        check(("othername|" + id).equals(profiles.lookup("ReplayAlias", 1245005)),
                 "Reassigned alias resolves only its currently mapped account");
 
         for (String malformed : new String[]{"nick", "NICK ", "NICK\n", "NICK|" + id, "", "NICK\0"}) {
@@ -168,9 +169,11 @@ public final class AdninReplayProfilesTest {
                 public String resolve(String name) { return invalid; }
             }, false);
             rejected.publish(roster); rejected.lookup("ReplayAlias", 0); rejected.resolveOne(0);
-            check(rejected.lookup("ReplayAlias", 1).isEmpty() && rejected.absences() == 0,
+            check(rejected.lookup("ReplayAlias", 44999).isEmpty() && rejected.absences() == 0,
                     "Only the exact reserved marker is an absent-account result");
             check("response-invalid".equals(rejected.lastError()), "Malformed markers remain fixed parse failures");
+            check(rejected.lookup("ReplayAlias", 45000).isEmpty() && rejected.requests() == 2,
+                    "Malformed markers expire at the 45-second boundary and permit one retry");
         }
         answer[0] = id;
         profiles.publish(Collections.singletonMap("RealNick", "Nick"));

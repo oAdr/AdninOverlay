@@ -10,6 +10,7 @@ public final class AdninOutputTest {
         check("[Adnin] hi there /msg secret".equals(AdninFeatures.cleanText("\u00a7b[Adnin]\u00a7r hi\nthere\r/msg secret")), "format and line cleanup");
         partyNormalization();
         lengthBoundaries();
+        AdninFeatures.setGameActive(true);
         AdninGui4.chatOutput = true;
         queuedOutput();
         actualGeneratedCallbacks();
@@ -126,6 +127,9 @@ public final class AdninOutputTest {
         for (int i=0;i<60;i++) AdninFeatures.enqueueParty("event "+i,30000);
         int count=0; while(AdninFeatures.pollPartyCommand(30001)!=null) count++;
         check(count==32,"queue is bounded");
+        AdninFeatures.enqueueParty("event 32",30002);
+        eq("/pc event 32", AdninFeatures.pollPartyCommand(30003),
+                "A queue-overflow rejection does not pretend the dropped event was sent");
         AdninFeatures.clearPartyQueue();
     }
 

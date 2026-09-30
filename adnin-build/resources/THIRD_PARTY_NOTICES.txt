@@ -35,13 +35,18 @@ and decompiled source are not distributed in this project or executable.
 Only Minecraft's existing sound resources are used.
 
 
-Mellow Scaffold detection adaptation
+Mellow Scaffold/Eagle detection and Skin Denicker adaptation
 Upstream: https://github.com/Roxiun/Mellow
 Reviewed commit: 17ef9b7466754a33ee8c8ed87fa7ea717573d775
 Copyright: Mellow contributors. License: GNU GPL version 3.
-Only Scaffold tower/horizontal detection is adapted. The Adnin version adds
-per-player state, runtime/replay identity and lifecycle integration.
-Corresponding source and build scripts accompany adnin-source-project-v17.zip.
+Scaffold tower/horizontal and Eagle crouch/swing detection, the SkinUtils texture-owner algorithm
+and its 230 shared Hypixel Nick skin hashes are adapted. The Adnin version adds
+per-player state, runtime/replay identity and lifecycle integration. Skin
+metadata parsing is bounded, validates online profile IDs and texture URLs,
+uses bounded cross-match evidence caching, and avoids a Forge dependency.
+Skin metadata identifies the texture owner; shared/custom skins can belong to
+someone other than the user wearing them. This is not arbitrary deanonymization.
+Corresponding source and build scripts accompany the matching source archive.
 The original Mellow copyright/license notices are retained below.
 
 # GNU GENERAL PUBLIC LICENSE

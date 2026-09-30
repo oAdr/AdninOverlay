@@ -41,6 +41,13 @@ public final class AdninFeaturePolicyTest {
                 "Urchin worker preserves the classified error category");
         check(featureSource.contains("AdninApi.urchinErrorMessage("),
                 "Urchin chat uses fixed safe messages rather than exception text");
+        check(featureSource.contains("boolean changedBot = !url.equals(urlSnapshot) || botSnapshot != AdninGui4.botDenicker"),
+                "Nick/Denick cache identity is not invalidated by a world transition");
+        check(!featureSource.contains("changedBot = changedWorld || !url.equals(urlSnapshot)"),
+                "Nick/Denick cache does not treat each new world as a new provider");
+        check(featureSource.contains("botCache.clear(); botProfiles.clear()")
+                && featureSource.contains("candidateTimes.clear()"),
+                "Nick/Denick cache is still cleared when its URL or enable setting changes");
         int diagnosticsStart = featureSource.indexOf("private static void writeDiagnostics()");
         int diagnosticsEnd = featureSource.indexOf("\n    private ", diagnosticsStart + 1);
         int nextPublic = featureSource.indexOf("\n    public ", diagnosticsStart + 1);
@@ -97,7 +104,7 @@ public final class AdninFeaturePolicyTest {
         int oldGeneration = generation.getInt(null), oldBotGeneration = botGeneration.getInt(null);
         long oldMatch = currentMatch.getLong(null), oldStarts = matchStarts.get();
         long cache = cacheField.getLong(null), now = 1000000L;
-        check(cache == 300000L, "Bot successful lookup cache remains five minutes");
+        check(cache == 600000L, "Bot successful lookup cache remains ten minutes");
         try {
             generation.setInt(null, 7); botGeneration.setInt(null, 11); currentMatch.setLong(null, 42);
             requested.clear(); queue.clear();
@@ -108,17 +115,17 @@ public final class AdninFeaturePolicyTest {
             check("".equals(queue.peek()[5]), "Bot jobs have no match token dependency");
             queue.clear();
             schedule.invoke(null, "bot", "UNITPLAYER", "UnitPlayer", "https://example.test/?q=<>", now + cache - 1);
-            check(queue.isEmpty(), "Bot success cached until five minutes");
+            check(queue.isEmpty(), "Bot success cached until ten minutes");
             schedule.invoke(null, "bot", "UnitPlayer", "UnitPlayer", "https://example.test/?q=<>", now + cache);
-            check(queue.size() == 1, "Bot success cache expires at five minutes");
+            check(queue.size() == 1, "Bot success cache expires at ten minutes");
             requested.clear(); queue.clear();
             // Seed an error-result Bot stamp and exercise the real scheduler's
             // timing boundary without initializing a Minecraft world.
-            requested.put("bot:unitplayer", now - cache + 30000L);
-            schedule.invoke(null, "bot", "UnitPlayer", "UnitPlayer", "https://example.test/?q=<>", now + 29999L);
-            check(queue.isEmpty(), "Failed Bot lookup waits through 29,999 ms");
-            schedule.invoke(null, "bot", "UnitPlayer", "UnitPlayer", "https://example.test/?q=<>", now + 30000L);
-            check(queue.size() == 1, "Failed Bot lookup retries at 30,000 ms");
+            requested.put("bot:unitplayer", now - cache + 45000L);
+            schedule.invoke(null, "bot", "UnitPlayer", "UnitPlayer", "https://example.test/?q=<>", now + 44999L);
+            check(queue.isEmpty(), "Failed Bot lookup waits through 44,999 ms");
+            schedule.invoke(null, "bot", "UnitPlayer", "UnitPlayer", "https://example.test/?q=<>", now + 45000L);
+            check(queue.size() == 1, "Failed Bot lookup retries at 45,000 ms");
             check("https://example.test/?q=<>".equals(queue.peek()[4]), "Bot scheduler passes only its captured fixture URL");
 
             requested.clear(); queue.clear();
@@ -132,7 +139,7 @@ public final class AdninFeaturePolicyTest {
             check(job(currentJob, urchin), "Current Urchin epoch and captured match accepted");
             check(job(currentJob, bot), "Current Bot epoch accepted independently of match");
             currentMatch.setLong(null, 43);
-            check(!job(currentJob, urchin), "Previous match Urchin job rejected before HTTP");
+            check(job(currentJob, urchin), "Same-key in-flight identity remains reusable across matches");
             check(job(currentJob, bot), "Match transition does not reject a current Bot job");
             currentMatch.setLong(null, 42);
             botGeneration.setInt(null, 12);

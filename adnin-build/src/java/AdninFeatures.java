@@ -15,18 +15,41 @@ import net.minecraft.network.play.client.C01PacketChatMessage;
 
 /** Client-thread integration. The daemon performs HTTP and config writes only. */
 public final class AdninFeatures implements Runnable {
-    public static final int OUTPUT_PLAYERS = 0, OUTPUT_TAGS = 1, OUTPUT_ANTICHEAT = 2;
+    public static final int OUTPUT_PLAYERS = 0, OUTPUT_TAGS = 1, OUTPUT_ANTICHEAT = 2, OUTPUT_DENICK = 3;
     private static final int MAX_CACHE = 512, MAX_PENDING = 128;
-    private static final long CACHE_MS = 300000L, SEND_MS = 1500L;
+    // Identity results follow the same bounded policy as Seraph/Replay
+    // profiles: verified and explicit no-result values remain readable for
+    // ten minutes, while transport/verification failures retry sooner.
+    private static final long SUCCESS_MS = 600000L, FAILURE_MS = 45000L;
+    private static final long CACHE_MS = SUCCESS_MS, SEND_MS = 1500L;
     private static final int MAX_PARTY_COMMAND_UNITS = 256;
     private static final String PARTY_LIMIT_PROBE = partyLimitProbe();
+    private static final java.util.regex.Pattern WHITESPACE = java.util.regex.Pattern.compile("\\s+");
+    private static final java.util.regex.Pattern TAG_SUBJECT = java.util.regex.Pattern.compile(
+        "^\\[(?:Urchin|Seraph)\\]\\s+(?:\\[[^\\]\\r\\n]{1,24}\\]\\s+)*([A-Za-z0-9_]{1,16})(?=\\s|:|$)");
     private static final BlockingQueue<String[]> requests = new ArrayBlockingQueue<String[]>(MAX_PENDING);
     private static final BlockingQueue<String[]> results = new ArrayBlockingQueue<String[]>(MAX_PENDING);
     private static final BlockingQueue<String[]> nickHints = new ArrayBlockingQueue<String[]>(MAX_PENDING);
+    // The sole worker may hold one dequeued Urchin job while rate pacing.
+    // Its reference is guarded by this class monitor; it holds strings only.
+    private static String[] waitingUrchin;
+    /** One bounded identity record keeps value, provider, status and expiry together. */
+    private static final class BotCacheEntry {
+        final String profile, provider, status;
+        final long expires;
+        BotCacheEntry(String profile, String provider, String status, long expires) {
+            this.profile = profile; this.provider = provider;
+            this.status = status; this.expires = expires;
+        }
+    }
+    private static final ConcurrentMap<String, BotCacheEntry> botCache = new ConcurrentHashMap<String, BotCacheEntry>();
+    // Read-only compatibility mirror for diagnostics/tests; validity always
+    // comes from botCache, so an expiry can never disappear independently.
     private static final ConcurrentMap<String, String> botProfiles = new ConcurrentHashMap<String, String>();
     private static final ConcurrentMap<String, Long> candidateTimes = new ConcurrentHashMap<String, Long>();
     private static final Map<String, Long> requested = new LinkedHashMap<String, Long>();
     private static final Map<String, List<String>> tags = new LinkedHashMap<String, List<String>>();
+    private static final Map<String, String> tagLabels = new LinkedHashMap<String, String>();
     private static final AdninUrchinCache urchinCache = new AdninUrchinCache(MAX_CACHE);
     private static final AtomicLong matchStarts = new AtomicLong();
     private static final Deque<String[]> matchRequests = new ArrayDeque<String[]>();
@@ -37,9 +60,11 @@ public final class AdninFeatures implements Runnable {
     private static final Map<String, String> nametagNames = new LinkedHashMap<String, String>();
     private static final Deque<String[]> outbox = new ArrayDeque<String[]>();
     private static final Map<String, Long> sent = new LinkedHashMap<String, Long>();
-    private static boolean initialized, wasOutput, warnedUrl;
+    private static boolean initialized, warnedUrl;
     private static volatile boolean stopped;
     private static volatile Thread worker;
+    private static volatile boolean nativeGameActive;
+    private static boolean outputReplayContext;
     private static volatile int generation;
     private static volatile int botGeneration;
     private static final AtomicReference<Properties> pendingSave = new AtomicReference<Properties>();
@@ -80,7 +105,7 @@ public final class AdninFeatures implements Runnable {
                 AdninLanguage.load(p);
                 AdninGui4.clientSideSounds = Boolean.parseBoolean(p.getProperty("sounds.clientSide", "false"));
                 AdninAnticheat.loadSettings(p);
-                if (AdninGui4.chatOutput || AdninGui4.chatOutputTags) AdninGui4.chatOverlay = true;
+                if (AdninGui4.chatOutput || AdninGui4.chatOutputDenick || AdninGui4.chatOutputTags) AdninGui4.chatOverlay = true;
             }
         } catch (Exception ignored) { /* Existing defaults remain usable. Never log secrets. */ }
         if (settingsPath == null) return;
@@ -110,13 +135,15 @@ public final class AdninFeatures implements Runnable {
     @Override public void run() {
         long nextRequest = 0;
         try { while (!stopped) {
+            String[] job = null;
             try {
                 try { saveIfDue(); writeDiagnostics(); } catch (IOException ignored) { /* Retry on a later poll. */ }
-                String[] job = requests.poll(250, TimeUnit.MILLISECONDS);
-                if (job == null || !currentJob(job)) continue;
+                job = pollRequest();
+                if (job == null) { Thread.sleep(250); continue; }
+                if (!currentJob(job)) { retireFailedPublication(job); continue; }
                 long wait = nextRequest - System.currentTimeMillis();
                 if (wait > 0) Thread.sleep(wait);
-                if (!currentJob(job)) continue;
+                if (!canStartRequest(job)) { retireFailedPublication(job); continue; }
                 nextRequest = System.currentTimeMillis() + 700;
                 List<String> data = new ArrayList<String>();
                 String error = "";
@@ -140,10 +167,18 @@ public final class AdninFeatures implements Runnable {
                 result.add(job[0]); result.add(job[1]); result.add(job[2]); result.add(error);
                 result.add(job[3]); result.add(job[5]);
                 result.addAll(data);
+                // Keep the provider bound to the response. A result that
+                // arrives after the setting changes must never populate the
+                // next provider's identity cache. Appending it preserves the
+                // existing result indexes consumed by offline fixtures.
+                if ("bot".equals(job[1])) result.add("\u0001" + job[4]);
                 publishResult(job, result.toArray(new String[0]));
                 apiCompleted++;
-            } catch (InterruptedException shutdown) { Thread.currentThread().interrupt(); return; }
-              catch (Exception failure) { /* Keep worker alive without logging request credentials. */ }
+            } catch (InterruptedException shutdown) {
+                retireFailedPublication(job);
+                Thread.currentThread().interrupt(); return;
+            }
+              catch (Exception failure) { retireFailedPublication(job); }
         } } finally {
             // Finish only an already requested settings save. Never wait for
             // this daemon on the render/native unload thread.
@@ -153,29 +188,91 @@ public final class AdninFeatures implements Runnable {
     }
 
     private static boolean currentJob(String[] job) {
-        return !stopped && job[0].equals(Integer.toString("bot".equals(job[1]) ? botGeneration : generation))
-            && (!"urchin".equals(job[1]) || job[5].equals(Long.toString(currentMatch)));
+        // Urchin content belongs to the identity, not the match which happened
+        // to start the HTTP call. Same-key in-flight results remain reusable.
+        return !stopped && job[0].equals(Integer.toString("bot".equals(job[1]) ? botGeneration : generation));
+    }
+
+    /** Remove and register a paced job atomically with match/key retirement.
+     * The poll never blocks while holding the client integration monitor. */
+    private static synchronized String[] pollRequest() {
+        String[] job = requests.poll();
+        if (job != null && "urchin".equals(job[1])) waitingUrchin = job;
+        return job;
+    }
+
+    /** Claim only unstarted Urchin work in the match which admitted its roster.
+     * Once HTTP has begun, currentJob still permits its same-key result to
+     * populate the cross-match cache after leaving that match. */
+    private static synchronized boolean canStartRequest(String[] job) {
+        if (!"urchin".equals(job[1])) return currentJob(job);
+        boolean ownsWaiting = waitingUrchin == job;
+        if (ownsWaiting) waitingUrchin = null;
+        return ownsWaiting && currentJob(job) && nativeGameActive
+            && currentMatch == matchStarts.get() && job[5].equals(Long.toString(currentMatch));
     }
 
     // Serialize the final epoch check and insertion with world changes/unload.
     // Network work stays outside this monitor.
     private static synchronized void publishResult(String[] job, String[] result) {
-        if (currentJob(job)) results.offer(result);
+        if (currentJob(job) && !results.offer(result)) retireFailedPublication(job);
+    }
+
+    private static synchronized void retireFailedPublication(String[] job) {
+        if (waitingUrchin == job) waitingUrchin = null;
+        if (job == null || !currentJob(job)) return;
+        if ("urchin".equals(job[1])) urchinCache.cancel(Long.parseLong(job[5]), job[3]);
+        else if ("bot".equals(job[1])) {
+            // A full result queue or unexpected worker exception is a failed
+            // attempt, not a ten-minute successful identity cache entry.
+            requested.put("bot:" + lower(job[2]), System.currentTimeMillis() - CACHE_MS + FAILURE_MS);
+            trimMap(requested, MAX_CACHE);
+        }
     }
 
     /** Native Ingame transition only. No Minecraft calls, network, or file IO. */
-    public static void matchStarted() { if (!stopped) matchStarts.incrementAndGet(); }
+    public static synchronized void matchStarted() {
+        if (stopped) return;
+        // The native callback is the authoritative Ingame transition. Mark it
+        // active before rebuilding the serial match token so the first tick
+        // cannot briefly suppress a valid output event.
+        setGameActive(true);
+        matchStarts.incrementAndGet();
+        clearPartyQueue();
+        clearAnnouncements("bot:");
+        candidateTimes.clear(); nickHints.clear();
+        AdninSkinDenicker.clearContext();
+        AdninMatchTeams.beginMatch();
+    }
+
+    /** Native state snapshot, published on every state poll including leaving a game. */
+    public static synchronized void setGameActive(boolean active) {
+        if (stopped) return;
+        if (nativeGameActive != active) {
+            clearPartyQueue();
+            if (!active) retireQueuedUrchin();
+        }
+        nativeGameActive = active;
+        AdninMatchTeams.setGameActive(active);
+    }
+
+    static boolean outputContextAllowed() {
+        return !stopped && (nativeGameActive || AdninReplay.isReplay());
+    }
 
     /** Stop optional work and release world/response references before native unload. */
     public static synchronized void shutdown() {
         if (stopped) return;
         stopped = true;
+        AdninSkinDenicker.shutdown();
+        nativeGameActive = outputReplayContext = false;
         generation++; botGeneration++;
         Thread active = worker; worker = null;
         if (active != null) active.interrupt();
-        requests.clear(); results.clear(); nickHints.clear(); matchRequests.clear();
-        botProfiles.clear(); candidateTimes.clear(); requested.clear();
-        tags.clear(); urchinCache.clear(); announced.clear();
+        requests.clear(); results.clear(); nickHints.clear(); matchRequests.clear(); waitingUrchin = null;
+        botCache.clear(); botProfiles.clear();
+        candidateTimes.clear(); requested.clear();
+        tags.clear(); tagLabels.clear(); urchinCache.clear(); announced.clear();
         present.clear(); displayNames.clear(); nametagNames.clear();
         clearPartyQueue(); world = null; keySnapshot = ""; urlSnapshot = "";
     }
@@ -222,36 +319,45 @@ public final class AdninFeatures implements Runnable {
         if (mc == null || !mc.isCallingFromMinecraftThread()) return;
         AdninGameModules.tick(mc);
         if (stopped) return;
+        preparePartyQueue(AdninReplay.isReplay());
         long now = System.currentTimeMillis();
         String key = bounded(AdninGui4.api_urchin, 512).trim();
         String url = bounded(AdninGui4.botDenickerUrl, 2048).trim();
         boolean changedWorld = world != mc.theWorld;
-        boolean changedUrchin = changedWorld || !key.equals(keySnapshot);
-        boolean changedBot = changedWorld || !url.equals(urlSnapshot) || botSnapshot != AdninGui4.botDenicker;
+        boolean changedUrchin = !key.equals(keySnapshot);
+        // Nick/Denick identity and negative cooldowns are session caches like
+        // Seraph: a world transition changes the visible roster, not the URL
+        // provider or the cached identity result.
+        boolean changedBot = !url.equals(urlSnapshot) || botSnapshot != AdninGui4.botDenicker;
         if (changedUrchin) {
             generation++;
-            if (!key.equals(keySnapshot)) urchinCache.clear();
-            else urchinCache.clearMatch();
+            urchinCache.clearPending();
             keySnapshot = key;
-            tags.clear(); matchRequests.clear(); clearAnnouncements("urchin:");
+            tags.clear(); tagLabels.clear(); matchRequests.clear(); clearAnnouncements("urchin:");
         }
         if (changedBot) {
             botGeneration++;
             urlSnapshot = url; botSnapshot = AdninGui4.botDenicker;
             nickHints.clear(); requested.clear(); clearAnnouncements("bot:");
-            botProfiles.clear(); candidateTimes.clear();
+            botCache.clear(); botProfiles.clear();
+            candidateTimes.clear();
             warnedUrl = false;
         }
         if (changedWorld) {
+            retireQueuedUrchin();
+            urchinCache.clearMatch(); tags.clear(); tagLabels.clear(); clearAnnouncements("urchin:");
             world = mc.theWorld;
             present.clear(); displayNames.clear(); nametagNames.clear(); clearPartyQueue(); nextScan = 0;
+            clearAnnouncements("bot:");
+            candidateTimes.clear(); nickHints.clear();
+            AdninSkinDenicker.clearContext();
         }
         // Old jobs retain response strings and credentials even though their
         // generation will be rejected. Retire them immediately on transitions.
         if (changedUrchin || changedBot) discardStaleJobs();
-        if (!anyOutputEnabled() || !wasOutput) clearPartyQueue();
-        wasOutput = anyOutputEnabled();
-        if (mc.theWorld == null || mc.thePlayer == null || mc.getNetHandler() == null) return;
+        if (mc.theWorld == null || mc.thePlayer == null || mc.getNetHandler() == null) {
+            setGameActive(false); clearPartyQueue(); return;
+        }
         if (mc.currentScreen instanceof AdninGui4) return;
         if (now >= nextScan) {
             nextScan = now + 1000;
@@ -264,6 +370,7 @@ public final class AdninFeatures implements Runnable {
             scanPlayers(mc, now);
             beginUrchinMatch(mc, now);
         }
+        AdninSkinDenicker.tick(mc);
         while (!matchRequests.isEmpty() && requests.offer(matchRequests.peekFirst())) matchRequests.removeFirst();
         for (int i = 0; i < 16; i++) {
             String[] hint = nickHints.poll();
@@ -277,12 +384,12 @@ public final class AdninFeatures implements Runnable {
                 applyBotResult(result, now, mc);
             } else {
                 if (!result[0].equals(Integer.toString(generation))) continue;
-                if (!result[5].equals(Long.toString(currentMatch))) continue;
                 List<String> playerTags = new ArrayList<String>();
                 for (int j = 6; j < result.length; j++) playerTags.add(cleanText(result[j]));
-                if (!urchinCache.complete(currentMatch, result[4], playerTags, result[3].isEmpty(), now)) continue;
+                if (!urchinCache.complete(Long.parseLong(result[5]), result[4], playerTags,
+                        result[3].isEmpty(), AdninReplayProfiles.now())) continue;
                 applyUrchinContent();
-                local(urchinErrorForChat(result[3], now), mc);
+                if (result[5].equals(Long.toString(currentMatch))) local(urchinErrorForChat(result[3], now), mc);
             }
         }
         if (anyOutputEnabled() && now >= nextSend && !mc.isSingleplayer() && hasPartyOutput(now)) {
@@ -297,33 +404,67 @@ public final class AdninFeatures implements Runnable {
         }
     }
 
-    private static void discardStaleJobs() {
+    private static synchronized void discardStaleJobs() {
         requests.removeIf(job -> !currentJob(job));
         results.removeIf(job -> !currentJob(job));
+        if (waitingUrchin != null && !currentJob(waitingUrchin)) {
+            urchinCache.cancel(Long.parseLong(waitingUrchin[5]), waitingUrchin[3]);
+            waitingUrchin = null;
+        }
+    }
+
+    private static synchronized void retireQueuedUrchin() {
+        if (waitingUrchin != null) {
+            urchinCache.cancel(Long.parseLong(waitingUrchin[5]), waitingUrchin[3]);
+            waitingUrchin = null;
+        }
+        for (Iterator<String[]> it = requests.iterator(); it.hasNext();) {
+            String[] job = it.next();
+            if ("urchin".equals(job[1])) {
+                it.remove();
+                urchinCache.cancel(Long.parseLong(job[5]), job[3]);
+            }
+        }
+        for (String[] job : matchRequests) urchinCache.cancel(Long.parseLong(job[5]), job[3]);
+        matchRequests.clear();
     }
 
     /** Successful verified identities alone may enter the party-output queue. */
     private static void applyBotResult(String[] result, long now, Minecraft mc) {
         if (result == null || result.length < 6 || !"bot".equals(result[1])
                 || !Integer.toString(botGeneration).equals(result[0])
-                || !isPlayerName(result[2]) || !present.contains(lower(result[2]))) return;
+                || !isPlayerName(result[2])) return;
         String id = lower(result[2]);
-        String match = result.length > 6 && isPlayerName(result[6]) ? result[6] : "";
-        boolean verified = !match.isEmpty() && "".equals(result[3]) && result.length > 7
-            && result[7] != null && result[7].matches("(?i)[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}");
-        if (!"".equals(result[3]) || !match.isEmpty() && !verified)
-            requested.put("bot:" + id, now - CACHE_MS + 30000);
+        int end = result.length;
+        String provider = urlSnapshot;
+        if (end > 6 && result[end - 1] != null && result[end - 1].startsWith("\u0001")) {
+            provider = bounded(result[--end].substring(1), 2048).trim();
+        }
+        // Older owned fixtures omit the provider trailer; live worker results
+        // always carry it and are rejected when the setting changed.
+        if (!provider.isEmpty() && !provider.equals(urlSnapshot)) return;
+        String match = end > 6 && isPlayerName(result[6]) ? result[6] : "";
+        boolean verified = !match.isEmpty() && "".equals(result[3]) && end > 7
+            && isOnlineUuid(result[7]);
+        String status = verified ? "verified" : match.isEmpty() && result[3].isEmpty() ? "empty" : "failure";
+        long ttl = verified || "empty".equals(status) ? SUCCESS_MS : FAILURE_MS;
+        String profile = verified ? match + "|" + lower(result[7]) : "";
+        botCache.put(id, new BotCacheEntry(profile, provider, status, now + ttl));
+        if (verified) botProfiles.put(id, profile); else botProfiles.remove(id);
+        trimBotCache();
+        // The scheduler stamp and the atomic entry have the same TTL.
+        requested.put("bot:" + id, now - CACHE_MS + ttl);
+        trimMap(requested, MAX_CACHE);
+        // A worker result remains cached when the player briefly leaves the
+        // roster. It becomes visible only after that identity is observed
+        // again; a cached success can announce once in each later match.
+        if (!present.contains(id)) return;
         String message = formattedBotMessage(result[2], nametagNames.get(id), match,
             nametagNames.get(lower(match)), verified, result[3]);
-        if (verified) {
-            botProfiles.put(id, match + "|" + lower(result[7]));
-            trimMap(botProfiles, MAX_CACHE);
-        }
-        // An unavailable account lookup must not suppress a later verified result.
         String outcome = verified ? "verified" : match.isEmpty() ? "none" : "unverified";
         if (!announced.add("bot:" + id + ":" + match + ":" + outcome)) return;
         local(message, mc);
-        if (verified) enqueueParty(OUTPUT_PLAYERS, message, now);
+        if (verified) enqueueParty(OUTPUT_DENICK, message, now);
     }
 
     private static void scanPlayers(Minecraft mc, long now) {
@@ -357,9 +498,13 @@ public final class AdninFeatures implements Runnable {
     }
 
     private static void beginUrchinMatch(Minecraft mc, long now) {
+        // A start serial may have waited behind /config or a delayed client
+        // tick. Consume it without capturing a lobby/Replay roster once that
+        // native game has ended; only the next real start can create a batch.
+        if (stopped || !nativeGameActive || currentMatch != matchStarts.get()) return;
         // Freeze this one roster batch. Later Tab arrivals, Bot resolutions and
         // expired cache entries never create a mid-match Urchin request.
-        tags.clear(); matchRequests.clear();
+        tags.clear(); tagLabels.clear(); retireQueuedUrchin();
         clearAnnouncements("urchin:");
         Map<String, String> roster = new LinkedHashMap<String, String>();
         int count = 0;
@@ -369,12 +514,16 @@ public final class AdninFeatures implements Runnable {
             String name = info.getGameProfile().getName();
             UUID uuid = info.getGameProfile().getId();
             if (!isRealTabProfile(name, uuid)) continue;
-            String resolved = botProfiles.get(lower(name));
+            String botId = lower(name);
+            BotCacheEntry bot = botCache.get(botId);
+            String resolved = bot != null && now < bot.expires && "verified".equals(bot.status)
+                && bot.provider.equals(urlSnapshot) ? bot.profile : null;
+            if (bot != null && now >= bot.expires) { botCache.remove(botId, bot); botProfiles.remove(botId); }
             String lookup = resolved != null ? resolved.substring(resolved.indexOf('|') + 1)
                 : (uuid.version() == 4 ? uuid.toString() : name);
             roster.put(name, lookup);
         }
-        Map<String, String> batch = urchinCache.beginMatch(currentMatch, roster, now);
+        Map<String, String> batch = urchinCache.beginMatch(currentMatch, roster, AdninReplayProfiles.now());
         for (Map.Entry<String, String> player : batch.entrySet()) {
             matchRequests.addLast(new String[]{Integer.toString(generation), "urchin", player.getKey(),
                 player.getValue(), keySnapshot, Long.toString(currentMatch)});
@@ -384,7 +533,9 @@ public final class AdninFeatures implements Runnable {
 
     private static void applyUrchinContent() {
         tags.clear(); tags.putAll(urchinCache.visibleTags());
+        tagLabels.clear();
         for (Map.Entry<String, List<String>> entry : tags.entrySet()) {
+            if (!entry.getValue().isEmpty()) tagLabels.put(entry.getKey(), tagTypes(entry.getValue()));
             if (entry.getValue().isEmpty() || !present.contains(entry.getKey())) continue;
             String name = displayNames.containsKey(entry.getKey()) ? displayNames.get(entry.getKey()) : entry.getKey();
             String message = formattedUrchinMessage(name, nametagNames.get(entry.getKey()), entry.getValue());
@@ -455,8 +606,32 @@ public final class AdninFeatures implements Runnable {
         return c >= 'A' && c <= 'Z' || c >= 'a' && c <= 'z' || c >= '0' && c <= '9' || c == '_';
     }
 
+    /** Allocation-free validation on the hot Tab/denicker paths. */
     private static boolean isPlayerName(String name) {
-        return name != null && name.matches("[A-Za-z0-9_]{1,16}");
+        if (name == null || name.length() == 0 || name.length() > 16) return false;
+        for (int i = 0; i < name.length(); i++) {
+            char c = name.charAt(i);
+            if (!(c >= 'A' && c <= 'Z' || c >= 'a' && c <= 'z'
+                    || c >= '0' && c <= '9' || c == '_')) return false;
+        }
+        return true;
+    }
+
+    private static boolean isOnlineUuid(String value) {
+        if (value == null || value.length() != 36) return false;
+        for (int i = 0; i < value.length(); i++) {
+            char c = value.charAt(i);
+            if (i == 8 || i == 13 || i == 18 || i == 23) {
+                if (c != '-') return false;
+                continue;
+            }
+            if (i == 14 && c != '4') return false;
+            if (i == 19 && !(c == '8' || c == '9' || c == 'a' || c == 'b'
+                    || c == 'A' || c == 'B')) return false;
+            if (!(c >= '0' && c <= '9' || c >= 'a' && c <= 'f'
+                    || c >= 'A' && c <= 'F')) return false;
+        }
+        return true;
     }
 
     /** Cached tag contents remain untouched; colors are added only for display. */
@@ -513,7 +688,7 @@ public final class AdninFeatures implements Runnable {
 
     /** Only queued native Tab-player candidates call this client-thread method. */
     public static void lookupNick(String name, long now) {
-        if (!AdninGui4.botDenicker || name == null || !name.matches("[A-Za-z0-9_]{1,16}")) return;
+        if (!AdninGui4.botDenicker || !isPlayerName(name)) return;
         if (AdninReplay.isReplay()) {
             if (!AdninReplay.isNick(name)) return;
             name = AdninReplay.recordedName(name);
@@ -524,11 +699,36 @@ public final class AdninFeatures implements Runnable {
             if (!warnedUrl) { local("\u00a76" + AdninLanguage.text("Bot Denicker") + "\u00a7r: \u00a7c" + AdninLanguage.text("Enter an API URL containing <> first.") + "\u00a7r", Minecraft.getMinecraft()); warnedUrl = true; }
             return;
         }
+        String cachedMessage = cachedBotMessage(name, now);
+        if (cachedMessage != null) {
+            if (!cachedMessage.isEmpty()) {
+                local(cachedMessage, Minecraft.getMinecraft());
+                enqueueParty(OUTPUT_DENICK, cachedMessage, now);
+            }
+            return;
+        }
         schedule("bot", name, name, urlSnapshot, now);
+    }
+
+    /** Null is a cache miss; an empty message is a hit needing no presentation. */
+    private static String cachedBotMessage(String name, long now) {
+        String id = lower(name);
+        BotCacheEntry cached = botCache.get(id);
+        if (cached == null || now >= cached.expires || !cached.provider.equals(urlSnapshot)) return null;
+        if (!"verified".equals(cached.status) || !present.contains(id) || !outputContextAllowed()) return "";
+        String real = cached.profile.substring(0, cached.profile.indexOf('|'));
+        if (announced.add("bot:" + id + ":" + real + ":verified")) {
+            return formattedBotMessage(name, nametagNames.get(id), real,
+                nametagNames.get(lower(real)), true, "");
+        }
+        return "";
     }
 
     private static void schedule(String kind, String name, String player, String credential, long now) {
         String id = kind + ":" + lower(name);
+        String key = lower(name);
+        BotCacheEntry cached = botCache.get(key);
+        if (cached != null && now < cached.expires && cached.provider.equals(credential)) return;
         Long last = requested.get(id);
         if (last != null && now - last < CACHE_MS) return;
         if (!"bot".equals(kind)) return;
@@ -542,6 +742,27 @@ public final class AdninFeatures implements Runnable {
         enqueueParty(OUTPUT_TAGS, text, System.currentTimeMillis());
     }
 
+    /** Client-thread Skin texture-owner evidence; a stale roster must not consume presentation. */
+    public static synchronized boolean skinResolved(String nick, String realName) {
+        if (!outputContextAllowed() || !isPlayerName(nick) || !isPlayerName(realName)
+                || nick.equalsIgnoreCase(realName) || !present.contains(lower(nick))) return false;
+        Minecraft mc = Minecraft.getMinecraft();
+        if (mc == null || mc.thePlayer == null || mc.ingameGUI == null
+                || !mc.isCallingFromMinecraftThread()) return false;
+        String message = formattedSkinMessage(nick, nametagNames.get(lower(nick)), realName);
+        local(message, mc);
+        enqueueParty(OUTPUT_DENICK, message, System.currentTimeMillis());
+        return true;
+    }
+
+    static String formattedSkinMessage(String nick, String formattedNick, String realName) {
+        if (!isPlayerName(realName)) return "";
+        String player = coloredPlayerName(nick, formattedNick);
+        if (player.isEmpty()) return "";
+        return "\u00a76" + AdninLanguage.text("Skin Denicker") + "\u00a7r " + player
+            + "\u00a77 → " + player.substring(0, 2) + realName + "\u00a7r";
+    }
+
     private static void local(String text, Minecraft mc) {
         if (text == null || text.isEmpty()) return;
         String message = text.startsWith("[Urchin]") ? "\u00a7d[Urchin]\u00a7r" + text.substring(8) : PREFIX + text;
@@ -550,7 +771,7 @@ public final class AdninFeatures implements Runnable {
 
     /** Called after native Tab bot filtering. Never performs network or file IO. */
     public static synchronized String getBotProfile(String name) {
-        if (stopped || !AdninGui4.botDenicker || name == null || !name.matches("[A-Za-z0-9_]{1,16}")) return "";
+        if (stopped || !AdninGui4.botDenicker || !isPlayerName(name)) return "";
         String recorded = name;
         if (AdninReplay.isReplay()) {
             if (!AdninReplay.isNick(name)) return "";
@@ -558,16 +779,31 @@ public final class AdninFeatures implements Runnable {
             if (recorded.isEmpty()) return "";
         }
         String id = lower(recorded);
-        String profile = botProfiles.get(id);
-        if (profile != null) return profile;
         long now = System.currentTimeMillis();
+        BotCacheEntry cached = botCache.get(id);
+        if (cached != null && now < cached.expires && cached.provider.equals(urlSnapshot)) {
+            if ("verified".equals(cached.status) && outputContextAllowed()) {
+                String real = cached.profile.substring(0, cached.profile.indexOf('|'));
+                if (!announced.contains("bot:" + id + ":" + real + ":verified")) queueNickHint(name, id, now);
+            }
+            // Negative cache reads never create work. Positive cache hints
+            // only ask the client thread to announce; they perform no HTTP.
+            return cached.profile;
+        }
+        if (cached != null && now >= cached.expires) {
+            botCache.remove(id, cached); botProfiles.remove(id);
+        }
+        queueNickHint(name, id, now);
+        return "";
+    }
+
+    private static void queueNickHint(String name, String id, long now) {
         Long last = candidateTimes.get(id);
-        if (last == null || now - last >= 1000) {
+        if ((last == null || now - last >= 1000)
+                && nickHints.offer(new String[]{Integer.toString(botGeneration), name})) {
             candidateTimes.put(id, now);
             trimMap(candidateTimes, MAX_CACHE);
-            nickHints.offer(new String[]{Integer.toString(botGeneration), name});
         }
-        return "";
     }
 
     /** Only allowlisted generated-message native callsites invoke this. */
@@ -584,7 +820,7 @@ public final class AdninFeatures implements Runnable {
     public static void nativeGeneratedEvent(String text, boolean json, int category) {
         if (stopped) return;
         nativeEvents++;
-        if (!outputEnabled(category)) return;
+        if (!outputContextAllowed() || !outputEnabled(category)) return;
         if (text == null || text.length() > 16384) return;
         String localized = AdninMessages.translateGenerated(text, json, category);
         if (localized != null) text = localized;
@@ -595,8 +831,7 @@ public final class AdninFeatures implements Runnable {
                 text = component.getUnformattedText();
             } catch (RuntimeException invalid) { return; }
         }
-        String clean = cleanText(text);
-        enqueueParty(category, clean, System.currentTimeMillis());
+        enqueueParty(category, text, System.currentTimeMillis());
     }
 
     public static void anticheatGeneratedEvent(String text) {
@@ -606,33 +841,58 @@ public final class AdninFeatures implements Runnable {
     public static boolean outputEnabled(int category) {
         return category == OUTPUT_PLAYERS ? AdninGui4.chatOutput
             : category == OUTPUT_TAGS ? AdninGui4.chatOutputTags
-            : category == OUTPUT_ANTICHEAT && AdninGui4.chatOutputAnticheat;
+            : category == OUTPUT_ANTICHEAT ? AdninGui4.chatOutputAnticheat
+            : category == OUTPUT_DENICK && AdninGui4.chatOutputDenick;
     }
 
     public static boolean anyOutputEnabled() {
-        return AdninGui4.chatOutput || AdninGui4.chatOutputTags || AdninGui4.chatOutputAnticheat;
+        return AdninGui4.chatOutput || AdninGui4.chatOutputDenick || AdninGui4.chatOutputTags || AdninGui4.chatOutputAnticheat;
+    }
+
+    /** Client-thread housekeeping; enabling Output must preserve newly admitted events. */
+    private static void preparePartyQueue(boolean replayNow) {
+        if (replayNow != outputReplayContext) {
+            clearPartyQueue();
+            AdninSkinDenicker.clearContext();
+            nickHints.clear();
+            if (replayNow) {
+                // Replay may start inside the same world after lobby lookups.
+                // Keep identity results, but permit one presentation in this Replay.
+                clearAnnouncements("bot:");
+                candidateTimes.clear();
+            }
+        }
+        outputReplayContext = replayNow;
+        if (!outputContextAllowed() || !anyOutputEnabled()) clearPartyQueue();
     }
 
     /** Closing a category immediately discards its queued fragments. */
     public static synchronized void outputSettingsChanged() {
         for (Iterator<String[]> it = outbox.iterator(); it.hasNext();) {
             String[] item = it.next();
-            if (!outputEnabled(Integer.parseInt(item[2]))) it.remove();
+            if (!outputItemAllowed(item)) it.remove();
         }
     }
 
     static void loadOutputSettings(Properties p) {
         String legacy = p.getProperty("chat.output", "false");
         AdninGui4.chatOutput = Boolean.parseBoolean(p.getProperty("chat.output.players", legacy));
+        AdninGui4.chatOutputDenick = Boolean.parseBoolean(p.getProperty("chat.output.denick",
+            p.getProperty("chat.output.players", legacy)));
         AdninGui4.chatOutputTags = Boolean.parseBoolean(p.getProperty("chat.output.tags", legacy));
         AdninGui4.chatOutputAnticheat = Boolean.parseBoolean(p.getProperty("chat.output.anticheat", "false"));
+        AdninGui4.chatOutputTagsSelf = Boolean.parseBoolean(p.getProperty("chat.output.tags.self", "true"));
+        AdninGui4.chatOutputTagsTeammates = Boolean.parseBoolean(p.getProperty("chat.output.tags.teammates", "true"));
     }
 
     static void saveOutputSettings(Properties p) {
         p.setProperty("chat.output", Boolean.toString(AdninGui4.chatOutput));
         p.setProperty("chat.output.players", Boolean.toString(AdninGui4.chatOutput));
+        p.setProperty("chat.output.denick", Boolean.toString(AdninGui4.chatOutputDenick));
         p.setProperty("chat.output.tags", Boolean.toString(AdninGui4.chatOutputTags));
         p.setProperty("chat.output.anticheat", Boolean.toString(AdninGui4.chatOutputAnticheat));
+        p.setProperty("chat.output.tags.self", Boolean.toString(AdninGui4.chatOutputTagsSelf));
+        p.setProperty("chat.output.tags.teammates", Boolean.toString(AdninGui4.chatOutputTagsTeammates));
     }
 
     /** Remove formatting/control characters before enforcing the /pc boundary. */
@@ -647,7 +907,7 @@ public final class AdninFeatures implements Runnable {
             if (Character.isISOControl(c) || Character.getType(c) == Character.FORMAT) { clean.append(' '); continue; }
             clean.append(c);
         }
-        return clean.toString().trim().replaceAll("\\s+", " ");
+        return WHITESPACE.matcher(clean.toString().trim()).replaceAll(" ");
     }
 
     /** Only party output drops our own leading brand; local chat remains intact. */
@@ -702,21 +962,49 @@ public final class AdninFeatures implements Runnable {
     }
 
     public static synchronized void enqueueParty(int category, String text, long now) {
-        if (stopped || !outputEnabled(category)) return;
+        if (!outputContextAllowed() || !outputEnabled(category)) return;
         String value = partyText(text);
         if (value.isEmpty()) return;
+        String subject = category == OUTPUT_TAGS ? tagSubjectClean(value) : "";
+        if (category == OUTPUT_TAGS && !tagOutputAllowed(subject)) return;
         String key = category + ":" + value;
         Long previous = sent.get(key);
         if (previous != null && now - previous < 30000) return;
-        sent.put(key, now); trimMap(sent, 256);
         // Keep the event whole until delivery knows the current client's limit.
-        if (outbox.size() < 32) outbox.addLast(new String[]{Long.toString(now), value, Integer.toString(category)});
+        // Rejected overflow is not a sent event and must not reserve its dedup key.
+        if (outbox.size() >= 32) return;
+        outbox.addLast(new String[]{Long.toString(now), value, Integer.toString(category), subject});
+        sent.put(key, now); trimMap(sent, 256);
+    }
+
+    /** Extract only the subject before the opaque API reason; never match names in reasons. */
+    static String tagSubject(String text) {
+        return tagSubjectClean(partyText(text));
+    }
+
+    private static String tagSubjectClean(String text) {
+        java.util.regex.Matcher match = TAG_SUBJECT.matcher(text);
+        return match.find() ? match.group(1) : "";
+    }
+
+    static boolean tagOutputAllowed(String name) {
+        if (AdninGui4.chatOutputTagsSelf && AdninGui4.chatOutputTagsTeammates) return true;
+        if (!isPlayerName(name)) return false;
+        if (AdninMatchTeams.isSelf(name)) return AdninGui4.chatOutputTagsSelf;
+        return !AdninMatchTeams.isTeammate(name) || AdninGui4.chatOutputTagsTeammates;
+    }
+
+    private static boolean outputItemAllowed(String[] item) {
+        int category = Integer.parseInt(item[2]);
+        return outputContextAllowed() && outputEnabled(category)
+            && (category != OUTPUT_TAGS || tagOutputAllowed(item.length > 3 ? item[3] : tagSubject(item[1])));
     }
 
     private static synchronized boolean hasPartyOutput(long now) {
+        if (!outputContextAllowed()) { clearPartyQueue(); return false; }
         while (!outbox.isEmpty()) {
             String[] next = outbox.peekFirst();
-            if (outputEnabled(Integer.parseInt(next[2])) && now - Long.parseLong(next[0]) <= 15000) return true;
+            if (outputItemAllowed(next) && now - Long.parseLong(next[0]) <= 15000) return true;
             outbox.removeFirst();
         }
         return false;
@@ -767,9 +1055,7 @@ public final class AdninFeatures implements Runnable {
     private static void drawUrchinCell(String name, float y, float x, float width) {
         Minecraft mc = Minecraft.getMinecraft();
         if (mc == null || mc.fontRendererObj == null) return;
-        String plain = cleanText(name);
-        String player = null;
-        for (String token : plain.split("[^A-Za-z0-9_]+")) if (present.contains(lower(token))) player = lower(token);
+        String player = overlayPlayer(name);
         if (player == null) return;
         List<String> found = tags.get(player);
         if (found == null || found.isEmpty()) return;
@@ -777,7 +1063,8 @@ public final class AdninFeatures implements Runnable {
         int colon = found.get(0).indexOf(':');
         String firstType = colon < 0 ? found.get(0) : found.get(0).substring(0, colon);
         int color = 0xff000000 | AdninMetrics.tagColor(firstType);
-        String label = fit(font, tagTypes(found), Math.max(0, (int) width - 13));
+        String cachedLabel = tagLabels.get(player);
+        String label = fit(font, cachedLabel == null ? "" : cachedLabel, Math.max(0, (int) width - 13));
         int contentWidth = 5 + (label.isEmpty() ? 0 : 4 + font.getStringWidth(label));
         // A code-drawn icon remains legible with fonts lacking special glyphs.
         int ix = Math.round(x + (width - contentWidth) / 2.0f), iy = Math.round(y) + 2;
@@ -786,6 +1073,27 @@ public final class AdninFeatures implements Runnable {
         Gui.drawRect(ix + 2, iy + 1, ix + 3, iy + 2, 0xff202020);
         if (!label.isEmpty()) font.drawStringWithShadow(label, ix + 9, y, color);
         rowCount++;
+    }
+
+    /** Match complete visible roster tokens without compiling a regex per rendered row. */
+    private static String overlayPlayer(String name) {
+        if (isPlayerName(name)) {
+            String key = lower(name);
+            return present.contains(key) ? key : null;
+        }
+        String plain = cleanText(name);
+        String player = null;
+        for (int start = 0; start < plain.length();) {
+            if (!playerNameCharacter(plain.charAt(start))) { start++; continue; }
+            int end = start + 1;
+            while (end < plain.length() && playerNameCharacter(plain.charAt(end))) end++;
+            if (end - start <= 16) {
+                String token = lower(plain.substring(start, end));
+                if (present.contains(token)) player = token;
+            }
+            start = end;
+        }
+        return player;
     }
 
     private static String fit(FontRenderer font, String text, int pixels) {
@@ -822,6 +1130,15 @@ public final class AdninFeatures implements Runnable {
     private static String bounded(String value, int length) { return value == null ? "" : value.substring(0, Math.min(value.length(), length)); }
     private static String lower(String value) { return value.toLowerCase(Locale.ROOT); }
     private static String join(List<String> values, String separator) { StringBuilder b = new StringBuilder(); for (String v : values) { if (b.length() > 0) b.append(separator); b.append(v); } return b.toString(); }
+    private static void trimBotCache() {
+        while (botCache.size() > MAX_CACHE) {
+            Iterator<String> it = botCache.keySet().iterator();
+            if (!it.hasNext()) break;
+            String key = it.next();
+            botCache.remove(key);
+            botProfiles.remove(key);
+        }
+    }
     private static <T> void trimMap(Map<String, T> values, int max) {
         while (values.size() > max) {
             Iterator<String> it = values.keySet().iterator();

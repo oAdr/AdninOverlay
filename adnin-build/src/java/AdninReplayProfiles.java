@@ -15,7 +15,10 @@ final class AdninReplayProfiles implements Runnable {
     interface Resolver { String resolve(String name) throws IOException; }
     static final String NICK = "NICK";
     private static final int LIMIT = 256, CACHE_LIMIT = 512;
-    private static final long SUCCESS_MS = 600000L, FAILURE_MS = 45000L;
+    // Verified profiles and authoritative account absence are stable enough to
+    // reuse for a full ten minutes. Transport/parse failures are retried much
+    // sooner so a temporary API problem cannot suppress a later result.
+    private static final long SUCCESS_MS = 600000L, ABSENT_MS = 600000L, FAILURE_MS = 45000L;
     private final Resolver resolver;
     private final boolean automatic;
     private final ArrayDeque<String> queue = new ArrayDeque<String>();
@@ -118,7 +121,7 @@ final class AdninReplayProfiles implements Runnable {
             if (stopped) return true;
             values.remove(name); values.put(name, result);
             boolean verified = !missing && !result.isEmpty();
-            expires.put(name, now + (verified ? SUCCESS_MS : FAILURE_MS));
+            expires.put(name, now + (verified ? SUCCESS_MS : missing ? ABSENT_MS : FAILURE_MS));
             completed++; if (!verified) failed++;
             if (missing) absent++;
             lastError = error;

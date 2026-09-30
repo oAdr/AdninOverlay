@@ -66,43 +66,33 @@ public final class AdninAnticheatCoreTest {
         h = new Harness();
         for (int i = 1; i <= 15; i++) check(h.step(s -> { SLOW.accept(s); s.deltaX = 0.079; }) == null,
                 "NoSlow speed below threshold does not flag");
-        h = new Harness();
-        check(h.step(s -> { s.pitch = 70; s.holdingBlock = true; }) == null, "Legit scaffold baseline");
-        for (int i = 0; i < 3; i++) {
-            final boolean last = i == 2;
-            AdninAnticheatCore.Alert a = h.step(s -> {
-                s.pitch = 70; s.holdingBlock = true; s.swinging = true;
-                s.swingProgress = 1; s.sneaking = true;
-            });
-            if (last) mode(a, AdninAnticheatCore.Check.LEGIT_SCAFFOLD, "Third exact sneak/place transition flags");
-            else check(a == null, "Fewer than three sneak/place transitions");
-            if (!last) check(h.step(s -> { s.pitch = 70; s.holdingBlock = true; }) == null,
-                    "Between placements does not create a transition");
-        }
+        h = legitHarness();
+        for (int i = 0; i < 3; i++) check(legitCycle(h, 1, 0, false) == 0,
+                "Mellow Eagle accumulates weighted VL, not the former three-sneak threshold");
+        check(legitCycle(h, 1, 0, false) == 1, "Fourth rapid release/swing cycle exceeds VL ten");
     }
 
     private static Harness legitHarness() {
         Harness h = new Harness();
         h.cfg.autoBlock = h.cfg.noFall = h.cfg.noSlow = h.cfg.scaffold = false;
-        check(legitStep(h, 0, false, false) == null, "Legit baseline has no transition");
+        check(h.step(s -> { s.pitch = 90; s.yaw = 180; s.holdingBlock = true; }) == null,
+                "First Eagle sample establishes an observed baseline");
         return h;
     }
 
-    private static AdninAnticheatCore.Alert legitStep(Harness h, int phase, boolean swinging, boolean sneak) {
-        return h.step(s -> {
-            s.pitch = 70; s.holdingBlock = true; s.swinging = swinging;
-            s.swingProgress = phase; s.sneaking = sneak;
-        });
-    }
-
-    /** Full animation plus release; edgeOffset is relative to the swing start. */
-    private static int legitCycle(Harness h, int firstPhase, int edgeOffset) {
+    private static int legitCycle(Harness h, int duration, int swingOffset, boolean replay) {
         int alerts = 0;
-        for (int offset = -2; offset < 7; offset++) {
-            AdninAnticheatCore.Alert a = legitStep(h, firstPhase + Math.max(0, offset),
-                    offset >= 0 && offset < 6, offset >= edgeOffset && offset <= 3);
+        for (int offset = 0; offset <= duration + 3; offset++) {
+            final int at = offset;
+            AdninAnticheatCore.Alert a = h.step(s -> {
+                s.pitch = 90; s.yaw = 180; s.holdingBlock = true; s.deltaZ = .1;
+                s.sneaking = at < duration;
+                s.swinging = at >= duration + swingOffset && at < duration + swingOffset + 2;
+                s.replay = s.replayProfile = replay;
+            });
             if (a != null) {
-                mode(a, AdninAnticheatCore.Check.LEGIT_SCAFFOLD, "Only Legit scaffold matches this cycle");
+                mode(a, AdninAnticheatCore.Check.LEGIT_SCAFFOLD, "Release/swing fixture matches only Mellow Eagle");
+                if (replay) check(!a.autoReport && a.reportCommand.isEmpty(), "Replay Eagle never produces WDR");
                 alerts++;
             }
         }
@@ -110,71 +100,24 @@ public final class AdninAnticheatCoreTest {
     }
 
     private static void legitScaffoldCycles() {
-        for (int firstPhase : new int[]{-1, 0, 1, 2}) {
-            for (int edgeOffset : new int[]{-1, 0, 1}) {
-                Harness h = legitHarness();
-                check(legitCycle(h, firstPhase, edgeOffset) == 0, "First correlated cycle is insufficient");
-                check(legitCycle(h, firstPhase, edgeOffset) == 0, "Second correlated cycle is insufficient");
-                check(legitCycle(h, firstPhase, edgeOffset) == 1,
-                        "Three cycles flag exactly once regardless of initial phase and adjacent edge timing");
-                check(legitCycle(h, firstPhase, edgeOffset) == 1,
-                        "Zero cooldown still alerts only on a new matched cycle");
-            }
-        }
-        for (int badOffset : new int[]{-2, 2, 3, 4}) {
+        for (int duration : new int[]{1, 2}) for (int offset : new int[]{0, 1}) {
             Harness h = legitHarness();
-            for (int cycle = 0; cycle < 6; cycle++) check(legitCycle(h, 0, badOffset) == 0,
-                    "Uncorrelated sneak edge cannot accumulate: " + badOffset);
+            for (int cycle = 0; cycle < 3; cycle++) check(legitCycle(h, duration, offset, false) == 0,
+                    "Three real short releases remain below weighted threshold");
+            check(legitCycle(h, duration, offset, false) == 1, "Fourth real short release crosses imported threshold");
         }
-        Harness h = legitHarness();
-        for (int i = 0; i < 48; i++) {
-            int phase = i % 8;
-            check(legitStep(h, phase, phase < 6, true) == null,
-                    "Holding sneak through multiple placements is not a fresh edge");
+        for (int badOffset : new int[]{-1, 2, 3}) {
+            Harness h = legitHarness();
+            for (int cycle = 0; cycle < 8; cycle++) check(legitCycle(h, 1, badOffset, false) == 0,
+                    "Swing outside release-or-next-tick window cannot accumulate Eagle VL");
         }
-        h = legitHarness();
-        for (int i = 0; i < 32; i++) check(legitStep(h, 1, true, i % 2 == 0) == null,
-                "Repeated animation phase and sneak toggles do not invent more swing cycles");
-        h = legitHarness();
-        for (int i = 0; i < 32; i++) check(legitStep(h, 1, false, i % 2 == 0) == null,
-                "Animation integer alone cannot represent a placement swing");
-        h = legitHarness();
-        for (int cycle = 0; cycle < 3; cycle++) {
-            int alerts = 0;
-            for (int phase = 0; phase < 6; phase++) {
-                if (legitStep(h, phase, true, phase <= 2) != null) alerts++;
-            }
-            check(alerts == (cycle == 2 ? 1 : 0), "Swing progress wrap detects one new continuous swing cycle");
-        }
-        h = legitHarness();
-        legitCycle(h, 0, 0); legitCycle(h, 0, 0);
-        check(legitCycle(h, 0, 2) == 0, "An unmatched swing resets two earlier matches");
-        check(legitCycle(h, 0, 0) == 0 && legitCycle(h, 0, 0) == 0,
-                "After an unmatched swing two matches remain insufficient");
-        check(legitCycle(h, 0, 0) == 1, "Three fresh matches recover after an unmatched swing");
-        for (int reset = 0; reset < 4; reset++) {
-            h = legitHarness(); legitCycle(h, 0, 0); legitCycle(h, 0, 0);
-            if (reset == 0) check(h.step(s -> { s.pitch = 69.99f; s.holdingBlock = true; }) == null,
-                    "Pitch below seventy invalidates matching evidence");
-            if (reset == 1) check(h.step(s -> s.pitch = 70) == null,
-                    "Releasing the held block invalidates matching evidence");
-            if (reset == 2) h.tick += 2;
-            if (reset == 3) h.time += 251;
-            check(legitCycle(h, 0, 0) == 0 && legitCycle(h, 0, 0) == 0,
-                    "Posture loss and missing or delayed ticks require fresh matching cycles");
-            check(legitCycle(h, 0, 0) == 1, "Three new cycles recover after reset");
-        }
-        h = legitHarness();
-        legitCycle(h, 0, 0); legitCycle(h, 0, 0);
-        check(legitStep(h, 0, true, true) != null, "Third cycle creates its one alert");
-        for (int callback = 0; callback < 100; callback++) {
-            AdninAnticheatCore.Snapshot s = h.snapshot();
-            s.pitch = 70; s.holdingBlock = true; s.swinging = true; s.sneaking = true;
-            check(h.engine.sample(h.id, h.identity, s, h.cfg) == null,
-                    "Duplicate callback cannot reuse the third swing or emit another alert");
-        }
-        for (int phase = 1; phase < 6; phase++) check(legitStep(h, phase, true, true) == null,
-                "Remaining animation phases cannot reuse a matched sneak edge");
+        Harness longSneak = legitHarness();
+        for (int i = 0; i < 8; i++) check(legitCycle(longSneak, 3, 0, false) == 0,
+                "Three-tick crouches are outside Mellow Eagle timing");
+        Harness stale = legitHarness(); legitCycle(stale, 1, 0, false);
+        for (int i = 0; i < 100; i++) check(stale.step(s -> {
+            s.pitch = 90; s.yaw = 180; s.deltaZ = .1; s.holdingBlock = true;
+        }) == null, "One old release/swing event cannot be counted on later ticks");
     }
 
     private static void tickBoundaries() {
@@ -582,13 +525,13 @@ public final class AdninAnticheatCoreTest {
 
         h = legitHarness();
         check(replayLegitCycle(h) == 0 && replayLegitCycle(h) == 0,
-                "Replay Legit scaffold starts with two correlated cycles");
+                "Replay Eagle starts with one weighted pair below VL ten");
         check(h.step(s -> {
             s.replay = s.replayProfile = true; s.pitch = 70; s.holdingBlock = true; s.deltaX = 5;
         }) == null, "A Replay seek discards earlier Legit scaffold matches");
         check(replayLegitCycle(h) == 0 && replayLegitCycle(h) == 0,
-                "Two post-seek Legit cycles cannot reuse the earlier count");
-        check(replayLegitCycle(h) == 1, "Three new Replay Legit cycles retain the unchanged threshold");
+                "Two post-seek Eagle cycles cannot reuse earlier weighted VL");
+        check(replayLegitCycle(h) == 0 && replayLegitCycle(h) == 1, "Four new Replay Eagle cycles rebuild weighted VL");
 
         h = new Harness(); h.cfg.intervalSeconds = 20;
         Consumer<AdninAnticheatCore.Snapshot> block = s -> {
@@ -611,23 +554,7 @@ public final class AdninAnticheatCoreTest {
         mode(h.step(block), AdninAnticheatCore.Check.AUTO_BLOCK, "Ten actual post-pause observations recover");
     }
 
-    private static int replayLegitCycle(Harness h) {
-        int alerts = 0;
-        for (int phase = -2; phase < 7; phase++) {
-            final int at = phase;
-            AdninAnticheatCore.Alert a = h.step(s -> {
-                s.replay = s.replayProfile = true; s.pitch = 70; s.holdingBlock = true;
-                s.swinging = at >= 0 && at < 6; s.swingProgress = Math.max(0, at);
-                s.sneaking = at >= 0 && at <= 3;
-            });
-            if (a != null) {
-                mode(a, AdninAnticheatCore.Check.LEGIT_SCAFFOLD, "Replay cycle emits only its correlated check");
-                check(!a.autoReport && a.reportCommand.isEmpty(), "Replay Legit scaffold never produces WDR");
-                alerts++;
-            }
-        }
-        return alerts;
-    }
+    private static int replayLegitCycle(Harness h) { return legitCycle(h, 1, 0, true); }
 
     private static void mode(AdninAnticheatCore.Alert result, AdninAnticheatCore.Check expected, String message) {
         check(result != null && result.check == expected, message);

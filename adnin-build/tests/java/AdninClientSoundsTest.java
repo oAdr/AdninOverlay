@@ -1,25 +1,43 @@
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.EventLoop;
 import io.netty.channel.embedded.EmbeddedChannel;
+import io.netty.channel.local.LocalChannel;
+import io.netty.channel.local.LocalEventLoopGroup;
 import io.netty.util.ReferenceCountUtil;
+import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GlobalEventExecutor;
+import io.netty.util.concurrent.SingleThreadEventExecutor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
+import net.minecraft.network.EnumPacketDirection;
+import net.minecraft.network.NetworkManager;
 
 /** Offline rules and an in-memory Netty pipeline; never starts Minecraft or audio. */
 public final class AdninClientSoundsTest {
     private static int checks;
     public static void main(String[] args) throws Exception {
+        if (args.length > 0 && "--pending-only".equals(args[0])) { registeredLifecycle(true); return; }
         placementRules(); suppressionRules(); queueBounds(); pipelineBehavior(); queueOverflowPipeline(); leaseCleanup();
+        registeredLifecycle(false); channelReuse();
         AdninClientSounds.tick(null,true,true);
         AdninClientSounds.shutdown();
         check(active().get(null) == null,"Null world and shutdown leave no session");
         System.out.println("AdninClientSoundsTest: " + checks
-            + " checks passed; placement rules, duplicate suppression and in-memory packet pass-through; no game, audio, settings or network");
+            + " checks passed; placement rules, packet pass-through, bounded blocked-EventLoop lifecycle and channel reuse; no game, audio, settings or network");
     }
     private static void placementRules() {
         double[][] places = {{10.5,19.5,-2.5},{10.5,21.5,-2.5},{10.5,20.5,-3.5},
@@ -210,6 +228,248 @@ public final class AdninClientSoundsTest {
         channel.finish();
         for(Object value; (value=channel.readInbound())!=null;) ReferenceCountUtil.release(value);
         for(Object value; (value=channel.readOutbound())!=null;) ReferenceCountUtil.release(value);
+    }
+
+    /** Actual registered Netty 4.0.23 channels; never bind or connect a socket. */
+    private static void registeredLifecycle(boolean pendingOnly) throws Exception {
+        check(Channel.class.getProtectionDomain().getCodeSource().getLocation().getPath().endsWith("/netty-all-4.0.23.Final.jar"),
+            "Lifecycle fixtures use the actual installed Netty 4.0.23 JAR");
+        final LocalEventLoopGroup group=new LocalEventLoopGroup(1,new ThreadFactory() {
+            @Override public Thread newThread(Runnable task) {
+                Thread thread=new Thread(task,"sounds-lifecycle-fixture"); thread.setDaemon(true); return thread;
+            }
+        });
+        List<LocalChannel> channels=new ArrayList<LocalChannel>();
+        try {
+            final LocalChannel channel=registered(group,channels,true);
+            final FakePackets packets=new FakePackets();
+            final AdninClientSounds.Session session=session(channel,packets);
+            int queued=blockedLoop(channel.eventLoop(),new Runnable() {
+                @Override public void run() {
+                    long start=System.nanoTime()/1000000L;
+                    for(int i=0;i<3000;i++) { session.heartbeat=System.nanoTime()/1000000L; session.requestInstall(start+1001L*i); }
+                }
+            });
+            check(queued==1,"Three thousand retries queue exactly one install on a blocked registered EventLoop, actual="+queued);
+            if(pendingOnly) { System.out.println("AdninClientSounds pending regression passed"); return; }
+            check(session.installed && !installPending(session),"Completed install clears its pending slot");
+            check(channel.pipeline().get(AdninClientSounds.HANDLER_NAME)==session.handler,"Blocked installation keeps the exact owned handler");
+            session.setModes(false,true);
+            final FakeSound observed=sound("dig.stone",0,0,0);
+            final AtomicReference<Object> delivered=new AtomicReference<Object>();
+            await(channel.eventLoop().submit(new Runnable() {
+                @Override public void run() {
+                    channel.pipeline().addLast("owned_collector",new ChannelInboundHandlerAdapter() {
+                        @Override public void channelRead(ChannelHandlerContext context,Object value) { delivered.set(value); }
+                    });
+                    channel.pipeline().fireChannelRead(observed);
+                }
+            }),"Observe a real registered-pipeline packet");
+            check(delivered.get()==observed && packets.received==1,"Observation forwards a real pipeline input exactly once");
+            queued=blockedLoop(channel.eventLoop(),new Runnable() {
+                @Override public void run() { for(int i=0;i<3000;i++) { AdninClientSounds.shutdown(); session.stop(); } }
+            });
+            check(queued==1,"Repeated shutdown and stop queue one removal while the loop is blocked");
+            check(!session.installed && session.leaseCheck==null && active().get(null)==null,"Removal clears installed state and watchdog");
+            check(channel.pipeline().get(AdninClientSounds.HANDLER_NAME)==null && channel.pipeline().get("packet_handler")!=null,
+                "Idempotent stop removes only its own handler");
+
+            final AdninClientSounds.Session stale=session(channel,new FakePackets());
+            final AdninClientSounds.Session latest=new AdninClientSounds.Session(null,null,new Object(),channel,new FakePackets());
+            queued=blockedLoop(channel.eventLoop(),new Runnable() {
+                @Override public void run() {
+                    stale.requestInstall(System.nanoTime()/1000000L);
+                    AdninClientSounds.shutdown();
+                    try { active().set(null,latest); } catch(Exception error) { throw new RuntimeException(error); }
+                    latest.setModes(false,true);
+                    latest.requestInstall(System.nanoTime()/1000000L);
+                    stale.stop();
+                }
+            });
+            check(queued<=3,"World replacement has one old install, one cleanup and one current install");
+            check(stale.stopped && !stale.installed && !installPending(stale),"Shutdown retires a still-pending installation");
+            check(latest.installed && channel.pipeline().get(AdninClientSounds.HANDLER_NAME)==latest.handler,
+                "Queued old-world cleanup cannot remove the new world's handler");
+            AdninClientSounds.shutdown(); drain(channel.eventLoop());
+
+            final LocalChannel missing=registered(group,channels,false);
+            AdninClientSounds.Session noAnchor=session(missing,new FakePackets());
+            noAnchor.requestInstall(0); drain(missing.eventLoop());
+            check(!noAnchor.installed && !installPending(noAnchor),"Missing anchor returns its pending slot");
+            await(missing.eventLoop().submit(new Runnable() {
+                @Override public void run() { missing.pipeline().addLast("packet_handler",new ChannelInboundHandlerAdapter()); }
+            }),"Add a later packet anchor");
+            noAnchor.requestInstall(1001); drain(missing.eventLoop());
+            check(noAnchor.installed && !installPending(noAnchor),"A later valid anchor can retry installation");
+            AdninClientSounds.shutdown(); drain(missing.eventLoop());
+
+            final ChannelHandler foreign=new ChannelInboundHandlerAdapter();
+            await(channel.eventLoop().submit(new Runnable() {
+                @Override public void run() { channel.pipeline().addBefore("packet_handler",AdninClientSounds.HANDLER_NAME,foreign); }
+            }),"Place a foreign same-name handler");
+            AdninClientSounds.Session conflict=session(channel,new FakePackets());
+            conflict.requestInstall(0); drain(channel.eventLoop());
+            check(!conflict.installed && !installPending(conflict),"Foreign-handler conflict clears the pending slot");
+            AdninClientSounds.shutdown(); drain(channel.eventLoop());
+            check(channel.pipeline().get(AdninClientSounds.HANDLER_NAME)==foreign,"Shutdown preserves a foreign same-name handler");
+
+            LocalChannel faults=registered(group,channels,true);
+            Faults controls=new Faults();
+            AdninClientSounds.Session faultSession=session(faultChannel(faults,controls),new FakePackets());
+            controls.rejectExecute.set(1);
+            faultSession.requestInstall(0);
+            check(!installPending(faultSession) && !faultSession.installed,"Rejected execute releases the pending slot synchronously");
+            controls.failExecute.set(1);
+            boolean failed=false;
+            try { faultSession.requestInstall(1001); } catch(IllegalStateException expected) { failed=true; }
+            check(failed && !installPending(faultSession),"Unexpected submission failure also releases the pending slot");
+            controls.failPipeline.set(1);
+            faultSession.requestInstall(2002); drain(faults.eventLoop());
+            check(!faultSession.installed && !installPending(faultSession),"An asynchronous pipeline failure releases the pending slot");
+            faultSession.requestInstall(3003); drain(faults.eventLoop());
+            check(faultSession.installed && !installPending(faultSession),"Installation retries after a handled asynchronous failure");
+            AdninClientSounds.shutdown(); drain(faults.eventLoop());
+
+            controls.rejectSchedule.set(1);
+            AdninClientSounds.Session rejectedLease=session(faultChannel(faults,controls),new FakePackets());
+            rejectedLease.requestInstall(0); drain(faults.eventLoop());
+            check(rejectedLease.stopped && !rejectedLease.installed && !installPending(rejectedLease),
+                "Rejected lease scheduling safely retires the newly installed observer");
+            check(active().get(null)==null && faults.pipeline().get(AdninClientSounds.HANDLER_NAME)==null,
+                "Rejected watchdog leaves no active session or stale handler");
+
+            controls.failSchedule.set(1);
+            AdninClientSounds.Session failedLease=session(faultChannel(faults,controls),new FakePackets());
+            failedLease.requestInstall(0); drain(faults.eventLoop());
+            check(failedLease.stopped && !failedLease.installed && !installPending(failedLease),
+                "Unexpected watchdog failure also retires the observer without leaking a pending slot");
+            check(failedLease.leaseCheck==null && active().get(null)==null && faults.pipeline().get(AdninClientSounds.HANDLER_NAME)==null,
+                "Unexpected watchdog failure cannot leave an immortal observer");
+
+            final AdninClientSounds.Session stoppedPending=session(faults,new FakePackets());
+            queued=blockedLoop(faults.eventLoop(),new Runnable() {
+                @Override public void run() {
+                    stoppedPending.requestInstall(0);
+                    AdninClientSounds.shutdown();
+                    for(int i=0;i<3000;i++) stoppedPending.requestInstall(1001L*i);
+                }
+            });
+            check(queued<=2,"Shutdown of pending work queues at most install plus cleanup");
+            check(stoppedPending.stopped && !stoppedPending.installed && !installPending(stoppedPending)
+                && faults.pipeline().get(AdninClientSounds.HANDLER_NAME)==null,"Stopped pending observer never installs late");
+        } finally {
+            AdninClientSounds.shutdown();
+            for(LocalChannel channel:channels) channel.close().await(5000L);
+            group.shutdownGracefully(0,1,TimeUnit.SECONDS).await(5000L);
+        }
+    }
+
+    private static LocalChannel registered(LocalEventLoopGroup group,List<LocalChannel> channels,boolean anchor) throws Exception {
+        LocalChannel channel=new LocalChannel(); channels.add(channel);
+        if(anchor) channel.pipeline().addLast("packet_handler",new ChannelInboundHandlerAdapter());
+        await(group.register(channel),"Register an owned, unconnected LocalChannel");
+        check(channel.isRegistered() && channel.isOpen() && !channel.isActive(),"Fixture never binds or connects");
+        return channel;
+    }
+    private static AdninClientSounds.Session session(Channel channel,FakePackets packets) throws Exception {
+        AdninClientSounds.Session session=new AdninClientSounds.Session(null,null,new Object(),channel,packets);
+        active().set(null,session); session.setModes(false,true); return session;
+    }
+    private static boolean installPending(AdninClientSounds.Session session) throws Exception {
+        Field field=AdninClientSounds.Session.class.getDeclaredField("installPending"); field.setAccessible(true);
+        synchronized(session) { return field.getBoolean(session); }
+    }
+    private static int blockedLoop(final EventLoop loop,final Runnable operation) throws Exception {
+        final CountDownLatch entered=new CountDownLatch(1),release=new CountDownLatch(1),finished=new CountDownLatch(1);
+        final AtomicReference<Throwable> failure=new AtomicReference<Throwable>();
+        loop.execute(new Runnable() {
+            @Override public void run() {
+                entered.countDown();
+                try { if(!release.await(5000L,TimeUnit.MILLISECONDS)) throw new AssertionError("Blocked fixture timed out"); }
+                catch(InterruptedException error) { Thread.currentThread().interrupt(); failure.set(error); }
+            }
+        });
+        check(entered.await(5000L,TimeUnit.MILLISECONDS),"Registered EventLoop reaches the controlled block");
+        Thread caller=new Thread(new Runnable() {
+            @Override public void run() {
+                try { operation.run(); } catch(Throwable error) { failure.set(error); }
+                finally { finished.countDown(); }
+            }
+        },"sounds-client-fixture");
+        caller.setDaemon(true);
+        int pending; boolean returned;
+        try {
+            caller.start(); returned=finished.await(1500L,TimeUnit.MILLISECONDS);
+            pending=((SingleThreadEventExecutor)loop).pendingTasks();
+        } finally { release.countDown(); }
+        check(returned,"Install/shutdown returns without waiting for the blocked EventLoop");
+        check(finished.await(5000L,TimeUnit.MILLISECONDS) && failure.get()==null,"Client fixture finishes without failure: "+failure.get());
+        drain(loop); return pending;
+    }
+    private static void drain(EventLoop loop) throws Exception {
+        for(int i=0;i<3;i++) await(loop.submit(new Runnable() { @Override public void run() { } }),"Drain lifecycle work");
+    }
+    private static void await(Future<?> future,String why) throws Exception {
+        check(future.await(5000L) && future.isSuccess(),why+": "+future.cause());
+    }
+
+    private static final class Faults {
+        final AtomicInteger rejectExecute=new AtomicInteger(),failExecute=new AtomicInteger(),failPipeline=new AtomicInteger(),rejectSchedule=new AtomicInteger(),failSchedule=new AtomicInteger();
+    }
+    private static boolean consume(AtomicInteger value) { return value.getAndSet(0)!=0; }
+    private static Channel faultChannel(final LocalChannel channel,final Faults faults) {
+        final EventLoop loop=(EventLoop)Proxy.newProxyInstance(AdninClientSoundsTest.class.getClassLoader(),new Class<?>[]{EventLoop.class},new InvocationHandler() {
+            @Override public Object invoke(Object proxy,Method method,Object[] args) throws Throwable {
+                if(method.getName().equals("execute")) {
+                    if(consume(faults.rejectExecute)) throw new RejectedExecutionException("Owned execute rejection");
+                    if(consume(faults.failExecute)) throw new IllegalStateException("Owned execute failure");
+                }
+                if(method.getName().equals("schedule")) {
+                    if(consume(faults.rejectSchedule)) throw new RejectedExecutionException("Owned schedule rejection");
+                    if(consume(faults.failSchedule)) throw new IllegalStateException("Owned schedule failure");
+                }
+                try { return method.invoke(channel.eventLoop(),args); }
+                catch(InvocationTargetException failure) { throw failure.getCause(); }
+            }
+        });
+        return (Channel)Proxy.newProxyInstance(AdninClientSoundsTest.class.getClassLoader(),new Class<?>[]{Channel.class},new InvocationHandler() {
+            @Override public Object invoke(Object proxy,Method method,Object[] args) throws Throwable {
+                if(method.getName().equals("eventLoop")) return loop;
+                if(method.getName().equals("pipeline") && consume(faults.failPipeline)) throw new IllegalStateException("Owned pipeline failure");
+                try { return method.invoke(channel,args); }
+                catch(InvocationTargetException failure) { throw failure.getCause(); }
+            }
+        });
+    }
+
+    private static void channelReuse() throws Exception {
+        EmbeddedChannel first=new EmbeddedChannel(new ChannelInboundHandlerAdapter()),
+            replacement=new EmbeddedChannel(new ChannelInboundHandlerAdapter()),other=new EmbeddedChannel(new ChannelInboundHandlerAdapter());
+        Object world=new Object();
+        DiscoveryManager manager=new DiscoveryManager(first),changedManager=new DiscoveryManager(other);
+        Method method=AdninClientSounds.class.getDeclaredMethod("channelFor",NetworkManager.class,Object.class); method.setAccessible(true);
+        AdninClientSounds.Session session=new AdninClientSounds.Session(null,manager,world,first,new FakePackets());
+        active().set(null,session);
+        try {
+            // If reflection ran again it would find replacement. A stable live
+            // Session must keep its known channel until a lifecycle boundary.
+            manager.discovered=replacement;
+            for(int i=0;i<1000;i++) check(method.invoke(null,manager,world)==first,"Stable manager/world reuse their open Channel");
+            check(method.invoke(null,changedManager,world)==other,"A changed manager rediscovers its private Channel field");
+            check(method.invoke(null,manager,new Object())==replacement,"A changed world rediscovers the manager's Channel");
+            first.close();
+            check(method.invoke(null,manager,world)==replacement,"A closed cached channel triggers rediscovery");
+            AdninClientSounds.shutdown(); first.runPendingTasks();
+            check(method.invoke(null,manager,world)==replacement,"A retired session cannot reuse the old channel");
+            manager.discovered=null;
+            check(method.invoke(null,manager,world)==null,"Disconnected manager reports no channel");
+            manager.discovered=other;
+            check(method.invoke(null,manager,world)==other,"Reconnected manager can discover a later channel");
+        } finally { AdninClientSounds.shutdown(); finish(first); finish(replacement); finish(other); }
+    }
+    private static final class DiscoveryManager extends NetworkManager {
+        private Channel discovered;
+        DiscoveryManager(Channel channel) { super(EnumPacketDirection.CLIENTBOUND); discovered=channel; }
     }
     // Netty 4.0.23's EmbeddedEventLoop intentionally has no scheduler. Keep its
     // real packet pipeline and task queue, using Netty's shared executor solely

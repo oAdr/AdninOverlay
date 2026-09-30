@@ -37,7 +37,8 @@ class DenickerExecutionTests(unittest.TestCase):
         self.native_events = []
         self.replay_nick = 0
         self.next_ref = 0x200000
-        h.methods['nativeBotProfile'] = 9
+        h.methods['nativeDenickerProfile'] = 9
+        h.methods['nativeDenickerPublished'] = 11
         h.methods['nativeReplayIsNick'] = 10
         P, I = ctypes.c_void_p, ctypes.c_int
 
@@ -100,6 +101,7 @@ class DenickerExecutionTests(unittest.TestCase):
         def object_call(env, clazz, method, args):
             ref = ctypes.c_uint64.from_address(args).value
             self.native_events.append(('profile', h.refs[ref]))
+            self.native_events.append(('skin-enabled', bool(ctypes.c_uint64.from_address(args + 8).value)))
             if h.failure == 'profile-exception':
                 h.pending = True
                 return None
@@ -148,6 +150,7 @@ class DenickerExecutionTests(unittest.TestCase):
         self.install(0x7300, None, [P, ctypes.c_char_p], assign)
         self.install(0xb4fb0, None, [P, P, ctypes.c_uint64], candidates)
         h.bind(0x3a0, P, [P, P, P, P], object_call)
+        h.bind(0x478, None, [P, P, P, P], lambda env, clazz, method, args: self.native_events.append(('published', h.refs[ctypes.c_uint64.from_address(args).value], h.refs[ctypes.c_uint64.from_address(args+8).value])))
         h.bind(0x520, I, [P, P], length)
         h.bind(0x6e8, None, [P, P, I, I, P], region)
         h.bind(0x418, I, [P, P, P, P], replay_nick)
@@ -236,9 +239,11 @@ class DenickerExecutionTests(unittest.TestCase):
         self.original_name, self.original_return = '', 0
         self.skin_enabled, self.skin_status, self.skin_name = True, 3, 'SkinName'
         self.native_events.clear()
-        self.assertEqual(self.run_denicker(mode=1)[0], 0)
-        self.assertFalse(self.calls('profile'))
-        self.assertEqual(self.calls('skin-destroy'), [('skin-destroy','SkinName')])
+        self.assertEqual(self.run_denicker(mode=1)[0], 1)
+        self.assertEqual(self.calls('skin-enabled'), [('skin-enabled', True)])
+        self.assertFalse(self.calls('skin-read'))
+        self.assertFalse(self.calls('skin-destroy'))
+        self.assertEqual(self.calls('published'), [('published','isa5',self.profile)])
 
     def test_existing_number_identity_wins_even_before_stats_ready(self):
         self.original_name = 'NativeIdentity'
@@ -249,22 +254,23 @@ class DenickerExecutionTests(unittest.TestCase):
         self.assertFalse(self.calls('profile'))
         self.assertFalse(self.calls('queue'))
 
-    def test_existing_enabled_skin_identity_wins_and_temporary_strings_cleanup(self):
+    def test_legacy_skin_identity_is_retired_and_native_setting_reaches_mellow(self):
         self.skin_enabled = True
         self.skin_status = 3
-        self.skin_name = 'OriginalSkinIdentity'
-        returned, _ = self.run_denicker()
-        self.assertEqual(returned, 0)
-        self.assertEqual(self.calls('skin-destroy'), [('skin-destroy', self.skin_name)])
-        self.assertFalse(self.calls('profile'))
-        self.assertFalse(self.calls('queue'))
-
-    def test_unresolved_skin_result_allows_bot_fallback(self):
-        self.skin_enabled = True
-        self.skin_status = 1
+        self.skin_name = 'ObsoleteHashMatch'
         returned, _ = self.run_denicker()
         self.assertEqual(returned, 1)
-        self.assertEqual(len(self.calls('skin-destroy')), 1)
+        self.assertFalse(self.calls('skin-read'))
+        self.assertFalse(self.calls('skin-destroy'))
+        self.assertEqual(self.calls('skin-enabled'), [('skin-enabled', True)])
+        self.assertEqual(self.calls('published'), [('published', 'isa5', self.profile)])
+
+    def test_disabled_skin_still_allows_bot_fallback(self):
+        self.skin_enabled = False
+        returned, _ = self.run_denicker()
+        self.assertEqual(returned, 1)
+        self.assertEqual(self.calls('skin-enabled'), [('skin-enabled', False)])
+        self.assertFalse(self.calls('skin-read'))
 
     def test_native_bot_npc_and_other_uuid_classes_never_query(self):
         for version in ('2', '3', '4', '0'):
@@ -308,6 +314,7 @@ class DenickerExecutionTests(unittest.TestCase):
                 self.assertEqual(returned, 0)
                 self.assertEqual(result.raw[0], 0)
                 self.assertEqual(result.raw[0x160], 0)
+                self.assertFalse(self.calls('published'))
 
     def test_each_original_supported_mode_ready_flag_is_accepted(self):
         for flag in (8, 0x60, 0xa0):

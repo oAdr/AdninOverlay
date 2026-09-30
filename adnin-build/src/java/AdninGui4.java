@@ -70,6 +70,35 @@ extends GuiScreen {
     private static String overlayColumnsDuel = "";
     private static String overlayColumnsBedwarsduels = "";
     private static final int MAX_OVERLAY_COLUMNS = 20;
+    private static volatile ColumnStateSnapshot columnStateSnapshot;
+    private static final NormalizedColumnSnapshot[] normalizedColumnSnapshots = new NormalizedColumnSnapshot[4];
+
+    /** Immutable snapshots also detect changes made directly through the public JNI arrays. */
+    private static final class ColumnStateSnapshot {
+        final String mode, columns;
+        final boolean[] enabled;
+        final int[] order;
+        ColumnStateSnapshot(String mode, boolean[] enabled, int[] order, String columns) {
+            this.mode = mode; this.enabled = enabled; this.order = order; this.columns = columns;
+        }
+        boolean matches(String mode, boolean[] enabled, int[] order, int count) {
+            if (!this.mode.equals(mode) || this.enabled.length != count) return false;
+            for (int i = 0; i < count; i++)
+                if (this.enabled[i] != enabled[i] || this.order[i] != order[i]) return false;
+            return true;
+        }
+    }
+
+    private static final class NormalizedColumnSnapshot {
+        final String source, columns;
+        final boolean urchin, fkLv;
+        NormalizedColumnSnapshot(String mode, String source) {
+            this.source = source;
+            this.columns = AdninColumnOrder.normalize(mode, source);
+            this.urchin = columns.endsWith(",urchin") || columns.contains(",urchin,");
+            this.fkLv = columns.endsWith(",fklv") || columns.contains(",fklv,");
+        }
+    }
     private static final String DEFAULT_COLS_BEDWARS = "name,hp,stars,stars_new,fkdr,fklv,wlr,kdr,swordKD,bblr,index,wins,finalKills,bedsBroken,requeuePct,winstreak,seens,session,ping,pingvar,seraph,urchin";
     private static final String DEFAULT_COLS_SKYWARS = "name,hp,sw_stars,sw_kdr,sw_wlr,sw_wins,sw_kills,seens,session,ping,pingvar,seraph,urchin";
     private static final String DEFAULT_COLS_DUEL = "name,hp,duel_wins,duel_wlr,duel_kdr,seens,session,ping,pingvar,seraph,urchin";
@@ -102,7 +131,10 @@ extends GuiScreen {
     public static boolean compactBlacklist = false;
     public static boolean chatOverlay = false;
     public static boolean chatOutput = false;
+    public static boolean chatOutputDenick = false;
     public static boolean chatOutputTags = false;
+    public static boolean chatOutputTagsSelf = true;
+    public static boolean chatOutputTagsTeammates = true;
     public static boolean chatOutputAnticheat = false;
     public static boolean ignoreTeammates = false;
     public static String chatOverlayMinStars = "100";
@@ -137,6 +169,20 @@ extends GuiScreen {
     private int activeInput = 0;
     private float uiScale = 1, animatedYOffset;
     private boolean draggingUiScale;
+    private boolean keyboardRepeatCaptured, keyboardRepeatBefore;
+    // Input strings can contain credentials. Keep only a small per-screen cache,
+    // never a static cache, and release every retained value when the screen closes.
+    private final InputClip[] inputClips = new InputClip[10];
+    private int nextInputClip;
+    private static final class InputClip {
+        final String source, visible;
+        final int width;
+        final boolean reveal, focused, fontFailure;
+        InputClip(String source, int width, boolean reveal, boolean focused, boolean fontFailure, String visible) {
+            this.source = source; this.width = width; this.reveal = reveal;
+            this.focused = focused; this.fontFailure = fontFailure; this.visible = visible;
+        }
+    }
     private long openedAt, closingAt, lastFrame, pageChangedAt;
     private int drawnTheme = -1;
     private double visualScroll, sidebarSelection;
@@ -279,8 +325,13 @@ extends GuiScreen {
     private static final int AC_CHECKS_Y = 68;
     private static final int AC_CHECKS_H = 92;
     private static final int CHAT_MAIN_Y = 4;
-    private static final int CHAT_MAIN_H = 132;
-    private static final int CHAT_THRESH_Y = 152;
+    private static final int CHAT_MAIN_H = 180;
+    private static final int CHAT_OUTPUT_PLAYERS_Y = 36;
+    private static final int CHAT_OUTPUT_DENICK_Y = 64;
+    private static final int CHAT_OUTPUT_TAGS_Y = 92;
+    private static final int CHAT_OUTPUT_TAG_FILTERS_Y = 120;
+    private static final int CHAT_OUTPUT_ANTICHEAT_Y = 148;
+    private static final int CHAT_THRESH_Y = 204;
     private static final int CHAT_THRESH_H = 144;
     private static final int SESSION_STATS_Y = 4;
     private static final int SESSION_STATS_H = 140;
@@ -290,6 +341,9 @@ extends GuiScreen {
     private static final int INTERFACE_CARD_Y = 324;
     private static final int UI_SCALE_TRACK_Y = INTERFACE_CARD_Y + 38;
     private static final int LANGUAGE_CHOICES_Y = INTERFACE_CARD_Y + 88;
+
+    /** Stable owner-class entry point for both native client profiles. */
+    public static void setGameActive(boolean active) { AdninFeatures.setGameActive(active); }
 
     public static boolean isHoldRdHotkeyDown() {
         if (!holdRdEnabled || listeningHoldRdKey || listeningQuickbuyIndex >= 0) {
@@ -648,13 +702,22 @@ extends GuiScreen {
         int n3;
         String[] stringArray = AdninGui4.columnIdsForMode(overlayGamemodeEdit);
         int n4 = stringArray.length;
+        String mode = AdninColumnOrder.mode(overlayGamemodeEdit);
+        boolean[] sourceEnabled = overlayColumnEnabled;
+        int[] sourceOrder = overlayColumnOrder;
+        ColumnStateSnapshot cached = columnStateSnapshot;
+        if (cached != null && cached.matches(mode, sourceEnabled, sourceOrder, n4)) return cached.columns;
+        boolean[] enabled = new boolean[n4];
+        int[] order = new int[n4];
+        System.arraycopy(sourceEnabled, 0, enabled, 0, n4);
+        System.arraycopy(sourceOrder, 0, order, 0, n4);
         int[] nArray = new int[n4];
         for (n3 = 0; n3 < n4; ++n3) {
             nArray[n3] = n3;
         }
         for (n3 = 0; n3 < n4 - 1; ++n3) {
             for (n2 = n3 + 1; n2 < n4; ++n2) {
-                if (overlayColumnOrder[nArray[n3]] <= overlayColumnOrder[nArray[n2]]) continue;
+                if (order[nArray[n3]] <= order[nArray[n2]]) continue;
                 n = nArray[n3];
                 nArray[n3] = nArray[n2];
                 nArray[n2] = n;
@@ -664,11 +727,13 @@ extends GuiScreen {
         stringBuilder.append("name,hp");
         for (n2 = 0; n2 < n4; ++n2) {
             n = nArray[n2];
-            if (!overlayColumnEnabled[n]) continue;
+            if (!enabled[n]) continue;
             stringBuilder.append(',');
             stringBuilder.append(stringArray[n]);
         }
-        return stringBuilder.toString();
+        String columns = stringBuilder.toString();
+        columnStateSnapshot = new ColumnStateSnapshot(mode, enabled, order, columns);
+        return columns;
     }
 
     public static void snapshotOverlayColumnsEditMode() {
@@ -696,34 +761,32 @@ extends GuiScreen {
     }
 
     public static String getOverlayColumnsConfig() {
+        return normalizedColumnsSnapshot().columns;
+    }
+
+    private static NormalizedColumnSnapshot normalizedColumnsSnapshot() {
         String mode = AdninColumnOrder.mode(overlayGamemodeActive);
         String columns = mode.equals(AdninColumnOrder.mode(overlayGamemodeEdit))
             ? AdninGui4.buildColumnsConfigFromState()
             : AdninGui4.getStoredColumnsForMode(mode);
-        return AdninColumnOrder.normalize(mode, columns);
+        int index = "skywars".equals(mode) ? 1 : "duel".equals(mode) ? 2 : "bedwarsduels".equals(mode) ? 3 : 0;
+        NormalizedColumnSnapshot cached = normalizedColumnSnapshots[index];
+        if (cached == null || !cached.source.equals(columns)) {
+            cached = new NormalizedColumnSnapshot(mode, columns);
+            normalizedColumnSnapshots[index] = cached;
+        }
+        return cached;
     }
 
     public static boolean isUrchinColumnEnabled() {
-        String columns = AdninGui4.getOverlayColumnsConfig();
-        for (String column : columns.split(",")) {
-            if ("urchin".equals(column.trim())) {
-                return true;
-            }
-        }
-        return false;
+        return normalizedColumnsSnapshot().urchin;
     }
 
     public static boolean isFkLvColumnEnabled() {
         if (!"bedwars".equals(AdninColumnOrder.mode(overlayGamemodeActive))) {
             return false;
         }
-        String columns = AdninGui4.getOverlayColumnsConfig();
-        for (String column : columns.split(",")) {
-            if ("fklv".equals(column.trim())) {
-                return true;
-            }
-        }
-        return false;
+        return normalizedColumnsSnapshot().fkLv;
     }
 
     public static void nativeGeneratedEvent(String text, boolean json) {
@@ -755,8 +818,11 @@ extends GuiScreen {
     }
 
     public static int nativeStopGameModules() {
+        if (!AdninGameModules.isHotkeyUnloadRequested()) return 0;
         AdninGameModules.stop();
-        return 1;
+        // The native End-key guard accepts only 1. Never wait for a Netty
+        // callback here: defer unloading until its observation has returned.
+        return AdninPacketLog.isQuiescent() ? 1 : 0;
     }
 
     public static int nativeUrchinWidth(int available) {
@@ -782,6 +848,18 @@ extends GuiScreen {
 
     public static String nativeBotProfile(String name) {
         return AdninFeatures.getBotProfile(name);
+    }
+
+    /** Same native filtered candidate; skin metadata is resolved on client ticks. */
+    public static String nativeDenickerProfile(String name, boolean skinEnabled) {
+        AdninSkinDenicker.setEnabled(skinEnabled);
+        String skin = skinEnabled ? AdninSkinDenicker.getProfile(name) : "";
+        if (skinEnabled && skin.isEmpty() && !AdninSkinDenicker.hasAttempted(name)) return "";
+        return skin.isEmpty() ? AdninFeatures.getBotProfile(name) : skin;
+    }
+
+    public static void nativeDenickerPublished(String name, String profile) {
+        AdninSkinDenicker.markPublished(name, profile);
     }
 
     public static void nativeMatchStarted() {
@@ -1018,21 +1096,35 @@ extends GuiScreen {
         return stringBuilder.toString();
     }
 
+    private String visibleInput(String source, int width, boolean reveal, boolean focused) {
+        source = source == null ? "" : source;
+        boolean fontFailure = AdninUi.hasFontFailure();
+        for (InputClip cached : inputClips) {
+            if (cached != null && cached.width == width && cached.reveal == reveal
+                    && cached.focused == focused && cached.fontFailure == fontFailure
+                    && cached.source.equals(source)) return cached.visible;
+        }
+        String value = reveal ? source : this.maskValue(source);
+        value = focused ? AdninUi.fitTail(value, width - 20, 0) : AdninUi.fit(value, width - 14, 0);
+        if (source.length() <= 2048) {
+            inputClips[nextInputClip] = new InputClip(source, width, reveal, focused,
+                AdninUi.hasFontFailure(), value);
+            nextInputClip = (nextInputClip + 1) % inputClips.length;
+        }
+        return value;
+    }
+
     private void drawInputField(int n, int n2, int n3, String string, String string2, boolean bl, boolean bl2, int n4, int n5) {
         this.drawTextLeft(string, n + 2, n2 - 12, AdninUi.MUTED);
         boolean hover = this.isHoveredRect(n, n2, n3, 20, n4, n5);
         AdninUi.round(n, n2, n3, 20, 5, bl2 ? AdninUi.ACCENT : AdninUi.BORDER);
         AdninUi.round(n + 1, n2 + 1, n3 - 2, 18, 4, hover ? 0xFF242832 : 0xFF1C1F26);
-        String value = string2 == null ? "" : string2;
-        value = bl ? value : this.maskValue(value);
-        if (value.length() == 0 && !bl2) {
+        if ((string2 == null || string2.length() == 0) && !bl2) {
             this.drawTextLeft("Not configured", n + 7, n2 + 5, 0xFF747C8D);
             return;
         }
         // Show the end while typing, never draw through the reveal/clear controls.
-        if (bl2) while (value.length() > 0 && AdninUi.width(value, 0) > n3 - 20)
-            value = value.substring(value.offsetByCodePoints(0, 1));
-        else value = AdninUi.fit(value, n3 - 14, 0);
+        String value = this.visibleInput(string2, n3, bl, bl2);
         // API keys, URLs, messages and player names are user data, not labels.
         AdninUi.text(value, n + 7, n2 + 4, AdninUi.TEXT, 0);
         if (bl2 && System.currentTimeMillis() / 500L % 2L == 0L) {
@@ -1055,11 +1147,47 @@ extends GuiScreen {
     }
 
     private void closeScreenSafe() {
+        this.activeInput = 0;
+        this.cancelPointerInteraction();
         if (this.closingAt == 0) this.closingAt = System.nanoTime();
+    }
+
+    private void cancelPointerInteraction() {
+        this.draggingUiScale = false;
+        this.draggingHitboxSlider = false;
+        this.hitboxSliderTrackX = 0;
+        this.hitboxSliderTrackW = 0;
+    }
+
+    private void beginKeyboardInput() {
+        try {
+            if (!Keyboard.isCreated()) return;
+            // initGui also runs on F11/resize. Capture the prior owner's state
+            // only once, so those calls cannot turn the saved value into true.
+            if (!this.keyboardRepeatCaptured) {
+                this.keyboardRepeatBefore = Keyboard.areRepeatEventsEnabled();
+                this.keyboardRepeatCaptured = true;
+            }
+            Keyboard.enableRepeatEvents(true);
+        } catch (RuntimeException | LinkageError unavailable) { }
+    }
+
+    private void endKeyboardInput() {
+        try {
+            if (this.keyboardRepeatCaptured && Keyboard.isCreated())
+                Keyboard.enableRepeatEvents(this.keyboardRepeatBefore);
+        } catch (RuntimeException | LinkageError unavailable) { }
+        finally { this.keyboardRepeatCaptured = false; }
     }
 
     @Override
     public void onGuiClosed() {
+        this.activeInput = 0;
+        java.util.Arrays.fill(this.inputClips, null);
+        this.nextInputClip = 0;
+        this.cancelPointerInteraction();
+        this.endKeyboardInput();
+        this.openedAt = 0; this.closingAt = 0; this.lastFrame = 0;
         try { AdninUi.releaseTextures(); }
         catch (RuntimeException | LinkageError unavailable) { /* Retry on the next client lifecycle cleanup. */ }
         super.onGuiClosed();
@@ -1859,9 +1987,15 @@ extends GuiScreen {
             this.drawChipToggle(n + 4, n12 + 8, n10, n11, "Compact Bl", compactBlacklist, true, n6, n7);
             this.drawChipToggle(n + 8 + n10, n12 + 8, n10, n11, "In Chat", chatOverlay, true, n6, n7);
             this.drawChipToggle(n + 12 + n10 * 2, n12 + 8, n10, n11, "Teammate", !ignoreTeammates, true, n6, n7);
-            this.drawChipToggle(n + 4, n12 + 36, n3 - 8, n11, "Output: Player Data", chatOutput, true, n6, n7);
-            this.drawChipToggle(n + 4, n12 + 64, n3 - 8, n11, "Output: Seraph / Urchin Tags", chatOutputTags, true, n6, n7);
-            this.drawChipToggle(n + 4, n12 + 92, n3 - 8, n11, "Output: Anticheat", chatOutputAnticheat, true, n6, n7);
+            this.drawChipToggle(n + 4, n12 + CHAT_OUTPUT_PLAYERS_Y, n3 - 8, n11, "Output: Player Data", chatOutput, true, n6, n7);
+            this.drawChipToggle(n + 4, n12 + CHAT_OUTPUT_DENICK_Y, n3 - 8, n11, "Output: Nick / Denick", chatOutputDenick, true, n6, n7);
+            this.drawChipToggle(n + 4, n12 + CHAT_OUTPUT_TAGS_Y, n3 - 8, n11, "Output: Seraph / Urchin Tags", chatOutputTags, true, n6, n7);
+            int filterWidth = (n3 - 32) / 2;
+            this.drawChipToggle(n + 20, n12 + CHAT_OUTPUT_TAG_FILTERS_Y, filterWidth, n11,
+                "Include Self", chatOutputTagsSelf, chatOutputTags, n6, n7);
+            this.drawChipToggle(n + 24 + filterWidth, n12 + CHAT_OUTPUT_TAG_FILTERS_Y, filterWidth, n11,
+                "Include Teammates", chatOutputTagsTeammates, chatOutputTags, n6, n7);
+            this.drawChipToggle(n + 4, n12 + CHAT_OUTPUT_ANTICHEAT_Y, n3 - 8, n11, "Output: Anticheat", chatOutputAnticheat, true, n6, n7);
         }
         n11 = n2 + CHAT_THRESH_Y;
         this.drawPanelSectionTitle(n, n11 - 12, "Thresholds", n9, n4, n5);
@@ -1901,19 +2035,36 @@ extends GuiScreen {
             ignoreTeammates = !ignoreTeammates;
             return true;
         }
-        if (this.hitChip(n + 4, n8 + 36, n3 - 8, n10, n4, n5, n6, n7)) {
+        if (this.hitChip(n + 4, n8 + CHAT_OUTPUT_PLAYERS_Y, n3 - 8, n10, n4, n5, n6, n7)) {
             chatOutput = !chatOutput;
             if (chatOutput) chatOverlay = true;
             AdninFeatures.outputSettingsChanged();
             return true;
         }
-        if (this.hitChip(n + 4, n8 + 64, n3 - 8, n10, n4, n5, n6, n7)) {
+        if (this.hitChip(n + 4, n8 + CHAT_OUTPUT_DENICK_Y, n3 - 8, n10, n4, n5, n6, n7)) {
+            chatOutputDenick = !chatOutputDenick;
+            if (chatOutputDenick) chatOverlay = true;
+            AdninFeatures.outputSettingsChanged();
+            return true;
+        }
+        if (this.hitChip(n + 4, n8 + CHAT_OUTPUT_TAGS_Y, n3 - 8, n10, n4, n5, n6, n7)) {
             chatOutputTags = !chatOutputTags;
             if (chatOutputTags) chatOverlay = true;
             AdninFeatures.outputSettingsChanged();
             return true;
         }
-        if (this.hitChip(n + 4, n8 + 92, n3 - 8, n10, n4, n5, n6, n7)) {
+        int filterWidth = (n3 - 32) / 2;
+        if (chatOutputTags && this.hitChip(n + 20, n8 + CHAT_OUTPUT_TAG_FILTERS_Y, filterWidth, n10, n4, n5, n6, n7)) {
+            chatOutputTagsSelf = !chatOutputTagsSelf;
+            AdninFeatures.outputSettingsChanged();
+            return true;
+        }
+        if (chatOutputTags && this.hitChip(n + 24 + filterWidth, n8 + CHAT_OUTPUT_TAG_FILTERS_Y, filterWidth, n10, n4, n5, n6, n7)) {
+            chatOutputTagsTeammates = !chatOutputTagsTeammates;
+            AdninFeatures.outputSettingsChanged();
+            return true;
+        }
+        if (this.hitChip(n + 4, n8 + CHAT_OUTPUT_ANTICHEAT_Y, n3 - 8, n10, n4, n5, n6, n7)) {
             chatOutputAnticheat = !chatOutputAnticheat;
             AdninFeatures.outputSettingsChanged();
             return true;
@@ -2213,9 +2364,12 @@ extends GuiScreen {
         api_aurora = api_aurora == null ? "" : api_aurora.trim();
         api_urchin = api_urchin == null ? "" : api_urchin.trim();
         this.buttonList.clear();
-        this.draggingUiScale = false;
+        this.cancelPointerInteraction();
+        this.beginKeyboardInput();
         this.layoutForViewport();
-        this.openedAt = System.nanoTime(); this.closingAt = 0; this.lastFrame = 0;
+        // Reinitializing the same open screen must not cancel its closing fade.
+        if (this.openedAt == 0) this.openedAt = System.nanoTime();
+        this.lastFrame = 0;
         this.drawnTheme = -1; this.sidebarSelection = selectedTheme * 34;
         this.switchPositions.clear();
         for (int panel = 0; panel < THEMES.length; panel++)
@@ -2234,6 +2388,12 @@ extends GuiScreen {
             int next = getPanelScroll(selectedTheme) + (wheel > 0 ? 30 : -30);
             setPanelScroll(selectedTheme,clampScroll(next,getPanelContentHeight(selectedTheme),viewportHeight() - 5));
         }
+    }
+
+    @Override
+    public void mouseReleased(int mouseX, int mouseY, int button) {
+        super.mouseReleased(mouseX, mouseY, button);
+        if (button == 0) this.cancelPointerInteraction();
     }
 
     protected void mouseClicked(int n, int n2, int n3) {
@@ -2501,7 +2661,7 @@ extends GuiScreen {
         if (!bl2 && !bl3 && !bl && !acInput || this.activeInput == 0) {
             return;
         }
-        if (n == 28) {
+        if (n == 28 || n == Keyboard.KEY_NUMPADENTER) {
             this.activeInput = 0;
             return;
         }
@@ -2596,11 +2756,11 @@ extends GuiScreen {
         }
         animatedYOffset = 8 * (1 - appear) + 4 * (1 - close);
         boolean mouseDown = Mouse.isCreated() && Mouse.isButtonDown(0);
-        if (draggingUiScale && selectedTheme == 0 && mouseDown) updateUiScaleFromMouse(n);
+        if (closingAt == 0 && draggingUiScale && selectedTheme == 0 && mouseDown) updateUiScaleFromMouse(n);
         else if (!mouseDown) draggingUiScale = false;
         layoutForViewport();
         int mouseX = Math.round(n / uiScale), mouseY = Math.round(n2 / uiScale - animatedYOffset);
-        if (draggingHitboxSlider && selectedTheme == 2 && coloredHitboxes && mouseDown)
+        if (closingAt == 0 && draggingHitboxSlider && selectedTheme == 2 && coloredHitboxes && mouseDown)
             hitboxThickness = hitboxThicknessFromMouse(hitboxSliderTrackX,hitboxSliderTrackW,mouseX);
         else if (!mouseDown) draggingHitboxSlider = false;
         if (drawnTheme != selectedTheme) {
@@ -2617,6 +2777,7 @@ extends GuiScreen {
             AdninUi.round(winX,winY,winW,winH,15,0xFF424752);
             AdninUi.round(winX+0.7f,winY+0.7f,winW-1.4f,winH-1.4f,14.5f,0xFF1C1F26);
             AdninUi.text("Adnin",winX+24,winY+17,0xFFFF656A,2);
+            AdninUi.text("v22",winX+32+AdninUi.width("Adnin",2),winY+24,AdninUi.MUTED,0);
             int left = winX + PANEL_INSET, top = winY + HEADER_H + PANEL_INSET;
             int contentX = left + SIDEBAR_W + CONTENT_GAP;
             AdninUi.text(AdninLanguage.text(THEMES[selectedTheme]),contentX,winY+12,AdninUi.TEXT,2);

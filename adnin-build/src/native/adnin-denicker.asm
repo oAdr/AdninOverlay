@@ -1,9 +1,9 @@
 ; Included in adnin-bridge.asm. Only the verified Number Denicker result-read
 ; call inside the original filtered UUID-v1 player path is redirected here.
-; Bot supplies a cached identity; all statistics come from existing native
+; Mellow Skin or Bot supplies a cached identity; all statistics come from existing native
 ; asynchronous API queues and their native Stats cache/copy routines.
 ; No GameProfile, player UUID, original identity cache or skin-learning input
-; is changed. Original Number and enabled Skin Denicker identities win.
+; is changed. Original Number identities win; enabled Mellow Skin precedes Bot.
 denicker_result:
     push rbx
 .p1:
@@ -63,34 +63,10 @@ denicker_result:
     test al, al
     jnz .done                      ; never clear an existing exception
     call IMAGE_BASE+NATIVE_SKIN_ENABLED
-    test al, al
-    jz .nick
-    ; Getter uses native string move/copy helpers; a zeroed destination is safe.
-    ; Its matching native destructor owns every copied member.
-    lea rax, [rsp+0x140]
-    mov ecx, SKIN_ZERO_QWORDS
-    xor edx, edx
-.zero_skin:
-    mov [rax], rdx
-    add rax, 8
-    dec ecx
-    jnz .zero_skin
-    mov dword [rsp+SKIN_FOUND_STACK], 0
-    mov rcx, rbx
-    lea rdx, [rsp+0x140]
-    call IMAGE_BASE+NATIVE_SKIN_GET
-    test al, al
-    jz .destroy_skin
-    cmp dword [rsp+0x140], 3
-    jne .destroy_skin
-    cmp qword [rsp+0x158], 0
-    je .destroy_skin
-    mov dword [rsp+SKIN_FOUND_STACK], 1
-.destroy_skin:
-    lea rcx, [rsp+0x140]
-    call IMAGE_BASE+NATIVE_SKIN_DESTROY
-    cmp dword [rsp+SKIN_FOUND_STACK], 0
-    jne .done
+    movzx eax, al
+    mov [rsp+0x38], eax            ; preserve the existing native configuration
+    ; Mellow texture-owner resolver replaces legacy hash-learning Skin lookup.
+    ; Java reads only its bounded current-roster cache; it performs no IO here.
 .nick:
     mov r12, [rbx+16]
     test r12, r12
@@ -141,11 +117,13 @@ denicker_result:
     jnz .clear
     test r15, r15
     jz .cleanup
-    mov [rsp+0x28], r14
+    mov [rsp+0x100], r14
+    mov eax, [rsp+0x38]
+    mov [rsp+0x108], rax
     mov rcx, rdi
     mov rdx, [gui_class]
     mov r8, r15
-    lea r9, [rsp+0x28]
+    lea r9, [rsp+0x100]
     mov rax, [rdi]
     call [rax+0x3a0]                ; CallStaticObjectMethodA
     mov r13, rax
@@ -313,6 +291,15 @@ denicker_result:
     mov dword [rsi+4], 1
     mov byte [rsi+NUMBER_STATS_READY], 1
     mov qword [rsp+0x30], 1
+    ; Success is acknowledged only after native admission, validation and
+    ; ready-statistics publication. Java defers any local/party chat to tick.
+    mov [rsp+0x100], r14
+    mov [rsp+0x108], r13
+    mov rcx, rdi
+    lea rdx, [denicker_published_name]
+    lea r8, [denicker_published_sig]
+    lea r9, [rsp+0x100]
+    call invoke_void
     jmp .cleanup
 .clear:
     mov rcx, rdi
@@ -345,8 +332,10 @@ denicker_result:
     ret
 denicker_end:
 
-denicker_profile_name: db 'nativeBotProfile',0
-denicker_profile_sig: db '(Ljava/lang/String;)Ljava/lang/String;',0
+denicker_profile_name: db 'nativeDenickerProfile',0
+denicker_profile_sig: db '(Ljava/lang/String;Z)Ljava/lang/String;',0
+denicker_published_name: db 'nativeDenickerPublished',0
+denicker_published_sig: db '(Ljava/lang/String;Ljava/lang/String;)V',0
 align 4, db 0
 denicker_unwind:
     db 1, denicker_result.prolog-denicker_result, 9, 0

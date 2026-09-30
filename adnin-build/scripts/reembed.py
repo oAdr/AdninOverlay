@@ -116,8 +116,24 @@ def branded_class(data):
     return rewrite_utf8(data, REPLACEMENTS)
 
 
+# The packet observer moved from install() into its EventLoop-owned factory.
+# javac therefore changes this one private synthetic implementation method and
+# captures the owner request. No declared API/native method is exempt, and no
+# other private or synthetic member is allowed to disappear.
+PACKET_LOG_LAMBDA_BEFORE = (
+    'lambda$install$0',
+    '([Ljava/lang/reflect/Method;[Ljava/lang/reflect/Method;[Ljava/lang/reflect/Method;'
+    'Ljava/lang/Object;Ljava/lang/reflect/Method;[Ljava/lang/Object;)Ljava/lang/Object;')
+PACKET_LOG_LAMBDA_AFTER = (
+    'lambda$createHandler$0',
+    '(LAdninPacketLog$InstallRequest;[Ljava/lang/reflect/Method;[Ljava/lang/reflect/Method;'
+    '[Ljava/lang/reflect/Method;Ljava/lang/Object;Ljava/lang/reflect/Method;'
+    '[Ljava/lang/Object;)Ljava/lang/Object;')
+PACKET_LOG_LAMBDA_ACCESS = 0x100a  # ACC_PRIVATE | ACC_STATIC | ACC_SYNTHETIC; not native
+
+
 def compatible(old, new, gui_widenings=(('mouseClicked', '(III)V'), ('keyTyped', '(CI)V')), additional_interfaces=()):
-    """Preserve every original member ABI after branding; additions are allowed."""
+    """Preserve original ABI, with one pinned compiler-lambda relocation."""
     require(new['major'] == 52 and new['minor'] == 0, 'Replacement must target Java 8')
     for key in ('name', 'parent'):
         require(renamed(old[key]) == new[key], f'Class ABI changed: {old["name"]} {key}')
@@ -128,8 +144,17 @@ def compatible(old, new, gui_widenings=(('mouseClicked', '(III)V'), ('keyTyped',
         before = {(renamed(m['name']), renamed(m['descriptor'])): m['access'] for m in old[kind]}
         after = {(m['name'], m['descriptor']): m['access'] for m in new[kind]}
         require(len(after) == len(new[kind]), f'Duplicate members: {new["name"]} {kind}')
-        require(before.keys() <= after.keys(), f'Original members removed or descriptors changed: {old["name"]} {kind}')
+        relocated = set()
+        if (old['name'] == 'FrenchifyPacketLog' and kind == 'methods'
+                and before.get(PACKET_LOG_LAMBDA_BEFORE) == PACKET_LOG_LAMBDA_ACCESS
+                and PACKET_LOG_LAMBDA_BEFORE not in after
+                and after.get(PACKET_LOG_LAMBDA_AFTER) == PACKET_LOG_LAMBDA_ACCESS):
+            relocated.add(PACKET_LOG_LAMBDA_BEFORE)
+        require(before.keys() - relocated <= after.keys(),
+                f'Original members removed or descriptors changed: {old["name"]} {kind}')
         for member, access in before.items():
+            if member in relocated:
+                continue
             changed = after[member]
             # The installed Lunar GuiScreen has widened these overrides. All
             # other original access/static/native flags remain authoritative.

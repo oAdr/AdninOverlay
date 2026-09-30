@@ -290,6 +290,76 @@ class ReembeddingTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'Member access changed'):
             reembed.compatible(old, new)
 
+    def packetlog_lambda_migration(self):
+        old = read_class(self.old_classes['FrenchifyPacketLog'])
+        new = read_class(self.classes['AdninPacketLog'])
+        source = next(m for m in old['methods'] if m['name'] == 'lambda$install$0')
+        self.assertEqual(source['access'], 0x100a)
+        expected = ('([Ljava/lang/reflect/Method;[Ljava/lang/reflect/Method;[Ljava/lang/reflect/Method;'
+                    'Ljava/lang/Object;Ljava/lang/reflect/Method;[Ljava/lang/Object;)Ljava/lang/Object;')
+        self.assertEqual(source['descriptor'], expected)
+        new['methods'] = [m for m in new['methods'] if m['name'] != 'lambda$install$0']
+        replacement = {'name': 'lambda$createHandler$0', 'access': 0x100a,
+                       'descriptor': '(LAdninPacketLog$InstallRequest;' + expected[1:]}
+        new['methods'].append(replacement)
+        return old, new
+
+    def test_only_exact_packetlog_synthetic_lambda_relocation_is_allowed(self):
+        old, new = self.packetlog_lambda_migration()
+        reembed.compatible(old, new)
+        self.assertEqual([m for m in old['methods'] if m['access'] & 0x100],
+                         [m for m in new['methods'] if m['access'] & 0x100])
+
+    def test_packetlog_lambda_relocation_rejects_near_names_descriptors_and_flags(self):
+        for target, key, value in (
+                ('new', 'name', 'lambda$createHandler$1'),
+                ('new', 'descriptor', '(Ljava/lang/Object;)Ljava/lang/Object;'),
+                ('new', 'access', 0x000a),  # non-synthetic
+                ('new', 'access', 0x110a),  # native
+                ('new', 'access', 0x1009),  # public
+                ('new', 'access', 0x1002),  # non-static
+                ('old', 'access', 0x000a),
+                ('old', 'access', 0x110a),
+                ('old', 'access', 0x1009),
+                ('old', 'name', 'lambda$install$1'),
+                ('old', 'descriptor', '(Ljava/lang/Object;)Ljava/lang/Object;')):
+            with self.subTest(target=target, key=key, value=value):
+                old, new = self.packetlog_lambda_migration()
+                owner = new if target == 'new' else old
+                method = next(m for m in owner['methods'] if m['name'].startswith('lambda$'))
+                method[key] = value
+                with self.assertRaisesRegex(ValueError, 'Original members removed'):
+                    reembed.compatible(old, new)
+
+    def test_packetlog_lambda_exception_does_not_apply_to_other_class_or_synthetic_member(self):
+        old, new = self.packetlog_lambda_migration()
+        old['name'], new['name'] = 'FrenchifyOtherPacketLog', 'AdninOtherPacketLog'
+        with self.assertRaisesRegex(ValueError, 'Original members removed'):
+            reembed.compatible(old, new)
+        old, new = self.packetlog_lambda_migration()
+        old['methods'].append({'name': 'lambda$other$0', 'descriptor': '()V', 'access': 0x100a})
+        with self.assertRaisesRegex(ValueError, 'Original members removed'):
+            reembed.compatible(old, new)
+
+    def test_packetlog_lambda_exception_preserves_native_and_declared_member_abi(self):
+        old, new = self.packetlog_lambda_migration()
+        new['methods'] = [m for m in new['methods'] if not m['access'] & 0x100]
+        with self.assertRaisesRegex(ValueError, 'Original members removed'):
+            reembed.compatible(old, new)
+        for changed_bit in (0x100, 0x8, 0x2):
+            with self.subTest(changed_bit=changed_bit):
+                old, new = self.packetlog_lambda_migration()
+                native = next(m for m in new['methods'] if m['access'] & 0x100)
+                native['access'] ^= changed_bit
+                with self.assertRaisesRegex(ValueError, 'Member access changed'):
+                    reembed.compatible(old, new)
+        for kind, name in (('methods', 'install'), ('fields', 's_spawnPlayerClass')):
+            with self.subTest(kind=kind, name=name):
+                old, new = self.packetlog_lambda_migration()
+                new[kind] = [m for m in new[kind] if m['name'] != name]
+                with self.assertRaisesRegex(ValueError, 'Original members removed'):
+                    reembed.compatible(old, new)
+
     def test_old_descriptors_cannot_change(self):
         old = read_class(self.old_classes['FrenchifyGui4'])
         new = read_class(self.classes['AdninGui4'])

@@ -32,6 +32,7 @@ public class EnumChatFormatting { public int getColorIndex() { return -1; } }'''
     'net/minecraft/entity/player/EntityPlayer.java': '''package net.minecraft.entity.player;
 public class EntityPlayer {
     public boolean isDead;
+    public int ticksExisted;
     public com.mojang.authlib.GameProfile profile;
     public String display, name;
     public java.util.UUID uuid;
@@ -86,13 +87,19 @@ public class Scoreboard {
 public class WorldClient {
     public final java.util.List<net.minecraft.entity.player.EntityPlayer> playerEntities=new java.util.ArrayList<net.minecraft.entity.player.EntityPlayer>();
     public final net.minecraft.scoreboard.Scoreboard scoreboard=new net.minecraft.scoreboard.Scoreboard();
-    public net.minecraft.scoreboard.Scoreboard getScoreboard() { return scoreboard; }
+    public int scoreboardReads;
+    public boolean failScoreboard;
+    public net.minecraft.scoreboard.Scoreboard getScoreboard() {
+        scoreboardReads++;
+        if(failScoreboard) throw new IllegalStateException("Owned offline scoreboard failure");
+        return scoreboard;
+    }
 }''',
     'net/minecraft/client/Minecraft.java': '''package net.minecraft.client;
 public class Minecraft {
     public net.minecraft.client.multiplayer.WorldClient theWorld=new net.minecraft.client.multiplayer.WorldClient();
     public net.minecraft.client.entity.EntityPlayerSP thePlayer=new net.minecraft.client.entity.EntityPlayerSP();
-    public final net.minecraft.client.network.NetHandlerPlayClient connection=new net.minecraft.client.network.NetHandlerPlayClient();
+    public net.minecraft.client.network.NetHandlerPlayClient connection=new net.minecraft.client.network.NetHandlerPlayClient();
     public net.minecraft.client.network.NetHandlerPlayClient getNetHandler() { return connection; }
 }''',
     'AdninApi.java': '''public class AdninApi {
@@ -112,6 +119,7 @@ import net.minecraft.client.entity.EntityOtherPlayerMP;
 import net.minecraft.client.network.NetworkPlayerInfo;
 public class AdninReplayRosterTest {
     private static int checks;
+    private static long observationTime;
     private static EntityOtherPlayerMP actor(Minecraft mc,String raw,String display,int id) {
         EntityOtherPlayerMP p=new EntityOtherPlayerMP();
         p.profile=new GameProfile(new UUID(0x2000L,id),raw);
@@ -122,15 +130,93 @@ public class AdninReplayRosterTest {
         info.display=display; mc.connection.roster.add(info);
     }
     private static void refresh(Minecraft mc) throws Exception {
-        java.lang.reflect.Field next=AdninReplay.class.getDeclaredField("nextRoster");
-        next.setAccessible(true); next.setLong(null,Long.MIN_VALUE); AdninReplay.tick(mc);
+        observationTime += 300000000L;
+        AdninReplay.tick(mc, observationTime);
     }
     private static void check(boolean value,String reason) { checks++; if(!value)throw new AssertionError(reason); }
     private static java.util.Properties diagnostics() {
         java.util.Properties p=new java.util.Properties(); AdninReplay.diagnostics(p); return p;
     }
     private static int count(String key) { return Integer.parseInt(diagnostics().getProperty(key)); }
+    private static void observationLifecycle() {
+        AdninReplay.clear();
+        Minecraft mc=new Minecraft(); mc.thePlayer.profile=new GameProfile(new UUID(0,0),"Viewer");
+        mc.thePlayer.ticksExisted=1000;
+        EntityOtherPlayerMP oldActor=actor(mc,"ObservedActor",null,91);
+        tab(mc,"ObservedActor",null,91);
+        AdninReplay.tick(mc,0L);
+        check(mc.theWorld.scoreboardReads==1 && AdninReplay.isReplay(),"Initial live-adapter fixture scans once");
+        for(int i=0;i<2000;i++) AdninReplay.tick(mc,i*20000L);
+        check(mc.theWorld.scoreboardReads==1,"Two thousand frame/pump callbacks inside 50ms perform one actual scoreboard read");
+        mc.theWorld.scoreboard.objective.title="BED WARS";
+        AdninReplay.tick(mc,49999999L);
+        check(AdninReplay.isReplay() && mc.theWorld.scoreboardReads==1,"Sidebar cache is retained only within the 50ms window");
+        AdninReplay.tick(mc,50000000L);
+        check(!AdninReplay.isReplay() && mc.theWorld.scoreboardReads==2 && AdninReplay.actorName(oldActor).isEmpty(),
+            "At 50ms the same paused player observes Replay exit and clears actor admission");
+        mc.theWorld.scoreboard.objective.title="REPLAY";
+        AdninReplay.tick(mc,100000000L);
+        check(AdninReplay.isReplay() && "ObservedActor".equals(AdninReplay.actorName(oldActor)),
+            "Replay can resume while entity tick count stays paused");
+        mc.connection=new net.minecraft.client.network.NetHandlerPlayClient();
+        AdninReplay.tick(mc,100000001L);
+        check(mc.theWorld.scoreboardReads==4 && AdninReplay.actorName(oldActor).isEmpty()
+            && AdninReplay.recordedName("ObservedActor").isEmpty(),
+            "Connection replacement immediately discards the old Tab and actor identities");
+        tab(mc,"ObservedActor",null,91);
+        mc.thePlayer=new net.minecraft.client.entity.EntityPlayerSP();
+        mc.thePlayer.profile=new GameProfile(new UUID(0,1),"NextViewer");
+        AdninReplay.tick(mc,100000002L);
+        check(mc.theWorld.scoreboardReads==5 && "ObservedActor".equals(AdninReplay.actorName(oldActor)),
+            "Player replacement immediately selects its own sidebar and actor roster");
+        net.minecraft.client.multiplayer.WorldClient oldWorld=mc.theWorld;
+        mc.theWorld=new net.minecraft.client.multiplayer.WorldClient();
+        mc.theWorld.scoreboard.objective.title="BED WARS";
+        AdninReplay.tick(mc,100000003L);
+        check(!AdninReplay.isReplay() && mc.theWorld.scoreboardReads==1 && oldWorld.scoreboardReads==5,
+            "World replacement cannot inherit the previous Replay flag or observation deadline");
+        mc.theWorld.scoreboard.objective.title="REPLAY";
+        AdninReplay.tick(mc,150000003L);
+        check(AdninReplay.isReplay(),"Replacement world enters Replay through its own sidebar");
+        mc.connection=null;
+        AdninReplay.tick(mc,150000004L);
+        check(!AdninReplay.isReplay() && mc.theWorld.scoreboardReads==2
+            && "no-connection".equals(diagnostics().getProperty("replayStatus")),
+            "Disconnect invalidates Replay immediately without reading the scoreboard");
+        mc.connection=new net.minecraft.client.network.NetHandlerPlayClient();
+        EntityOtherPlayerMP beforeSeek=actor(mc,"SeekActor",null,92); tab(mc,"SeekActor",null,92);
+        AdninReplay.tick(mc,150000005L);
+        check("SeekActor".equals(AdninReplay.actorName(beforeSeek)),"Reconnection scans immediately and admits its current actors");
+        mc.thePlayer.ticksExisted=0;
+        mc.theWorld.playerEntities.clear();
+        EntityOtherPlayerMP afterSeek=actor(mc,"SeekActor",null,93);
+        AdninReplay.tick(mc,400000005L);
+        check(AdninReplay.actorName(beforeSeek).isEmpty() && "SeekActor".equals(AdninReplay.actorName(afterSeek)),
+            "A backward seek cannot stall the existing 250ms actor refresh or retain pre-seek entity identities");
+        mc.theWorld.failScoreboard=true;
+        int beforeFailure=mc.theWorld.scoreboardReads;
+        AdninReplay.tick(mc,450000005L);
+        check(!AdninReplay.isReplay() && AdninReplay.actorName(afterSeek).isEmpty(),
+            "A failed observation clears stale actor admission");
+        for(int i=0;i<2000;i++) AdninReplay.tick(mc,450000005L+i*20000L);
+        check(mc.theWorld.scoreboardReads==beforeFailure+1,
+            "An exceptional scoreboard is not retried on every frame inside the 50ms window");
+        mc.theWorld.failScoreboard=false;
+        AdninReplay.tick(mc,500000005L);
+        check(AdninReplay.isReplay() && "SeekActor".equals(AdninReplay.actorName(afterSeek)),
+            "The next 50ms observation recovers after the transient scoreboard failure");
+        mc.thePlayer=null;
+        AdninReplay.tick(mc,500000006L);
+        check(!AdninReplay.isReplay() && AdninReplay.actorName(afterSeek).isEmpty(),
+            "Local-player loss invalidates a just-observed Replay immediately");
+        mc.theWorld=null;
+        AdninReplay.tick(mc,500000007L);
+        check(!AdninReplay.isReplay() && count("replayRosterWorldActors")==0,
+            "World loss retains no Replay roster counters");
+        AdninReplay.clear();
+    }
     public static void main(String[] args) throws Exception {
+        observationLifecycle();
         Minecraft mc=new Minecraft(); mc.thePlayer.profile=new GameProfile(new UUID(0,0),"Viewer");
         EntityOtherPlayerMP a=actor(mc,"RecordedOne","\\u00a7cRRecordedOne",1);
         tab(mc,"RecordedOne","\\u00a7cRRecordedOne",1);
@@ -170,7 +256,7 @@ public class AdninReplayRosterTest {
         mc.connection.roster.clear(); refresh(mc);
         check(AdninReplay.actorName(a).isEmpty() && AdninReplay.profile("TabBot").isEmpty(),"Tab departure clears actor and native identity eligibility");
         tab(mc,"RecordedOne",null,1); refresh(mc);
-        mc.theWorld.scoreboard.objective.title="BED WARS"; AdninReplay.tick(mc);
+        mc.theWorld.scoreboard.objective.title="BED WARS"; refresh(mc);
         check(!AdninReplay.isReplay() && AdninReplay.actorName(a).isEmpty(),"Normal games do not inherit Replay bot eligibility");
         mc.theWorld=new net.minecraft.client.multiplayer.WorldClient(); refresh(mc);
         check(AdninReplay.actorName(a).isEmpty(),"New world cannot reuse old entity references");
@@ -274,7 +360,7 @@ public class AdninReplayRosterTest {
         }
         check(rejected+count("replayActors")==count("replayRosterWorldActors"),"Accepted plus exclusive rejection counters reconcile with observed world entries");
         for(Object value:diagnostics().values())check(value.toString().matches("[a-z-]+|[0-9]+"),"Roster diagnostic values reveal no names, UUIDs or display strings");
-        mc.theWorld.scoreboard.objective.title="BED WARS"; AdninReplay.tick(mc);
+        mc.theWorld.scoreboard.objective.title="BED WARS"; refresh(mc);
         check(count("replayRosterWorldActors")==0 && count("replayRejectedDuplicate")==0,"Leaving Replay clears per-roster diagnostic counters");
         AdninReplay.clear();
         check(AdninReplay.profile("RecordedOne").isEmpty(),"Unload disables cached native profile access");
@@ -299,11 +385,13 @@ def run_anticheat_integration(jdk, classes, work):
         'new net.minecraft.util.ChatComponentText(name)',
         'new net.minecraft.util.ChatComponentText(display == null ? name : display)')
     path = 'net/minecraft/client/multiplayer/WorldClient.java'
-    fixtures[path] = fixtures[path].replace('extends net.minecraft.world.World {', '''extends net.minecraft.world.World {
+    if 'getScoreboard()' not in fixtures[path]:
+        fixtures[path] = fixtures[path].replace('extends net.minecraft.world.World {', '''extends net.minecraft.world.World {
     public final net.minecraft.scoreboard.Scoreboard scoreboard=new net.minecraft.scoreboard.Scoreboard();
     public net.minecraft.scoreboard.Scoreboard getScoreboard() { return scoreboard; }''')
     path = 'net/minecraft/client/network/NetworkPlayerInfo.java'
-    fixtures[path] = fixtures[path].replace('public final class NetworkPlayerInfo {', '''public final class NetworkPlayerInfo {
+    if 'getPlayerTeam()' not in fixtures[path]:
+        fixtures[path] = fixtures[path].replace('public final class NetworkPlayerInfo {', '''public final class NetworkPlayerInfo {
     public String display;
     public net.minecraft.scoreboard.ScorePlayerTeam team;
     public net.minecraft.scoreboard.ScorePlayerTeam getPlayerTeam() { return team; }
@@ -311,7 +399,8 @@ def run_anticheat_integration(jdk, classes, work):
         return display == null ? null : new net.minecraft.util.ChatComponentText(display);
     }''')
     path = 'net/minecraft/client/network/NetHandlerPlayClient.java'
-    fixtures[path] = fixtures[path].replace('public final class NetHandlerPlayClient {', '''public final class NetHandlerPlayClient {
+    if 'getPlayerInfoMap()' not in fixtures[path]:
+        fixtures[path] = fixtures[path].replace('public final class NetHandlerPlayClient {', '''public final class NetHandlerPlayClient {
     public java.util.Collection<NetworkPlayerInfo> getPlayerInfoMap() { return roster.values(); }''')
     fixtures['AdninApi.java'] = '''public final class AdninApi {
     public static volatile int requests;
@@ -335,6 +424,7 @@ import net.minecraft.client.network.NetworkPlayerInfo;
 import net.minecraft.entity.player.EntityPlayer;
 public final class AdninReplayAnticheatTest {
     private static int checks;
+    private static long observationTime;
     private static final UUID LOCAL=new UUID(0x4000L,0x8000000000000001L);
     private static final UUID NICK=new UUID(0x1000L,0x8000000000000002L);
     private static final UUID ENTITY=new UUID(0x2000L,0x8000000000000003L);
@@ -360,11 +450,13 @@ public final class AdninReplayAnticheatTest {
         p.display=display; p.blocking=p.isSwingInProgress=true; mc.theWorld.playerEntities.add(p); return p;
     }
     private static void tab(Minecraft mc,UUID id,String raw,String display) {
-        NetworkPlayerInfo p=new NetworkPlayerInfo(new GameProfile(id,raw)); p.display=display; mc.connection.roster.put(id,p);
+        NetworkPlayerInfo p=new NetworkPlayerInfo(new GameProfile(id,raw));
+        p.display=display==null?null:new net.minecraft.util.ChatComponentText(display);
+        mc.connection.roster.put(id,p);
     }
     private static void refresh(Minecraft mc) throws Exception {
-        java.lang.reflect.Field next=AdninReplay.class.getDeclaredField("nextRoster"); next.setAccessible(true);
-        next.setLong(null,Long.MIN_VALUE); AdninReplay.tick(mc);
+        observationTime += 300000000L;
+        AdninReplay.tick(mc,observationTime);
     }
     private static void ticks(Minecraft mc,int count) {
         for(int i=0;i<count;i++) {

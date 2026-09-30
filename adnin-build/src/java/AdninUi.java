@@ -43,6 +43,14 @@ public final class AdninUi {
     private static float opacity = 1, scale = 1, offsetY;
     private static int logicalWidth, logicalHeight, viewportX, viewportY, viewportW, viewportH;
     private static int matrixMode, shaderProgram;
+    private static final float[] EDGE_COS = new float[52], EDGE_SIN = new float[52];
+    static {
+        for (int step = 0; step < 52; step++) {
+            double angle = -Math.PI + (step / 13) * Math.PI / 2 + (step % 13) * Math.PI / 24;
+            EDGE_COS[step] = (float)Math.cos(angle);
+            EDGE_SIN[step] = (float)Math.sin(angle);
+        }
+    }
 
     private AdninUi() { }
     public static boolean hasFontFailure() { return fontFailed; }
@@ -256,10 +264,9 @@ public final class AdninUi {
     private static void edge(float x, float y, float w, float h, float r, int step, float fringe) {
         step %= 52;
         int corner = step / 13;
-        double angle = -Math.PI + corner * Math.PI / 2 + (step % 13) * Math.PI / 24;
         float cx = (corner == 0 || corner == 3) ? x + r : x + w - r;
         float cy = corner < 2 ? y + r : y + h - r;
-        GL11.glVertex2f(cx + (r + fringe) * (float) Math.cos(angle), cy + (r + fringe) * (float) Math.sin(angle));
+        GL11.glVertex2f(cx + (r + fringe) * EDGE_COS[step], cy + (r + fringe) * EDGE_SIN[step]);
     }
 
     public static void line(float x1, float y1, float x2, float y2, int argb) {
@@ -407,9 +414,39 @@ public final class AdninUi {
         String suffix = "\u2026";
         if (width(suffix, style) > available) return "";
         int end = text.length();
-        while (end > 0 && width(text.substring(0, end) + suffix, style) > available) end--;
+        // Atlas glyphs have nonnegative advances and no shaping. Their prefix
+        // widths are monotonic, so binary search returns exactly the old suffix.
+        // Formatting codes / shaped Unicode retain the exact reference scan.
+        if (text.indexOf('\u00a7') < 0 && !nonAscii(text)) {
+            int low = 0, high = end;
+            while (low < high) {
+                int middle = (low + high + 1) >>> 1;
+                if (width(text.substring(0, middle) + suffix, style) > available) high = middle - 1;
+                else low = middle;
+            }
+            end = low;
+        } else while (end > 0 && width(text.substring(0, end) + suffix, style) > available) end--;
         if (end > 0 && Character.isHighSurrogate(text.charAt(end - 1))) end--;
         return text.substring(0, end) + suffix;
+    }
+
+    /** Exact trailing viewport used by editable input fields; never splits a surrogate pair. */
+    public static String fitTail(String text, float available, int style) {
+        if (text == null || text.isEmpty()) return "";
+        if (width(text, style) <= available) return text;
+        if (available < 0) return "";
+        if (text.indexOf('\u00a7') < 0 && !nonAscii(text)) {
+            int low = 0, high = text.length();
+            while (low < high) {
+                int middle = (low + high) >>> 1;
+                if (width(text.substring(middle), style) > available) low = middle + 1;
+                else high = middle;
+            }
+            return text.substring(low);
+        }
+        while (!text.isEmpty() && width(text, style) > available)
+            text = text.substring(text.offsetByCodePoints(0, 1));
+        return text;
     }
 
     public static boolean text(String text, float x, float y, int argb, int style) {

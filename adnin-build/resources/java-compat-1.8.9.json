@@ -57,7 +57,9 @@
     "net/minecraft/util/IChatComponent": "eu",
     "net/minecraft/util/IChatComponent$Serializer": "eu$a",
     "net/minecraft/util/ResourceLocation": "jy",
-    "net/minecraft/world/World": "adm"
+    "net/minecraft/world/World": "adm",
+    "net/minecraft/world/WorldSettings$GameType": "adp$a",
+    "net/minecraft/world/WorldSettings": "adp"
   },
   "fields": [
     [
@@ -89,6 +91,12 @@
       "fontRendererObj",
       "Lnet/minecraft/client/gui/FontRenderer;",
       "k"
+    ],
+    [
+      "net/minecraft/client/Minecraft",
+      "inGameHasFocus",
+      "Z",
+      "w"
     ],
     [
       "net/minecraft/client/Minecraft",
@@ -149,6 +157,12 @@
       "pingToServer",
       "J",
       "e"
+    ],
+    [
+      "net/minecraft/client/multiplayer/ServerData",
+      "serverIP",
+      "Ljava/lang/String;",
+      "b"
     ],
     [
       "net/minecraft/entity/Entity",
@@ -275,9 +289,21 @@
       "hurtTime",
       "I",
       "au"
+    ],
+    [
+      "net/minecraft/world/WorldSettings$GameType",
+      "SPECTATOR",
+      "Lnet/minecraft/world/WorldSettings$GameType;",
+      "e"
     ]
   ],
   "methods": [
+    [
+      "net/minecraft/client/gui/GuiScreen",
+      "mouseReleased",
+      "(III)V",
+      "b"
+    ],
     [
       "net/minecraft/block/Block",
       "getIdFromBlock",
@@ -853,6 +879,18 @@
       "onGuiClosed",
       "()V",
       "m"
+    ],
+    [
+      "net/minecraft/entity/player/EntityPlayer",
+      "isSpectator",
+      "()Z",
+      "v"
+    ],
+    [
+      "net/minecraft/client/network/NetworkPlayerInfo",
+      "getGameType",
+      "()Lnet/minecraft/world/WorldSettings$GameType;",
+      "b"
     ]
   ]
 }

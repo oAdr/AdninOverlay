@@ -25,11 +25,22 @@ public final class AdninAnticheat {
     public static volatile String ignoredPlayers = "";
 
     private static final AdninAnticheatCore.Engine engine = new AdninAnticheatCore.Engine();
+    /* Reuse the per-sample roster set.  A new HashSet for every client tick
+       created avoidable GC pressure in busy replays (up to 256 actors). */
+    private static final Set<UUID> currentActors = new HashSet<UUID>(256);
+    /* The core copies values and never retains a Snapshot. Borrow the cached
+       buffer for one tick; a reentrant callback sees an empty cache and gets
+       its own buffer rather than changing an outer sample under construction. */
+    private static AdninAnticheatCore.Snapshot spareSnapshot;
+    private static long snapshotGeneration;
     private static final long CLOCK_START_NANOS = System.nanoTime();
     private static volatile long lastClientBoundPacket;
     private static Object world, localPlayer, connection;
     private static int localTick = Integer.MIN_VALUE;
     private static String settingsKey;
+    /* Immutable after publication. The tick path reuses normalized options;
+       saving settings never needs the detector monitor or a new lock order. */
+    private static volatile SettingsCache settingsCache;
     private static boolean replayContext;
     private static long tickCalls, sampledTicks, flagDecisions, reportDecisions, lastSample;
     private static int worldActors, acceptedActors;
@@ -46,11 +57,15 @@ public final class AdninAnticheat {
 
     public static synchronized void shutdown() {
         engine.reset();
+        currentActors.clear();
         world = null;
         localPlayer = null;
         connection = null;
         localTick = Integer.MIN_VALUE;
         settingsKey = null;
+        settingsCache = null;
+        spareSnapshot = null;
+        snapshotGeneration++;
         replayContext = false;
         lastClientBoundPacket = 0;
         worldActors = acceptedActors = 0;
@@ -60,12 +75,19 @@ public final class AdninAnticheat {
 
     /** Recover sampling/configuration without bypassing this world's report cooldowns. */
     public static synchronized void resetEvidence() {
-        engine.clearEvidence();
-        localTick = Integer.MIN_VALUE;
+        clearSamplingEvidence();
         settingsKey = null;
-        lastClientBoundPacket = 0;
-        acceptedActors = 0;
         status = "evidence-reset";
+    }
+
+    /** Retire transient observations while preserving the current world's cooldowns. */
+    private static void clearSamplingEvidence() {
+        engine.clearEvidence();
+        currentActors.clear();
+        localTick = Integer.MIN_VALUE;
+        lastClientBoundPacket = 0;
+        worldActors = acceptedActors = 0;
+        lastSample = 0;
     }
 
     /** Anonymous local counters only; no actor names, UUIDs, commands, or game reads. */
@@ -95,6 +117,26 @@ public final class AdninAnticheat {
             status = "no-world-or-connection";
             return;
         }
+        boolean replay = AdninReplay.isReplay();
+        if (world != mc.theWorld || localPlayer != mc.thePlayer || connection != mc.getNetHandler()
+                || replayContext != replay) {
+            if (world != mc.theWorld) engine.reset();
+            clearSamplingEvidence();
+            world = mc.theWorld;
+            localPlayer = mc.thePlayer;
+            connection = mc.getNetHandler();
+            replayContext = replay;
+        }
+        // This is the native Ingame/Replay predicate, independent of Output
+        // options and without the Features monitor. Retire evidence before
+        // settings allocation, team/actor traversal, or any delivery path.
+        if (!AdninFeatures.outputContextAllowed()) {
+            clearSamplingEvidence();
+            settingsKey = null;
+            status = "outside-game-or-replay";
+            return;
+        }
+        AdninMatchTeams.tick(mc);
         AdninAnticheatCore.Settings cfg = settings();
         String nextSettings = cfg.signature();
         if (!nextSettings.equals(settingsKey)) {
@@ -102,24 +144,9 @@ public final class AdninAnticheat {
             localTick = Integer.MIN_VALUE;
             settingsKey = nextSettings;
         }
-        boolean replay = AdninReplay.isReplay();
-        if (world != mc.theWorld || localPlayer != mc.thePlayer || connection != mc.getNetHandler()
-                || replayContext != replay) {
-            if (world != mc.theWorld) engine.reset();
-            else engine.clearEvidence();
-            world = mc.theWorld;
-            localPlayer = mc.thePlayer;
-            connection = mc.getNetHandler();
-            replayContext = replay;
-            localTick = Integer.MIN_VALUE;
-            lastClientBoundPacket = 0;
-        }
         engine.configure(cfg);
         if (!cfg.enabled || mc.isSingleplayer() && !replay) {
-            engine.clearEvidence();
-            localTick = Integer.MIN_VALUE;
-            lastClientBoundPacket = 0;
-            worldActors = acceptedActors = 0;
+            clearSamplingEvidence();
             status = cfg.enabled ? "singleplayer" : "disabled";
             return;
         }
@@ -133,48 +160,67 @@ public final class AdninAnticheat {
         worldActors = mc.theWorld.playerEntities.size();
         acceptedActors = 0;
         status = replay ? "replay-sampling" : "live-sampling";
-        Set<UUID> current = new HashSet<UUID>();
+        currentActors.clear();
+        Set<UUID> current = currentActors;
         int count = 0;
-        for (EntityPlayer player : mc.theWorld.playerEntities) {
-            if (++count > 256) break;
-            if (player == null || player == mc.thePlayer || player.isDead || !player.isEntityAlive()) continue;
-            UUID uuid = player.getUniqueID();
-            if (uuid == null) continue;
-            NetworkPlayerInfo info = mc.getNetHandler().getPlayerInfo(uuid);
-            boolean currentTab = info != null && info.getGameProfile() != null
-                    && uuid.equals(info.getGameProfile().getId());
-            String replayName = replay ? AdninReplay.actorName(player) : "";
-            boolean replayProfile = replay && AdninAnticheatCore.validPlayerName(replayName);
-            if (!currentTab && !replayProfile) continue;
-            String name = currentTab ? info.getGameProfile().getName() : player.getName();
-            boolean real = currentTab && AdninFeatures.isRealTabProfile(name, uuid);
-            boolean suspect = AdninAnticheatCore.isAtlasSuspect(player.getName())
-                    || AdninAnticheatCore.isAtlasSuspect(name);
-            if (cfg.atlasOnly ? !currentTab || !suspect
-                    : suspect || (replay ? !replayProfile : !real)) continue;
-            if (replayProfile) name = replayName;
-            acceptedActors++;
-            current.add(uuid);
-            AdninAnticheatCore.Snapshot snapshot = snapshot(mc, player, name, now,
-                    currentTab, real, suspect, replay, replayProfile, cfg);
-            AdninAnticheatCore.Alert alert = engine.sample(uuid, player, snapshot, cfg);
-            if (alert != null) {
-                flagDecisions++;
-                if (alert.autoReport) reportDecisions++;
-                alert(mc, player, name, alert);
+        long leaseGeneration = snapshotGeneration;
+        AdninAnticheatCore.Snapshot reusable = spareSnapshot;
+        spareSnapshot = null;
+        try {
+            for (EntityPlayer player : mc.theWorld.playerEntities) {
+                if (++count > 256) break;
+                if (player == null || player == mc.thePlayer || player.isDead || !player.isEntityAlive()) continue;
+                UUID uuid = player.getUniqueID();
+                if (uuid == null) continue;
+                NetworkPlayerInfo info = mc.getNetHandler().getPlayerInfo(uuid);
+                boolean currentTab = info != null && info.getGameProfile() != null
+                        && uuid.equals(info.getGameProfile().getId());
+                String replayName = replay ? AdninReplay.actorName(player) : "";
+                boolean replayProfile = replay && AdninAnticheatCore.validPlayerName(replayName);
+                if (!currentTab && !replayProfile) continue;
+                String name = currentTab ? info.getGameProfile().getName() : player.getName();
+                boolean real = currentTab && AdninFeatures.isRealTabProfile(name, uuid);
+                boolean suspect = AdninAnticheatCore.isAtlasSuspect(player.getName())
+                        || AdninAnticheatCore.isAtlasSuspect(name);
+                if (cfg.atlasOnly ? !currentTab || !suspect
+                        : suspect || (replay ? !replayProfile : !real)) continue;
+                if (replayProfile) name = replayName;
+                acceptedActors++;
+                current.add(uuid);
+                if (reusable == null) reusable = new AdninAnticheatCore.Snapshot();
+                AdninAnticheatCore.Snapshot snapshot = snapshot(mc, player, name, now,
+                        currentTab, real, suspect, replay, replayProfile, cfg, reusable);
+                AdninAnticheatCore.Alert alert = engine.sample(uuid, player, snapshot, cfg);
+                if (alert != null) {
+                    flagDecisions++;
+                    if (alert.autoReport) reportDecisions++;
+                    alert(mc, player, name, alert);
+                }
+            }
+            engine.retainPlayers(current);
+        } finally {
+            if (reusable != null) {
+                reusable.name = "";
+                // A stop occurring during a client callback must not republish
+                // the pre-stop buffer after shutdown released the cache.
+                if (leaseGeneration == snapshotGeneration) spareSnapshot = reusable;
             }
         }
-        engine.retainPlayers(current);
     }
 
     private static AdninAnticheatCore.Snapshot snapshot(Minecraft mc, EntityPlayer p, String name,
             long now, boolean currentTab, boolean real, boolean suspect,
-            boolean replay, boolean replayProfile, AdninAnticheatCore.Settings cfg) {
-        AdninAnticheatCore.Snapshot s = new AdninAnticheatCore.Snapshot();
+            boolean replay, boolean replayProfile, AdninAnticheatCore.Settings cfg,
+            AdninAnticheatCore.Snapshot s) {
+        // Reset every conditional/default field before another actor uses this
+        // buffer, including fields whose current adapter path never sets true.
+        s.self = s.dead = s.overAir = s.onLadder = s.riding = false;
+        s.x = s.y = s.z = 0; s.yaw = 0; s.hurtTime = 0;
         s.name = name == null ? "" : name;
         s.currentTab = currentTab; s.realProfile = real; s.atlasSuspect = suspect;
         s.replay = replay; s.replayProfile = replayProfile;
-        s.teammate = cfg.ignoreTeammates && teammate(mc, p);
+        s.teammate = cfg.ignoreTeammates && (replayProfile
+                ? AdninMatchTeams.isTeammate(name) : AdninMatchTeams.isTeammate(p));
         s.tick = p.ticksExisted; s.now = now; s.lastPacket = lastClientBoundPacket;
         s.sampleTick = localTick;
         s.deltaX = p.posX - p.lastTickPosX;
@@ -190,9 +236,10 @@ public final class AdninAnticheat {
         s.inWater = p.isInWater(); s.inLava = p.isInLava();
         s.overVoid = true;
         s.distanceToGround = -1;
+        if (cfg.scaffold || cfg.legitScaffold) s.yaw = p.rotationYaw;
         if (cfg.scaffold) {
             s.x = p.posX; s.y = p.posY; s.z = p.posZ;
-            s.yaw = p.rotationYaw; s.riding = p.isRiding(); s.hurtTime = p.hurtTime;
+            s.riding = p.isRiding(); s.hurtTime = p.hurtTime;
         }
         if (engine.noFallCandidate(p.getUniqueID(), p, s, cfg)) {
             s.overVoid = overVoid(mc, s.serverX / 32.0, s.serverY / 32.0, s.serverZ / 32.0);
@@ -230,35 +277,8 @@ public final class AdninAnticheat {
         return -1;
     }
 
-    private static boolean teammate(Minecraft mc, EntityPlayer other) {
-        if (mc.thePlayer.isOnSameTeam(other)) return true;
-        // Match the name's active color, never an uncolored prefix or a rank's color.
-        char ours = nameColor(mc.thePlayer.getDisplayName(), mc.thePlayer.getName());
-        char theirs = nameColor(other.getDisplayName(), other.getName());
-        return ours != 0 && ours == theirs;
-    }
-
     static char nameColor(IChatComponent component, String name) {
-        if (component == null || name == null || name.isEmpty()) return 0;
-        String formatted = component.getFormattedText();
-        StringBuilder plain = new StringBuilder();
-        StringBuilder colors = new StringBuilder();
-        char active = 0;
-        for (int i = 0; i < formatted.length(); i++) {
-            char c = formatted.charAt(i);
-            if (c == '\u00a7' && i + 1 < formatted.length()) {
-                char code = Character.toLowerCase(formatted.charAt(++i));
-                if (code >= '0' && code <= '9' || code >= 'a' && code <= 'f') active = code;
-                else if (code == 'r') active = 0;
-            } else { plain.append(c); colors.append(active); }
-        }
-        for (int start = plain.lastIndexOf(name); start >= 0; start = plain.lastIndexOf(name, start - 1)) {
-            int end = start + name.length();
-            if ((start == 0 || !nameCharacter(plain.charAt(start - 1)))
-                    && (end == plain.length() || !nameCharacter(plain.charAt(end)))) return colors.charAt(start);
-            if (start == 0) break;
-        }
-        return 0;
+        return AdninMatchTeams.nameColor(component==null?null:component.getFormattedText(),name);
     }
 
     private static void alert(Minecraft mc, EntityPlayer player, String name, AdninAnticheatCore.Alert result) {
@@ -325,14 +345,39 @@ public final class AdninAnticheat {
     }
 
     private static AdninAnticheatCore.Settings settings() {
+        boolean active = enabled, sound = flagSound, block = autoBlock;
+        boolean fall = noFall, slow = noSlow, bridge = scaffold, legit = legitScaffold;
+        boolean team = ignoreTeammates, atlas = atlasOnly, report = autoReport;
+        int interval = AdninAnticheatCore.clampInterval(intervalSeconds);
+        String source = ignoredPlayers;
+        if (source == null) source = "";
+        SettingsCache cached = settingsCache;
+        if (cached != null) {
+            AdninAnticheatCore.Settings value = cached.value;
+            if (value.enabled == active && value.flagSound == sound && value.autoBlock == block
+                    && value.noFall == fall && value.noSlow == slow && value.scaffold == bridge
+                    && value.legitScaffold == legit && value.ignoreTeammates == team
+                    && value.atlasOnly == atlas && value.autoReport == report
+                    && value.intervalSeconds == interval && cached.source.equals(source)) return value;
+        }
         AdninAnticheatCore.Settings s = new AdninAnticheatCore.Settings();
-        s.enabled = enabled; s.flagSound = flagSound; s.autoBlock = autoBlock;
-        s.noFall = noFall; s.noSlow = noSlow; s.scaffold = scaffold;
-        s.legitScaffold = legitScaffold; s.ignoreTeammates = ignoreTeammates;
-        s.atlasOnly = atlasOnly; s.autoReport = autoReport;
-        s.intervalSeconds = AdninAnticheatCore.clampInterval(intervalSeconds);
-        s.ignoredPlayers = AdninAnticheatCore.normalizeIgnored(ignoredPlayers);
+        s.enabled = active; s.flagSound = sound; s.autoBlock = block;
+        s.noFall = fall; s.noSlow = slow; s.scaffold = bridge;
+        s.legitScaffold = legit; s.ignoreTeammates = team;
+        s.atlasOnly = atlas; s.autoReport = report;
+        s.intervalSeconds = interval;
+        s.ignoredPlayers = AdninAnticheatCore.normalizeIgnored(source);
+        s.signature();
+        settingsCache = new SettingsCache(source, s);
         return s;
+    }
+
+    private static final class SettingsCache {
+        final String source;
+        final AdninAnticheatCore.Settings value;
+        SettingsCache(String source, AdninAnticheatCore.Settings value) {
+            this.source = source; this.value = value;
+        }
     }
 
     private static boolean bool(Properties p, String key, boolean fallback) {

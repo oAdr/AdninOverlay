@@ -12,6 +12,7 @@ public final class AdninReplayTest {
     private static int checks;
 
     public static void main(String[] args) throws Exception {
+        observationWindow();
         check(!AdninReplay.isReplay(), "starts outside Replay");
         for (String text : new String[]{"REPLAY", "Replay", "replay", "Watching a Replay",
                 "\u00a76R\u00a7ce\u00a7fp\u00a7ll\u00a7ra\u00a7ay", "\u00a7ARePlAy"})
@@ -122,12 +123,49 @@ public final class AdninReplayTest {
         state.setBoolean(null, true);
         AdninReplay.clear();
         check(!AdninReplay.isReplay(), "module stop explicitly clears Replay state");
+        Field counts = AdninReplay.class.getDeclaredField("rosterCounts");
+        counts.setAccessible(true);
+        Object emptyCounts = counts.get(null);
+        AdninReplay.tick(null); AdninReplay.clear();
+        check(counts.get(null) == emptyCounts, "Inactive observations reuse the read-only empty roster counters");
         java.util.Properties diagnostic = new java.util.Properties();
         AdninReplay.diagnostics(diagnostic);
         check(diagnostic.size() == 23, "Replay diagnostics are a fixed small scalar set");
         for (Object value : diagnostic.values()) check(value.toString().matches("[a-z-]+|[0-9]+"),
                 "Replay diagnostics never contain account data, URLs or raw errors");
         System.out.println("AdninReplayTest: " + checks + " checks passed; real offline scoreboard title, selected team slot, last-15 visibility, formatting, hidden rows and state clearing; no game or network");
+    }
+
+    private static void observationWindow() {
+        AdninReplay.ObservationWindow gate = new AdninReplay.ObservationWindow();
+        Object world = new Object(), player = new Object(), connection = new Object();
+        check(gate.claim(0L, world, player, connection), "Initial zero-origin observation scans immediately");
+        for (int i = 0; i < 2000; ++i)
+            check(!gate.claim(i * 20000L, world, player, connection), "Repeated frame/pump calls share one 50ms observation");
+        check(!gate.claim(49999999L, world, player, connection), "49.999999ms does not rescan");
+        check(gate.claim(50000000L, world, player, connection), "Exactly 50ms permits a fresh scan while Replay is paused");
+        Object nextWorld = new Object();
+        check(gate.claim(50000001L, nextWorld, player, connection), "World replacement bypasses the old time window");
+        Object nextConnection = new Object();
+        check(gate.claim(50000002L, nextWorld, player, nextConnection), "Connection replacement bypasses the old time window");
+        Object nextPlayer = new Object();
+        check(gate.claim(50000003L, nextWorld, nextPlayer, nextConnection), "Local-player replacement bypasses the old time window");
+        check(!gate.claim(50000004L, null, nextPlayer, nextConnection), "Missing world retires the observation");
+        check(gate.sameContext(null, null, null), "A retired observation retains no game identities");
+        check(gate.claim(50000005L, nextWorld, nextPlayer, nextConnection), "Reentry scans immediately without inheriting the old deadline");
+        check(!gate.claim(50000006L, nextWorld, null, nextConnection), "Missing local player retires the observation");
+        check(gate.claim(50000007L, nextWorld, nextPlayer, nextConnection), "Local player recovery scans immediately");
+        check(!gate.claim(50000008L, nextWorld, nextPlayer, null), "Missing connection retires the observation");
+        check(gate.claim(50000009L, nextWorld, nextPlayer, nextConnection), "Connection recovery scans immediately");
+        gate.clear();
+        check(gate.claim(-50000000L, world, player, connection), "Negative nanoTime origins are valid");
+        check(!gate.claim(-1L, world, player, connection), "Negative-origin interval keeps its strict boundary");
+        check(gate.claim(0L, world, player, connection), "Negative-origin interval completes at 50ms");
+        gate.clear();
+        long beforeWrap = Long.MAX_VALUE - 20000000L;
+        check(gate.claim(beforeWrap, world, player, connection), "nanoTime wrap fixture scans at its starting instant");
+        check(!gate.claim(beforeWrap + 49999999L, world, player, connection), "Subtraction keeps the gate closed across nanoTime wrap");
+        check(gate.claim(beforeWrap + 50000000L, world, player, connection), "nanoTime wrap cannot stall the observation deadline");
     }
 
     private static void check(boolean value, String message) {

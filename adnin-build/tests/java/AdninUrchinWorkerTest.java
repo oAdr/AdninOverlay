@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicLong;
 import javax.net.ssl.SSLException;
 
 /** Runs the real API client and Features worker behind an offline URL handler. */
@@ -64,6 +65,8 @@ public final class AdninUrchinWorkerTest {
 
         Class<?> features = Class.forName("AdninFeatures", true, AdninUrchinWorkerTest.class.getClassLoader());
         Field generation = field(features, "generation"), currentMatch = field(features, "currentMatch");
+        Field nativeActive = field(features, "nativeGameActive");
+        AtomicLong starts = (AtomicLong) field(features, "matchStarts").get(null);
         Field settingsPath = field(features, "settingsPath");
         BlockingQueue<String[]> requests = (BlockingQueue<String[]>) field(features, "requests").get(null);
         BlockingQueue<String[]> results = (BlockingQueue<String[]>) field(features, "results").get(null);
@@ -72,6 +75,8 @@ public final class AdninUrchinWorkerTest {
         check(!field(features, "initialized").getBoolean(null), "The game integration remains uninitialized");
         int oldGeneration = generation.getInt(null);
         long oldMatch = currentMatch.getLong(null);
+        long oldStarts = starts.get();
+        boolean oldActive = nativeActive.getBoolean(null);
         long oldSucceeded = field(features, "urchinSucceeded").getLong(null);
         long oldFailed = field(features, "urchinFailed").getLong(null);
         long oldCompleted = field(features, "apiCompleted").getLong(null);
@@ -84,6 +89,7 @@ public final class AdninUrchinWorkerTest {
         try {
             generation.setInt(null, 71);
             currentMatch.setLong(null, 93L);
+            starts.set(93L); nativeActive.setBoolean(null, true);
             worker.start();
             for (Map.Entry<String, Fixture> entry : FIXTURES.entrySet()) {
                 String player = entry.getKey();
@@ -121,6 +127,7 @@ public final class AdninUrchinWorkerTest {
             worker.join(3000);
             generation.setInt(null, oldGeneration);
             currentMatch.setLong(null, oldMatch);
+            starts.set(oldStarts); nativeActive.setBoolean(null, oldActive);
             requests.clear();
             results.clear();
         }

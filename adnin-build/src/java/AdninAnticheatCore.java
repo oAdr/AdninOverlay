@@ -11,7 +11,8 @@ import java.util.UUID;
 
 /**
  * Pure client-side detection state. Existing checks derive from RavenBS-Plus-Plus
- * (MIT); Scaffold's model derives from Roxiun/Mellow ScaffoldCheck, commit
+ * (MIT); Scaffold and Legit Scaffold derive from Roxiun/Mellow ScaffoldCheck
+ * and EagleCheck, respectively, commit
  * 17ef9b7466754a33ee8c8ed87fa7ea717573d775 (GNU GPL version 3).
  * No game objects, IO, chat sends, or wall-clock reads occur here.
  */
@@ -92,13 +93,23 @@ public final class AdninAnticheatCore {
 
     private static final class PlayerState {
         final Object identity;
-        int tick, autoBlockTicks, noSlowTicks, fastTicks, sneakTicks;
-        int lastSneakTick, lastVerticalTick, swingProgress, swingStartTick, sneakEdgeTick;
+        int tick, autoBlockTicks, noSlowTicks;
         long now;
         double serverX, serverY, serverZ;
-        boolean sneaking, swinging, pendingSwing, sneakEdgeAvailable, packetFresh;
+        boolean packetFresh;
         ScaffoldState scaffold = new ScaffoldState();
+        EagleState eagle;
         PlayerState(Object identity) { this.identity = identity; }
+    }
+
+    /** Bounded Mellow Eagle history; one observed release can contribute only once. */
+    private static final class EagleState {
+        final int[] durations = new int[3];
+        int durationCount, patterns, consecutive;
+        long tick, crouchStart, crouchEnd, swingTick, lastPatternTick, consumedEnd;
+        boolean crouching, swinging, hasStart, hasEnd, hasSwing, consumed;
+        double violations, lastIncrement;
+        String lastType = "";
     }
 
     /** Five consecutive observed positions plus player-local Mellow scoring state. */
@@ -190,19 +201,13 @@ public final class AdninAnticheatCore {
                     || s.now - p.now > 250L || replayDiscontinuity(p, s))) fresh = true;
             if (fresh) {
                 p = new PlayerState(identity);
-                p.lastSneakTick = s.tick;
-                p.lastVerticalTick = s.tick;
-                p.sneaking = s.sneaking;
                 players.put(id, p);
             }
 
             double speed = Math.max(Math.abs(s.deltaX), Math.abs(s.deltaZ));
-            p.fastTicks = speed >= 0.07 ? increment(p.fastTicks) : 0;
-            if (Math.abs(s.deltaY) >= 0.1) p.lastVerticalTick = s.tick;
-            if (s.sneaking) p.lastSneakTick = s.tick;
             p.autoBlockTicks = s.swinging && s.blocking ? increment(p.autoBlockTicks) : 0;
             p.noSlowTicks = s.sprinting && s.usingItem ? increment(p.noSlowTicks) : 0;
-            boolean matchedSneakSwing = updateSneakSwing(p, s, fresh);
+            boolean eagleDetected = cfg.legitScaffold && updateEagle(p, s);
             boolean scaffoldDetected = cfg.scaffold && updateScaffold(p, s);
 
             double serverX = s.serverX / 32.0, serverY = s.serverY / 32.0,
@@ -211,7 +216,7 @@ public final class AdninAnticheatCore {
             Check detected = null;
             if (!fresh) {
                 if (cfg.autoBlock && p.autoBlockTicks >= 10) detected = Check.AUTO_BLOCK;
-                else if (cfg.legitScaffold && matchedSneakSwing && p.sneakTicks >= 3)
+                else if (eagleDetected)
                     detected = Check.LEGIT_SCAFFOLD;
                 else if (cfg.noSlow && p.noSlowTicks == 11 && speed >= 0.08) detected = Check.NO_SLOW;
                 else if (scaffoldDetected)
@@ -223,9 +228,6 @@ public final class AdninAnticheatCore {
             }
             p.tick = s.tick;
             p.now = s.now;
-            p.sneaking = s.sneaking;
-            p.swinging = s.swinging;
-            p.swingProgress = s.swingProgress;
             p.serverX = serverX;
             p.serverY = serverY;
             p.serverZ = serverZ;
@@ -359,38 +361,94 @@ public final class AdninAnticheatCore {
                     || Math.abs(p.serverZ - s.serverZ / 32.0) >= 5.0);
         }
 
-        /** Correlate one fresh sneak edge with one swing cycle, not one animation phase. */
-        private boolean updateSneakSwing(PlayerState p, Snapshot s, boolean fresh) {
-            if (fresh || !(s.pitch >= 70.0f) || !s.holdingBlock) {
-                p.sneakTicks = 0;
-                p.pendingSwing = false;
-                p.sneakEdgeAvailable = false;
-                return false;
+        /**
+         * Mellow Eagle's release/swing timing, three-duration variance and weighted
+         * VL. START-event edges become edges of consecutive completed snapshots.
+         * A release is consumed once, within one tick: upstream otherwise repeats
+         * an old timestamp pair every frame. Its instant-sequence else-if is
+         * implied by the preceding mechanical condition on a monotonic timeline,
+         * so it cannot add an independent legitimate branch here either.
+         */
+        private boolean updateEagle(PlayerState player, Snapshot s) {
+            if (!finite(s.yaw)) { player.eagle = null; return false; }
+            long tick = s.sampleTick == Integer.MIN_VALUE ? s.tick : s.sampleTick;
+            EagleState state = player.eagle;
+            if (state == null || tick - state.tick != 1L) {
+                state = player.eagle = new EagleState();
+                state.tick = tick;
+                state.crouching = s.sneaking;
+                state.swinging = s.swinging;
+                return false; // Joining mid-animation is not an observed edge.
             }
-            if (!p.sneaking && s.sneaking) {
-                p.sneakEdgeTick = s.tick;
-                p.sneakEdgeAvailable = true;
+            state.tick = tick;
+            state.lastIncrement = 0.0;
+            if (s.swinging && !state.swinging) {
+                state.swingTick = tick;
+                state.hasSwing = true;
             }
-            if (p.sneakEdgeAvailable && s.tick - (long) p.sneakEdgeTick > 1L)
-                p.sneakEdgeAvailable = false;
-            if (p.pendingSwing && (!s.swinging || s.tick - (long) p.swingStartTick > 1L)) {
-                p.pendingSwing = false;
-                p.sneakTicks = 0;
+            if (s.sneaking && !state.crouching) {
+                state.crouchStart = tick;
+                state.hasStart = true;
+            } else if (!s.sneaking && state.crouching && state.hasStart) {
+                state.crouchEnd = tick;
+                state.hasEnd = true;
+                long duration = tick - state.crouchStart;
+                for (int i = 2; i > 0; i--) state.durations[i] = state.durations[i - 1];
+                state.durations[0] = (int) Math.min(Integer.MAX_VALUE, duration);
+                state.durationCount = Math.min(3, state.durationCount + 1);
             }
-            boolean startsSwing = s.swinging && (!p.swinging || s.swingProgress < p.swingProgress);
-            if (startsSwing) {
-                if (p.pendingSwing) p.sneakTicks = 0;
-                p.swingStartTick = s.tick;
-                p.pendingSwing = true;
+            state.crouching = s.sneaking;
+            state.swinging = s.swinging;
+
+            long duration = state.crouchEnd - state.crouchStart;
+            boolean recentRelease = state.hasEnd && tick >= state.crouchEnd
+                    && tick - state.crouchEnd <= 1L
+                    && (!state.consumed || state.consumedEnd != state.crouchEnd);
+            boolean quickCrouch = state.hasStart && duration >= 1L && duration <= 2L;
+            boolean pairedSwing = state.hasSwing && state.swingTick >= state.crouchEnd
+                    && state.swingTick - state.crouchEnd <= 1L;
+            boolean flagged = false;
+            if (s.pitch >= 70.0f && s.holdingBlock && recentRelease && quickCrouch && pairedSwing) {
+                state.consumed = true;
+                state.consumedEnd = state.crouchEnd;
+                if (tick - state.lastPatternTick > 15L) state.patterns = 0;
+                state.patterns = increment(state.patterns);
+                state.lastPatternTick = tick;
+                if (state.patterns >= 2) {
+                    double consistency = 0.0;
+                    boolean consistent = false;
+                    if (state.durationCount >= 3) {
+                        double mean = (state.durations[0] + (double) state.durations[1] + state.durations[2]) / 3.0;
+                        double a = state.durations[0] - mean, b = state.durations[1] - mean, c = state.durations[2] - mean;
+                        consistency = unit(1.0 - ((a * a + b * b + c * c) / 3.0) / 4.0);
+                        consistent = state.durations[0] <= 2 && state.durations[1] <= 2 && state.durations[2] <= 2;
+                    }
+                    double moveYaw = Math.toDegrees(Math.atan2(-s.deltaX, s.deltaZ)) - s.yaw;
+                    moveYaw %= 360.0;
+                    if (moveYaw >= 180.0) moveYaw -= 360.0;
+                    if (moveYaw < -180.0) moveYaw += 360.0;
+                    // atan2(0, 0) cannot establish a backwards travel direction.
+                    boolean moving = s.deltaX != 0.0 || s.deltaZ != 0.0;
+                    boolean backwards = moving && Math.abs(moveYaw) >= 90.0;
+                    boolean directlyBackwards = moving && Math.abs(moveYaw) >= 160.0;
+                    state.consecutive = increment(state.consecutive);
+                    double pitchWeight = s.pitch >= 85.0f ? 1.5 : 1.0;
+                    double swingWeight = state.swingTick == state.crouchEnd ? 1.4 : 1.0;
+                    double moveWeight = directlyBackwards ? 1.8 : backwards ? 1.5 : 1.0;
+                    state.lastIncrement = 2.0 * pitchWeight * swingWeight * moveWeight
+                            * (1.0 + consistency * 0.5) * (1.0 + Math.min(state.consecutive, 5) * 0.15);
+                    state.violations += state.lastIncrement;
+                    state.lastType = backwards ? "backwards-bridging"
+                            : consistent ? "consistent-pattern" : "mechanical-pattern";
+                    state.patterns = 0;
+                    flagged = true;
+                }
             }
-            if (p.pendingSwing && s.swinging && s.sneaking && p.sneakEdgeAvailable
-                    && Math.abs(p.sneakEdgeTick - (long) p.swingStartTick) <= 1L) {
-                p.pendingSwing = false;
-                p.sneakEdgeAvailable = false;
-                p.sneakTicks = increment(p.sneakTicks);
-                return true;
+            if (!flagged) {
+                if (tick - state.lastPatternTick > 15L) state.patterns = 0;
+                if (state.consecutive > 0) state.consecutive--;
             }
-            return false;
+            return flagged && state.violations >= 10.0;
         }
     }
 
