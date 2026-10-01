@@ -2777,7 +2777,7 @@ extends GuiScreen {
             AdninUi.round(winX,winY,winW,winH,15,0xFF424752);
             AdninUi.round(winX+0.7f,winY+0.7f,winW-1.4f,winH-1.4f,14.5f,0xFF1C1F26);
             AdninUi.text("Adnin",winX+24,winY+17,0xFFFF656A,2);
-            AdninUi.text("v22",winX+32+AdninUi.width("Adnin",2),winY+24,AdninUi.MUTED,0);
+            AdninUi.text("v23",winX+32+AdninUi.width("Adnin",2),winY+24,AdninUi.MUTED,0);
             int left = winX + PANEL_INSET, top = winY + HEADER_H + PANEL_INSET;
             int contentX = left + SIDEBAR_W + CONTENT_GAP;
             AdninUi.text(AdninLanguage.text(THEMES[selectedTheme]),contentX,winY+12,AdninUi.TEXT,2);

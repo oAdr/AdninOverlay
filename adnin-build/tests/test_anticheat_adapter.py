@@ -82,6 +82,7 @@ public final class Minecraft {
     'net/minecraft/client/multiplayer/WorldClient.java': '''package net.minecraft.client.multiplayer;
 public final class WorldClient extends net.minecraft.world.World {
     public boolean rejectRosterReads;
+    public boolean solidFloor; public int terrainReads;
     public final java.util.List<net.minecraft.entity.player.EntityPlayer> playerEntities = new java.util.ArrayList<net.minecraft.entity.player.EntityPlayer>() {
         public int size() { if(rejectRosterReads)throw new AssertionError("Inactive Anticheat read the entity roster"); return super.size(); }
         public java.util.Iterator<net.minecraft.entity.player.EntityPlayer> iterator() {
@@ -90,7 +91,13 @@ public final class WorldClient extends net.minecraft.world.World {
     };
     public boolean isBlockLoaded(net.minecraft.util.BlockPos position) { return true; }
     public net.minecraft.block.state.IBlockState getBlockState(net.minecraft.util.BlockPos position) {
-        return new net.minecraft.block.state.IBlockState() { public net.minecraft.block.Block getBlock() { return new net.minecraft.block.BlockAir(); } };
+        terrainReads++;
+        final boolean solid=solidFloor && position.getY()<=0;
+        return new net.minecraft.block.state.IBlockState() { public net.minecraft.block.Block getBlock() {
+            return solid?new net.minecraft.block.Block() {
+                public boolean isReplaceable(net.minecraft.world.World world,net.minecraft.util.BlockPos position) { return false; }
+            }:new net.minecraft.block.BlockAir();
+        } };
     }
 }''',
     'net/minecraft/client/network/NetworkPlayerInfo.java': '''package net.minecraft.client.network;
@@ -110,10 +117,10 @@ public final class NetHandlerPlayClient {
     public NetworkPlayerInfo getPlayerInfo(java.util.UUID id) { return roster.get(id); }
     public java.util.Collection<NetworkPlayerInfo> getPlayerInfoMap() { return roster.values(); }
 }''',
-    'net/minecraft/scoreboard/Team.java': 'package net.minecraft.scoreboard; public class Team { public String prefix=""; }',
+    'net/minecraft/scoreboard/Team.java': 'package net.minecraft.scoreboard; public class Team { public String prefix="", suffix=""; }',
     'net/minecraft/scoreboard/ScorePlayerTeam.java': '''package net.minecraft.scoreboard;
 public class ScorePlayerTeam extends Team {
-    public static String formatPlayerName(Team team,String name) { return team==null?name:team.prefix+name; }
+    public static String formatPlayerName(Team team,String name) { return team==null?name:team.prefix+name+team.suffix; }
 }''',
     'net/minecraft/world/WorldSettings.java': '''package net.minecraft.world;
 public final class WorldSettings { public enum GameType { SURVIVAL, SPECTATOR } }''',
@@ -135,6 +142,7 @@ public final class ItemStack { public Item getItem() { return new ItemBlock(); }
 public final class BlockPos {
     private final double x,y,z;
     public BlockPos(double x,double y,double z) { this.x=x; this.y=y; this.z=z; }
+    public int getY() { return (int)Math.floor(y); }
     public BlockPos down() { return down(1); } public BlockPos down(int amount) { return new BlockPos(x,y-amount,z); }
 }''',
     'net/minecraft/util/IChatComponent.java': '''package net.minecraft.util;
@@ -163,9 +171,13 @@ public final class ClickEvent { public enum Action { RUN_COMMAND } public ClickE
     'AdninReplay.java': '''public final class AdninReplay {
     public static boolean replay;
     public static final java.util.Map<net.minecraft.entity.player.EntityPlayer,String> actors = new java.util.IdentityHashMap<net.minecraft.entity.player.EntityPlayer,String>();
+    public static final java.util.Map<String,net.minecraft.client.network.NetworkPlayerInfo> infos = new java.util.HashMap<String,net.minecraft.client.network.NetworkPlayerInfo>();
     public static boolean isReplay() { return replay; }
     public static String actorName(net.minecraft.entity.player.EntityPlayer actor) {
         String name = replay ? actors.get(actor) : null; return name==null ? "" : name;
+    }
+    public static net.minecraft.client.network.NetworkPlayerInfo playerInfo(String name) {
+        return replay && name!=null ? infos.get(name.toLowerCase(java.util.Locale.ROOT)) : null;
     }
 }''',
     'AdninAnticheatAdapterTest.java': '''import java.util.Properties;
@@ -194,7 +206,7 @@ public final class AdninAnticheatAdapterTest {
         p.setProperty("anticheat.intervalSeconds",Integer.toString(interval)); return p;
     }
     static Minecraft scene() {
-        AdninAnticheat.shutdown(); AdninReplay.replay=false; AdninReplay.actors.clear();
+        AdninAnticheat.shutdown(); AdninReplay.replay=false; AdninReplay.actors.clear(); AdninReplay.infos.clear();
         AdninMatchTeams.clear(); AdninMatchTeams.setGameActive(true);
         AdninFeatures.outputs=0; AdninFeatures.lastOutput="";
         AdninFeatures.nativeGameActive=true; AdninFeatures.stopped=false;
@@ -381,6 +393,14 @@ public final class AdninAnticheatAdapterTest {
             check(AdninMatchTeams.isTeammate(mate),"Own Nick uses server team identity despite original/reset/rank display");
             check(mc.thePlayer.messages==0 && mc.thePlayer.reports==0 && mc.thePlayer.sounds==0 && AdninFeatures.outputs==0,
                 "Ignore Teammates suppresses all delivery paths for actual teammate evidence while self is nicked");
+            mate.display="\\u00a77RedMate"; mc.thePlayer.ticksExisted=0; ticks(mc,20);
+            check(AdninMatchTeams.isTeammate(mate) && mc.thePlayer.messages==0 && mc.thePlayer.reports==0
+                    && mc.thePlayer.sounds==0 && AdninFeatures.outputs==0,
+                "Same-match respawn tick reset and temporary gray nametag cannot re-enable teammate detections");
+            mc.thePlayer.spectator=true; ticks(mc,20); mc.thePlayer.spectator=false; ticks(mc,20);
+            check(AdninMatchTeams.isTeammate(mate) && mc.thePlayer.messages==0 && mc.thePlayer.reports==0
+                    && mc.thePlayer.sounds==0 && AdninFeatures.outputs==0,
+                "Temporary local spectator respawn preserves teammate exemption across every alert delivery path");
             EntityOtherPlayerMP enemy=actor(mc,SKIN,SKIN,"BlueEnemy","BlueEnemy");
             enemy.display="\\u00a79BlueEnemy";
             mc.connection.roster.put(SKIN,coloredInfo(enemy.profile,"\\u00a79")); ticks(mc,10);
@@ -746,6 +766,7 @@ def main():
     parser.add_argument('--jdk', type=Path, required=True)
     parser.add_argument('--classes', type=Path, required=True)
     parser.add_argument('--java', type=Path, help='Optional Java 8+ runtime; fixture compilation still uses --jdk')
+    parser.add_argument('--source', action='store_true', help='Compile current helper and sampler source against owned game fixtures')
     args = parser.parse_args()
     classes = args.classes.resolve()
     for name in ('AdninAnticheat', 'AdninAnticheatCore', 'AdninAnticheatCore$AlertHistory'):
@@ -753,7 +774,9 @@ def main():
             raise ValueError('Missing production class: ' + name)
     with tempfile.TemporaryDirectory(prefix='adnin-ac-adapter-') as directory:
         work = Path(directory)
-        sources = []
+        sources = [ROOT / 'tests/java/AdninLightGrayAnticheatTest.java']
+        if args.source:
+            sources += [ROOT / 'src/java/AdninMatchTeams.java', ROOT / 'src/java/AdninAnticheat.java']
         for name, content in FIXTURES.items():
             path = work / name
             path.parent.mkdir(parents=True, exist_ok=True)
@@ -762,12 +785,13 @@ def main():
         output = work / 'classes'
         common.compile_sources(common.find_java(args.jdk, 'javac'), sources, str(classes), output, work / 'args.txt')
         java = args.java.resolve() if args.java else common.find_java(args.jdk, 'java')
-        result = subprocess.run([str(java), '-Xverify:all', '-Dfile.encoding=UTF-8',
-                                 '-cp', str(output) + os.pathsep + str(classes), 'AdninAnticheatAdapterTest'],
-                                capture_output=True, text=True, encoding='utf-8', errors='replace', timeout=30)
-        print((result.stdout + result.stderr).strip())
-        if result.returncode:
-            raise RuntimeError('Offline production Anticheat adapter regression failed')
+        for test in ('AdninAnticheatAdapterTest', 'AdninLightGrayAnticheatTest'):
+            result = subprocess.run([str(java), '-Xverify:all', '-Dfile.encoding=UTF-8',
+                                     '-cp', str(output) + os.pathsep + str(classes), test],
+                                    capture_output=True, text=True, encoding='utf-8', errors='replace', timeout=30)
+            print((result.stdout + result.stderr).strip())
+            if result.returncode:
+                raise RuntimeError('Offline production Anticheat adapter regression failed: ' + test)
 
 
 if __name__ == '__main__':

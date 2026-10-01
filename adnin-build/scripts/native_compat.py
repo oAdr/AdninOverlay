@@ -93,6 +93,7 @@ HOOKS = (
     (0xb16b4, 0x2f340, 'hypixelHttp'),
     (0xa16a5, 0xac470, 'apiRefreshFailures'),
 )
+HOOKS += tuple((site,target,name) for site,target,name,_ in bridge.native_player_policy.PROFILES['vanilla'])
 TEXT_LINEAGE_SHA256 = '2be3c91504dff27c652e0ac6cf4d024794ba8fa7522e5faa496a17ad8490ad4b'
 REGISTER_SITE = 0x1187c
 REGISTER_BEFORE = bytes.fromhex('ff90b8060000')
@@ -206,6 +207,7 @@ def build_bridge(data, nasm):
     game_state = bridge.native_game_state.reviewed_hook(pe,'vanilla',code_rva,meta)
     skin_policy = bridge.native_skin_policy.reviewed_patches(pe, 'vanilla')
     chat_poll = bridge.native_chat_poll.reviewed_patch(pe, 'vanilla', code_rva, meta)
+    player_policy = bridge.native_player_policy.reviewed_policy(pe, 'vanilla')
     input_hooks = bridge.native_input_hooks.reviewed_patches(pe,'vanilla',code_rva,meta,state_rva,require)
     added = []
     for name in function_names:
@@ -307,7 +309,7 @@ def build_bridge(data, nasm):
                   runtimeFunctionTable=dict(rva=code_rva + table_offset, size=len(table), count=len(functions)),
                   patches=patches, runtime_metadata=runtime, legacyAnticheat=legacy_anticheat,
                   gameTickHook=game_tick_hook, replayOverlay=replay_overlay, replayStats=replay_stats, replayDenicker=replay_denick, numberPolling=number_polling,
-                  nativeApiPolicy=api_policy, skinDenickerPolicy=skin_policy, headerLocalization=header_localization,
+                  nativeApiPolicy=api_policy, skinDenickerPolicy=skin_policy, grayPlayerPolicy=player_policy, headerLocalization=header_localization,
                   processTerminationGuard=process_entry, nativeGameState=game_state,
                   nativeInputHooks=input_hooks, nativeChatPolling=chat_poll,
                   outputRouting=bridge.output_routing(HOOKS),

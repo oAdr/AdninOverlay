@@ -456,7 +456,7 @@ input_proc:
 input_proc_end:
 
 input_user32: db 'user32.dll',0
-input_property_name: db 'Adnin.Input.Binding.v22.59dbcfed28a44a62',0
+input_property_name: db 'Adnin.Input.Binding.v23.59dbcfed28a44a62',0
 input_api_names:
 dd input_api_is_window-$$,input_api_window_thread-$$,input_api_get_prop-$$
 dd input_api_set_prop-$$,input_api_remove_prop-$$,input_api_send_timeout-$$

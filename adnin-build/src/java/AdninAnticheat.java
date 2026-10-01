@@ -185,6 +185,12 @@ public final class AdninAnticheat {
                 if (cfg.atlasOnly ? !currentTab || !suspect
                         : suspect || (replay ? !replayProfile : !real)) continue;
                 if (replayProfile) name = replayName;
+                // Respawn/spectator light-gray nametags never produce evidence
+                // for any check, independently of Ignore Teammates. Leaving
+                // this actor out of current also retires its partial evidence
+                // below, while match teammate identities and cooldowns remain.
+                if (AdninMatchTeams.isLightGray(player,
+                        replayProfile ? AdninReplay.playerInfo(name) : info, name)) continue;
                 acceptedActors++;
                 current.add(uuid);
                 if (reusable == null) reusable = new AdninAnticheatCore.Snapshot();

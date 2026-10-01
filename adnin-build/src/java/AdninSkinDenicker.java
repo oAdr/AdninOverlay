@@ -38,6 +38,7 @@ public final class AdninSkinDenicker {
     private static final LinkedHashSet<String> announced = new LinkedHashSet<String>();
     private static final Set<String> published = new HashSet<String>();
     private static final Set<String> attempted = new HashSet<String>();
+    private static final Set<String> currentIgnored = new HashSet<String>();
     private static Object world, connection;
     private static boolean replayContext, stopped, enabled;
     private static long nextScan, parses, rosterAt, generation;
@@ -61,7 +62,8 @@ public final class AdninSkinDenicker {
     }
     /** Native acknowledges that the validated identity and ready stats were published. */
     public static synchronized void markPublished(String name, String profile) {
-        if (stopped || !enabled || !configured() || !AdninFeatures.outputContextAllowed() || !validName(name)) return;
+        if (stopped || !enabled || !configured() || !AdninFeatures.outputContextAllowed() || !validName(name)
+                || AdninFeatures.shouldIgnorePlayer(name) || currentIgnored.contains(name.toLowerCase(Locale.ROOT))) return;
         String key = name.toLowerCase(Locale.ROOT);
         if (profile != null && profile.equals(current.get(key))) {
             if (published.size() >= MAX_CACHE) published.clear();
@@ -76,6 +78,10 @@ public final class AdninSkinDenicker {
     static synchronized String getProfile(String name, long now) {
         if (stopped || !enabled || !configured() || !validName(name) || !AdninFeatures.outputContextAllowed()) return "";
         String key = name.toLowerCase(Locale.ROOT);
+        if (AdninFeatures.shouldIgnorePlayer(name) || currentIgnored.contains(key)) {
+            String known = current.get(key);
+            return known == null ? "" : known;
+        }
         Long last = requested.get(key);
         if ((last == null || now - last >= (current.containsKey(key) ? 5000L : RETRY_MS)) && pending.size() < MAX_PENDING) {
             pending.add(name);
@@ -115,6 +121,7 @@ public final class AdninSkinDenicker {
                 // One roster pass per bounded batch; never one world/entity scan per row.
                 Map<String, NetworkPlayerInfo> roster = new HashMap<String, NetworkPlayerInfo>();
                 Set<String> ambiguous = new HashSet<String>();
+                currentIgnored.clear();
                 int count = 0;
                 for (NetworkPlayerInfo info : mc.getNetHandler().getPlayerInfoMap()) {
                     if (++count > MAX_ROSTER) break;
@@ -125,6 +132,7 @@ public final class AdninSkinDenicker {
                     if (!replay && p.getId().version() != 1) continue;
                     if (replay && !AdninReplay.isNick(raw)) continue;
                     String key = raw.toLowerCase(Locale.ROOT);
+                    if (AdninMatchTeams.isLightGray(info) || AdninFeatures.shouldIgnorePlayer(raw)) currentIgnored.add(key);
                     if (roster.put(key, info) != null) ambiguous.add(key);
                 }
                 for (Iterator<Map.Entry<String, String>> active = current.entrySet().iterator(); active.hasNext();) {
@@ -140,6 +148,7 @@ public final class AdninSkinDenicker {
                 // second native hint throttle. Name reuse must not reuse a skin.
                 for (Iterator<Map.Entry<String, CurrentEvidence>> existing = currentEvidence.entrySet().iterator(); existing.hasNext();) {
                     Map.Entry<String, CurrentEvidence> entry = existing.next();
+                    if (currentIgnored.contains(entry.getKey())) continue;
                     GameProfile profile = roster.get(entry.getKey()).getGameProfile();
                     CurrentEvidence previous = entry.getValue();
                     String payload = textureEvidence(profile);
@@ -155,6 +164,7 @@ public final class AdninSkinDenicker {
                 for (int done = 0; done < BATCH && it.hasNext(); done++) {
                     String raw = it.next(); it.remove();
                     String key = raw.toLowerCase(Locale.ROOT);
+                    if (currentIgnored.contains(key) || AdninFeatures.shouldIgnorePlayer(raw)) continue;
                     NetworkPlayerInfo info = ambiguous.contains(key) ? null : roster.get(key);
                     String nick = replay ? AdninReplay.recordedName(raw) : info == null ? raw : info.getGameProfile().getName();
                     String payload = info == null ? "" : textureEvidence(info.getGameProfile());
@@ -171,7 +181,8 @@ public final class AdninSkinDenicker {
             }
             for (Map.Entry<String, String> entry : current.entrySet()) {
                 String nick = currentNames.get(entry.getKey());
-                if (!validName(nick)) continue;
+                if (!validName(nick) || currentIgnored.contains(entry.getKey())
+                        || AdninFeatures.shouldIgnorePlayer(entry.getKey()) || AdninFeatures.shouldIgnorePlayer(nick)) continue;
                 String profile = entry.getValue();
                 String id = entry.getKey() + "|" + profile;
                 if (published.contains(id) && !announced.contains(id)) {
@@ -197,8 +208,22 @@ public final class AdninSkinDenicker {
         }
     }
     private static synchronized boolean deliveryCurrent(long observed, String id) {
+        int separator = id.indexOf('|');
+        String raw = separator < 0 ? id : id.substring(0, separator);
         return !stopped && enabled && configured() && generation == observed && published.contains(id)
+            && !currentIgnored.contains(raw) && !AdninFeatures.shouldIgnorePlayer(raw)
             && AdninFeatures.outputContextAllowed();
+    }
+
+    /** Client-thread snapshot enrichment only; native readers never call this. */
+    static synchronized void appendIgnoredAliases(Set<String> aliases, int limit) {
+        for (Map.Entry<String, String> entry : current.entrySet()) {
+            if (aliases.size() >= limit) break;
+            if (!aliases.contains(entry.getKey())) continue;
+            String profile = entry.getValue();
+            int separator = profile.indexOf('|');
+            if (separator > 0) aliases.add(profile.substring(0, separator).toLowerCase(Locale.ROOT));
+        }
     }
     private static boolean configured() {
         // The original native Skin setting is derived from Hypixel key presence,
@@ -332,7 +357,7 @@ public final class AdninSkinDenicker {
     }
     public static synchronized void clearContext() {
         generation++;
-        current.clear(); currentNames.clear(); currentEvidence.clear(); requested.clear(); pending.clear(); announced.clear(); published.clear(); attempted.clear(); nextScan = 0; rosterAt = 0;
+        current.clear(); currentNames.clear(); currentEvidence.clear(); requested.clear(); pending.clear(); announced.clear(); published.clear(); attempted.clear(); currentIgnored.clear(); nextScan = 0; rosterAt = 0;
         world = null; connection = null;
     }
     public static synchronized void shutdown() { stopped = true; clearContext(); evidence.clear(); }

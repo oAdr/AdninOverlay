@@ -25,7 +25,7 @@ public final class AdninPacketLogAccessorTest {
     public static void main(String[] args) throws Exception {
         Field spawnClass = AdninPacketLog.class.getDeclaredField("s_spawnPlayerClass");
         spawnClass.setAccessible(true); spawnClass.set(null, Packet.class);
-        namedAndMissingBursts(); aliasesAndFallbacks(); classChanges(); concurrentPublication(); concurrentClassChanges(); actualObservation();
+        namedAndMissingBursts(); aliasesAndFallbacks(); classChanges(); concurrentPublication(); concurrentClassChanges(); actualObservation(); grayObservation();
         int seen = AdninPacketLog.seenSpawnPlayerCount;
         long resolutions = count();
         AdninPacketLog.shutdown();
@@ -207,6 +207,27 @@ public final class AdninPacketLogAccessorTest {
     }
 
     private static Object table(Object packet) throws Exception { return RESOLVE.invoke(null, packet.getClass()); }
+    private static void grayObservation() throws Exception {
+        Field snapshot = AdninFeatures.class.getDeclaredField("ignoredPlayers"); snapshot.setAccessible(true);
+        Object original = snapshot.get(null);
+        java.lang.reflect.Constructor<?> constructor = original.getClass().getDeclaredConstructor(java.util.Set.class, java.util.Set.class, java.util.Set.class);
+        constructor.setAccessible(true);
+        GrayProbePacket packet = new GrayProbePacket();
+        try {
+            snapshot.set(null, constructor.newInstance(java.util.Collections.emptySet(),java.util.Collections.singleton(ID),java.util.Collections.emptySet()));
+            AdninPacketLog.lastSpawnLine = "owned-sentinel";
+            OBSERVE.invoke(null,packet);
+            check(packet.coordinateReads==0 && "owned-sentinel".equals(AdninPacketLog.lastSpawnLine),
+                "Known gray UUID skips auxiliary decoding/native observation before coordinate access");
+            snapshot.set(null, constructor.newInstance(java.util.Collections.emptySet(),java.util.Collections.emptySet(),java.util.Collections.singleton(71)));
+            OBSERVE.invoke(null,packet);
+            check(packet.coordinateReads==0 && "owned-sentinel".equals(AdninPacketLog.lastSpawnLine),
+                "Known gray entity ID has the same immutable-reader short circuit");
+            snapshot.set(null,original);OBSERVE.invoke(null,packet);
+            check(packet.coordinateReads==1 && AdninPacketLog.lastSpawnLine.contains("entityId=71 "),
+                "Restored or unknown UUID/entity observations continue through the original decoder");
+        } finally { snapshot.set(null,original); }
+    }
     private static long count() throws Exception { return RESOLUTIONS.getLong(null); }
     private static int integer(Object table, String part, Object packet) throws Exception {
         return ((Number) invoke(field(table, part), "integer", packet)).intValue();
@@ -234,6 +255,10 @@ public final class AdninPacketLogAccessorTest {
         public byte getYaw() { return -2; }
         public byte getPitch() { return 5; }
         public int getCurrentItemID() { return 272; }
+    }
+    public static final class GrayProbePacket extends NamedPacket {
+        int coordinateReads;
+        @Override public int getX() { coordinateReads++; return 32; }
     }
     public static final class ObfuscatedPacket implements Packet {
         public int b() { return 71; }

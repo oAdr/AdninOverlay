@@ -59,6 +59,7 @@ public final class AdninPacketLogConcurrencyTest {
             passThrough(first);
             duplicateInstallation(first, firstHandler);
             spawnObservation(first);
+            grayPacketForwarding(first);
             Fixture latest = pendingReplacement(first);
             pendingClose(latest);
             Fixture restored = fixture();
@@ -69,8 +70,8 @@ public final class AdninPacketLogConcurrencyTest {
             stopPending(restored);
             check(foreignFixture.channel.pipeline().get(KEY) == foreignHandler,
                 "Shutdown does not remove a different owner's same-name handler");
-            check(AdninPacketLog.seenSpawnPlayerCount == 2,
-                "Only the two active spawn fixtures were admitted; ordinary and stopped packets never sample");
+            check(AdninPacketLog.seenSpawnPlayerCount == 3,
+                "Two normal and one gray spawn packet were observed; ordinary and stopped packets never sample");
             for (Fixture value : fixtures) {
                 check(value.collector.added == 1, "Original packet handler was never recreated");
                 if (value.channel.isOpen()) {
@@ -435,6 +436,23 @@ public final class AdninPacketLogConcurrencyTest {
         Field field = AdninPacketLog.class.getDeclaredField(name);
         field.setAccessible(true);
         return field.get(null);
+    }
+
+    private static void grayPacketForwarding(final Fixture fixture) throws Exception {
+        Field snapshot = AdninFeatures.class.getDeclaredField("ignoredPlayers"); snapshot.setAccessible(true);
+        Object original = snapshot.get(null);
+        java.lang.reflect.Constructor<?> constructor = original.getClass().getDeclaredConstructor(java.util.Set.class,java.util.Set.class,java.util.Set.class);
+        constructor.setAccessible(true);
+        final FakeSpawnPacket gray = new FakeSpawnPacket();
+        int before = fixture.collector.reads;
+        String last = AdninPacketLog.lastSpawnLine;
+        try {
+            snapshot.set(null,constructor.newInstance(java.util.Collections.emptySet(),java.util.Collections.singleton(gray.getPlayerUUID()),java.util.Collections.emptySet()));
+            await(fixture.loop.submit(new Runnable(){ public void run(){fixture.channel.pipeline().fireChannelRead(gray);} }),"Forward gray packet through registered observer");
+            check(fixture.collector.reads==before+1 && fixture.collector.packet==gray,
+                "Ignoring gray Adnin observations still forwards the exact original game packet once");
+            check(last.equals(AdninPacketLog.lastSpawnLine),"Gray packet never reaches the auxiliary spawn decoder/native callback");
+        } finally { snapshot.set(null,original); }
     }
 
     private static void await(Future<?> future, String why) throws Exception {

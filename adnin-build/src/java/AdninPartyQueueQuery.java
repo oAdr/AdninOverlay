@@ -12,6 +12,7 @@ import net.minecraft.scoreboard.Scoreboard;
 public final class AdninPartyQueueQuery {
     static final String COMMAND = "/locraw";
     static final long DELAY_MS = 500L, MIN_ATTEMPT_MS = 5000L, READ_BACKOFF_MS = 1000L;
+    static final int MAX_ATTEMPTS = 3;
     static final long SCOPE_PROBE_MS = 250L;
     static final int SCOPE_HYPIXEL = 1, SCOPE_WAITING = 2;
     private static final Policy POLICY = new Policy();
@@ -262,6 +263,7 @@ public final class AdninPartyQueueQuery {
         private boolean enabledBefore, hasAttemptTime, hostnameAllowed, sidebarAllowed, waitingAllowed, scopeProbed;
         private String checkedAddress;
         private long armedAt, failedReadAt, lastAttemptAt, scopeProbedAt;
+        private int attemptCount;
 
         synchronized boolean canRead(long now) {
             if (stopped) return false;
@@ -295,7 +297,7 @@ public final class AdninPartyQueueQuery {
             }
             // Native disable clears its learned mode. A genuine explicit enable
             // starts a new opportunity; the global interval still prevents spam.
-            if (enabledNow) { attempted = false; armed = false; }
+            if (enabledNow) { attempted = false; armed = false; attemptCount = 0; }
             if (!enabled || !multiplayer || activeContext) {
                 armed = false; addressAllowed = false; sidebarAllowed = false; waitingAllowed = false; scopeProbed = false;
                 return;
@@ -311,7 +313,9 @@ public final class AdninPartyQueueQuery {
                 armed = false; sidebarAllowed = false; waitingAllowed = false; scopeProbed = false;
             }
             if (!ready) {
-                if (armed && due(now)) consume(now);
+                // A transient missing local player did not send a command.
+                // Retire the deadline, then require fresh evidence/readiness.
+                armed = false; scopeProbed = false;
                 return;
             }
             if (!scopeProbed || now - scopeProbedAt >= SCOPE_PROBE_MS) {
@@ -333,27 +337,34 @@ public final class AdninPartyQueueQuery {
                 return;
             }
             if (!due(now)) return;
-            // Consume before dispatch: busy/failed send must not retry each frame
-            // in this stable world/connection/explicit-enable cycle.
-            consume(now);
-            if (sender == null) return;
+            // Reserve the rate limit before dispatch. A just-changed sidebar or
+            // temporarily unavailable sender must not permanently lose this
+            // world's only opportunity. Failed attempts remain bounded and
+            // each retry revalidates the live phase after a fresh delay.
+            hasAttemptTime = true; lastAttemptAt = now; armed = false; ++attemptCount;
+            boolean sent = false;
             try {
                 // The immediate client-thread send shares this short lifecycle
                 // lock, making shutdown linearize before or after this one send.
                 // The adapter must never await a worker/EventLoop/Future.
-                sender.send(nextWorld, nextConnection, COMMAND);
+                if (sender != null) sent = sender.send(nextWorld, nextConnection, COMMAND);
             } catch (RuntimeException failedSend) {
-                // This enable/context cycle's query opportunity stays consumed.
+                // The bounded retry retains the same five-second rate limit.
             } catch (LinkageError unavailable) {
-                // Mapping/library failure likewise must not become a retry loop.
+                // A persistent mapping failure exhausts this small retry budget.
+            }
+            if (stopped) return;
+            attempted = sent || attemptCount >= MAX_ATTEMPTS;
+            if (!attempted) {
+                addressAllowed = false; sidebarAllowed = false; waitingAllowed = false; scopeProbed = false;
             }
         }
 
         synchronized void readFailed(long now) {
             if (stopped) return;
-            // Keep only weak current identities so a successful read of the same
-            // context cannot silently rearm its failed cycle after the backoff.
-            attempted = true; armed = false;
+            // A failed read has sent nothing. Preserve completed attempts and
+            // the retry budget while retiring stale eligibility and deadlines.
+            armed = false; addressAllowed = false; sidebarAllowed = false; waitingAllowed = false; scopeProbed = false;
             readBackoff = true; failedReadAt = now;
         }
 
@@ -369,7 +380,7 @@ public final class AdninPartyQueueQuery {
             if (world != null) world.clear();
             if (connection != null) connection.clear();
             world = null; connection = null;
-            armed = false; attempted = false;
+            armed = false; attempted = false; attemptCount = 0;
             addressChecked = false; addressAllowed = false; checkedAddress = null;
             hostnameAllowed = false; sidebarAllowed = false; waitingAllowed = false; scopeProbed = false;
         }
@@ -377,8 +388,6 @@ public final class AdninPartyQueueQuery {
         private boolean due(long now) {
             return now - armedAt >= DELAY_MS && (!hasAttemptTime || now - lastAttemptAt >= MIN_ATTEMPT_MS);
         }
-
-        private void consume(long now) { attempted = true; hasAttemptTime = true; lastAttemptAt = now; armed = false; }
 
         private static Object referent(WeakReference<Object> value) { return value == null ? null : value.get(); }
     }

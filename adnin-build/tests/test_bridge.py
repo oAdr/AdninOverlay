@@ -35,6 +35,7 @@ import hypixel_http_checks
 import skin_policy_checks
 import input_hooks_checks
 import chat_poll_prune_checks
+import player_policy_checks
 
 parser = argparse.ArgumentParser(add_help=False)
 parser.add_argument('--input', type=Path, default=ROOT.parent / 'lunar-full-build/build/bin/ChatReaderLunar.dll')
@@ -59,6 +60,10 @@ def fixture():
 
 
 class BridgePETests(unittest.TestCase):
+    def test_gray_query_guards_preserve_cached_state_pending_results_and_abi(self):
+        player_policy_checks.verify(self,self.input,self.output,self.report,'lunar')
+        player_policy_checks.execute(self,self.output,self.report,'lunar',ARGS.nasm)
+
     def test_chat_poll_pruning_preserves_consumer_boundary_abi_refs_and_chained_unwind(self):
         chat_poll_prune_checks.verify(self,self.input,self.output,self.report,'lunar')
         chat_poll_prune_checks.execute(self,self.output,self.report,'lunar',ARGS.nasm)
@@ -151,8 +156,8 @@ class BridgePETests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'lineage mismatch'):
             bridge.rebuild(bytes(modified), ARGS.nasm)
 
-    def test_twenty_eight_verified_call_sites(self):
-        self.assertEqual(len(self.report['hooks']), 28)
+    def test_all_verified_call_sites(self):
+        self.assertEqual(len(self.report['hooks']), 28 + len(bridge.native_player_policy.FUNCTIONS))
         for item in self.report['hooks']:
             site = item['callRva']
             self.assertEqual(self.before.get_data(site, 5), bridge.call_bytes(site, item['originalTargetRva']))
@@ -185,7 +190,11 @@ class BridgePETests(unittest.TestCase):
         hook = next(h for h in self.report['hooks'] if h['callRva'] == 0x87f1d)
         self.assertEqual((hook['originalTargetRva'], hook['callback']), (0x38260, 'plainDenick'))
         self.assertEqual(self.before.get_data(0x87f1d, 5), bytes.fromhex('e83e03fbff'))
-        for rva, expected in ((0x87bfc, 'e81f2a020084c00f8430030000'),
+        gate = next(h for h in self.report['hooks'] if h['callRva'] == 0x87bfc)
+        self.assertEqual(gate['callback'], 'grayLegacySuccess')
+        self.assertEqual(self.before.get_data(0x87bfc, 5), bytes.fromhex('e81f2a0200'))
+        self.assertEqual(self.after.get_data(0x87bfc, 5), bridge.call_bytes(0x87bfc, gate['bridgeTargetRva']))
+        for rva, expected in ((0x87c01, '84c00f8430030000'),
                               (0x87f0a, '4c8d8d302500004d8b4608488b542458498bcd'),
                               (0xaa7d5, '80bf6202000000'), (0xaa7de, '837f3003'),
                               (0xaa7e4, '48837f7000'), (0xaa7eb, 'c6876202000000')):
@@ -295,7 +304,7 @@ class BridgePETests(unittest.TestCase):
             if item['name'] in ('replayRdi', 'replayRbx', 'replayFrame', 'replayDenickGate'):
                 self.assertEqual(data[:12], bytes.fromhex('011004f5100308011e000150'))
                 continue
-            if item['name'] in ('replayUuidCopy','apiKeyReady','apiUuidReady','apiPingProxy','apiDecodeComponent','apiRefreshFailures','processEntry'):
+            if item['name'] in ('replayUuidCopy','apiKeyReady','apiUuidReady','apiPingProxy','apiDecodeComponent','apiRefreshFailures','processEntry') + bridge.native_player_policy.FUNCTIONS:
                 self.assertEqual(data[:4], bytes((1, 0, 0, 0)))
                 continue
             stack, registers = expected[item['name']]

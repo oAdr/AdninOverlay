@@ -32,6 +32,7 @@ public class EnumChatFormatting { public int getColorIndex() { return -1; } }'''
     'net/minecraft/entity/player/EntityPlayer.java': '''package net.minecraft.entity.player;
 public class EntityPlayer {
     public boolean isDead;
+    public boolean isSpectator() { return false; }
     public int ticksExisted;
     public com.mojang.authlib.GameProfile profile;
     public String display, name;
@@ -53,6 +54,7 @@ public class NetworkPlayerInfo {
     public com.mojang.authlib.GameProfile profile; public String display;
     public net.minecraft.scoreboard.ScorePlayerTeam team;
     public com.mojang.authlib.GameProfile getGameProfile() { return profile; }
+    public net.minecraft.world.WorldSettings.GameType getGameType() { return net.minecraft.world.WorldSettings.GameType.SURVIVAL; }
     public net.minecraft.scoreboard.ScorePlayerTeam getPlayerTeam() { return team; }
     public net.minecraft.util.IChatComponent getDisplayName() {
         return display == null ? null : new net.minecraft.util.ChatComponentText(display);
@@ -62,7 +64,12 @@ public class NetworkPlayerInfo {
 public class NetHandlerPlayClient {
     public final java.util.List<NetworkPlayerInfo> roster=new java.util.ArrayList<NetworkPlayerInfo>();
     public java.util.Collection<NetworkPlayerInfo> getPlayerInfoMap() { return roster; }
+    public NetworkPlayerInfo getPlayerInfo(java.util.UUID id) {
+        for(NetworkPlayerInfo info:roster)if(info.profile!=null && id.equals(info.profile.getId()))return info;return null;
+    }
 }''',
+    'net/minecraft/world/WorldSettings.java': '''package net.minecraft.world;
+public final class WorldSettings { public enum GameType { SURVIVAL, SPECTATOR } }''',
     'net/minecraft/scoreboard/Score.java': '''package net.minecraft.scoreboard;
 public class Score { public String getPlayerName() { return ""; } }''',
     'net/minecraft/scoreboard/ScoreObjective.java': '''package net.minecraft.scoreboard;
@@ -101,6 +108,7 @@ public class Minecraft {
     public net.minecraft.client.entity.EntityPlayerSP thePlayer=new net.minecraft.client.entity.EntityPlayerSP();
     public net.minecraft.client.network.NetHandlerPlayClient connection=new net.minecraft.client.network.NetHandlerPlayClient();
     public net.minecraft.client.network.NetHandlerPlayClient getNetHandler() { return connection; }
+    public boolean isCallingFromMinecraftThread() { return true; }
 }''',
     'AdninApi.java': '''public class AdninApi {
     public static volatile int requests;
@@ -138,6 +146,29 @@ public class AdninReplayRosterTest {
         java.util.Properties p=new java.util.Properties(); AdninReplay.diagnostics(p); return p;
     }
     private static int count(String key) { return Integer.parseInt(diagnostics().getProperty(key)); }
+    private static void grayPauseRoster() throws Exception {
+        AdninReplay.clear();Minecraft mc=new Minecraft();mc.thePlayer.profile=new GameProfile(new UUID(0,0),"Viewer");
+        EntityOtherPlayerMP p=actor(mc,"GrayBot","\\u00a77GrayRecorded",94);
+        tab(mc,"GrayAlias","\\u00a77GrayRecorded",94);refresh(mc);
+        NetworkPlayerInfo info=mc.connection.roster.get(0);
+        check("GrayRecorded".equals(AdninReplay.actorName(p)) && "GrayRecorded".equals(AdninReplay.recordedName("GrayAlias")),
+            "Gray Replay pause preserves actor and recorded-name identity mappings");
+        check(AdninReplay.playerInfo("GrayRecorded")==info && AdninReplay.playerInfo("GrayAlias")==info,
+            "Both admitted aliases expose the same current Tab object without per-actor roster scans");
+        int before=count("replayProfileRequests");
+        for(int i=0;i<50;i++)check(AdninReplay.profile(i%2==0?"GrayAlias":"GrayRecorded").isEmpty(),
+            "Unknown gray Replay profile keeps its original unresolved state");
+        check(count("replayProfileRequests")==before,"Gray Replay aliases create no identity query");
+        p.display="\\u00a7cGrayRecorded";info.display="\\u00a7cGrayRecorded";refresh(mc);
+        AdninReplay.profile("GrayAlias");String known="";long until=System.nanoTime()+3000000000L;
+        while(known.isEmpty() && System.nanoTime()<until){Thread.sleep(10);known=AdninReplay.profile("GrayRecorded");}
+        check(known.startsWith("grayrecorded|"),"Normal color resumes the ordinary account resolver");
+        before=count("replayProfileRequests");p.display="\\u00a77GrayRecorded";info.display="\\u00a77GrayRecorded";refresh(mc);
+        check(known.equals(AdninReplay.profile("GrayAlias")) && count("replayProfileRequests")==before,
+            "A subsequent gray pause preserves the same account's known profile without requerying");
+        AdninReplay.clear();check(AdninReplay.playerInfo("GrayAlias")==null && AdninReplay.recordedName("GrayAlias").isEmpty(),
+            "A genuine context clear releases gray and ordinary alias snapshots together");
+    }
     private static void observationLifecycle() {
         AdninReplay.clear();
         Minecraft mc=new Minecraft(); mc.thePlayer.profile=new GameProfile(new UUID(0,0),"Viewer");
@@ -365,13 +396,14 @@ public class AdninReplayRosterTest {
         AdninReplay.clear();
         check(AdninReplay.profile("RecordedOne").isEmpty(),"Unload disables cached native profile access");
         check(count("replayRejectedSelf")==0 && count("replayAmbiguousTabAliases")==0,"Explicit clear retires roster diagnostics");
+        grayPauseRoster();
         System.out.println("AdninReplayRosterTest: "+checks+" checks passed; production bytecode, fake world/Tab/API, no game or network");
     }
 }'''
 }
 
 
-def run_anticheat_integration(jdk, classes, work):
+def run_anticheat_integration(jdk, classes, work, source=False, java=None):
     """Use the real Replay roster, adapter and Engine; only game/API endpoints are fake."""
     import test_anticheat_adapter as adapter
     fixtures = dict(adapter.FIXTURES)
@@ -539,18 +571,33 @@ public final class AdninReplayAnticheatTest {
             "Full-name selection changes neither Replay report suppression nor independent account lookup policy");
         check("XiaoShu_SKY202".equals(replay.getGameProfile().getName()) && PROFILE.equals(replay.getGameProfile().getId())
             && ENTITY.equals(replay.getUniqueID()), "AC identity repair never rewrites actor GameProfile or UUIDs");
+        mc=scene(true);replay=actor(mc,ENTITY,PROFILE,"GrayAlias","GrayAlias",null);
+        tab(mc,TAB,"GrayAlias","\\u00a77GrayRecorded");refresh(mc);long beforeGray=count("replayProfileRequests");
+        check("GrayRecorded".equals(AdninReplay.actorName(replay)) && AdninReplay.playerInfo("GrayRecorded")==mc.connection.roster.get(TAB),
+            "Mismatched Replay UUIDs retain the same authoritative Tab color snapshot");
+        ticks(mc,20);
+        check(count("anticheatAcceptedActors")==0 && mc.thePlayer.messages==0 && AdninFeatures.outputs==0 && mc.thePlayer.reports==0,
+            "Real Replay roster/adapter/Engine ignore a gray Tab name even when the bot's own name is unformatted");
+        check(AdninReplay.profile("GrayAlias").isEmpty() && count("replayProfileRequests")==beforeGray,
+            "The gray Replay bot also creates no new statistics identity query");
+        mc.connection.roster.get(TAB).display=new net.minecraft.util.ChatComponentText("\\u00a7cGrayRecorded");refresh(mc);ticks(mc,9);
+        check(mc.thePlayer.messages==0,"Gray Replay interval cannot accumulate hidden Autoblock evidence");
+        ticks(mc,1);check(mc.thePlayer.messages==1 && AdninFeatures.outputs==1 && mc.thePlayer.reports==0,
+            "Ten fresh ordinary-color Replay observations restore the unchanged detector");
         AdninReplay.clear(); AdninAnticheat.shutdown();
         System.out.println("AdninReplayAnticheatTest: "+checks+" checks passed; real Replay roster/adapter/Engine, fake game/failed-or-absent API, zero successful account lookups");
     }
 }'''
     sources = []
+    if source:
+        sources += [ROOT/'src/java/AdninReplay.java',ROOT/'src/java/AdninReplayProfiles.java',ROOT/'src/java/AdninMatchTeams.java',ROOT/'src/java/AdninAnticheat.java']
     for name, content in fixtures.items():
         path = work / name
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(content, encoding='utf-8'); sources.append(path)
     output = work / 'classes'
     common.compile_sources(common.find_java(jdk, 'javac'), sources, str(classes), output, work / 'args.txt')
-    result = subprocess.run([str(common.find_java(jdk, 'java')), '-Xverify:all', '-Dfile.encoding=UTF-8',
+    result = subprocess.run([str(java or common.find_java(jdk, 'java')), '-Xverify:all', '-Dfile.encoding=UTF-8',
         '-cp', str(output) + os.pathsep + str(classes), 'AdninReplayAnticheatTest'],
         capture_output=True, text=True, encoding='utf-8', errors='replace', timeout=30)
     print((result.stdout + result.stderr).strip())
@@ -561,22 +608,26 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--jdk', type=Path, required=True)
     parser.add_argument('--classes', type=Path, required=True)
+    parser.add_argument('--java',type=Path,help='Optional Java 8+ runtime; fixtures still compile with --jdk')
+    parser.add_argument('--source',action='store_true',help='Compile current Replay/helpers against the owned fixtures')
     args = parser.parse_args()
     classes = args.classes.resolve()
     with tempfile.TemporaryDirectory(prefix='adnin-replay-roster-') as directory:
         work = Path(directory)
         sources = []
+        if args.source:
+            sources += [ROOT/'src/java/AdninReplay.java',ROOT/'src/java/AdninReplayProfiles.java',ROOT/'src/java/AdninMatchTeams.java']
         for name, content in FIXTURES.items():
             path = work / name
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(content, encoding='utf-8'); sources.append(path)
         output = work / 'classes'
         common.compile_sources(common.find_java(args.jdk, 'javac'), sources, str(classes), output, work / 'args.txt')
-        result = subprocess.run([str(common.find_java(args.jdk, 'java')), '-Xverify:all', '-Dfile.encoding=UTF-8',
+        result = subprocess.run([str(args.java or common.find_java(args.jdk, 'java')), '-Xverify:all', '-Dfile.encoding=UTF-8',
             '-cp', str(output) + os.pathsep + str(classes), 'AdninReplayRosterTest'],
             capture_output=True, text=True, encoding='utf-8', errors='replace', timeout=30)
         print((result.stdout + result.stderr).strip())
         if result.returncode: raise RuntimeError('Production Replay roster regression failed')
-        run_anticheat_integration(args.jdk, classes, work / 'anticheat')
+        run_anticheat_integration(args.jdk, classes, work / 'anticheat',args.source,args.java)
 
 if __name__ == '__main__': main()

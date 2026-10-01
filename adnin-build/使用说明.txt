@@ -1,4 +1,4 @@
-Adnin v22 - Lunar / Badlion / Vanilla Minecraft 1.8.9 x64
+Adnin v23 - Lunar / Badlion / Vanilla Minecraft 1.8.9 x64
 
 The usage ZIP contains exactly Adnin.exe. The program embeds its Lunar and
 Badlion/Vanilla DLL payloads, icon and third-party notices. No Forge installation,
@@ -13,214 +13,25 @@ Updating
    result stays open and offers Export log. The red dot closes either result.
 4. In game, use /config to open the menu.
 
-New in v22
-- Protect the native input-hook chain from repeated installation above another
-  component and defer DLL release while a live callback chain still depends on it.
-- Accept the End unload shortcut only after release and a new press in focused
-  gameplay with no open GUI. Background/menu presses cannot request unload.
-  Once accepted, releasing End does not cancel safe-unload completion.
-- Cancel stale slider drags on close/release/resize, preserve the closing fade
-  across resize, and restore the previous keyboard-repeat state on menu close.
-- Show successful injection notifications without activating their window.
-- Avoid converting chat history after the boundary already discarded by the
-  original consumer; preserve first-record and same-counter update behavior.
-- Reuse unchanged overlay-column settings and bounded menu text/geometry work.
-  Game input state, render order, priorities, frame limits and detection sampling
-  frequency remain unchanged. Offline savings do not establish live FPS gains.
-- Restrict Lunar automatic /locraw queries to confirmed Bed Wars pre-game
-  waiting/countdown rooms. Main lobbies, active games and Replay cannot arm a
-  query. Recheck the current phase before sending; preserve relay support.
-- Retire delayed Urchin work after leaving a match so closing /config in a
-  lobby cannot start new roster requests. Completed cross-match caches remain.
-- Replace Legit Scaffold with the reviewed Mellow Eagle crouch/swing model.
-  Consume each fresh action once; preserve the existing switch, teammate/Nick
-  and Replay filters, alert interval and independent Scaffold calculation.
-- Reuse Anticheat sample buffers and avoid unnecessary team-name formatting
-  allocations. Detection frequency is unchanged. Offline allocation gains are
-  documented separately from real-game FPS and process-memory measurements.
-- Automatically monitor the injected game from a hidden background process.
-  An abnormal exit exports Adnin-crash-*.log to the system Desktop, including
-  available sanitized diagnostic excerpts. Normal exits create no report.
-  No extra window, memory dump or server upload is used. Keep the new EXE as
-  the injection entry point; replacing only a DLL does not start this monitor.
-- Fix own server Nick masking the local player's actual team color. The shared
-  teammate filter uses current linked Tab/scoreboard evidence and match-scoped
-  caching. Replay filtering uses the admitted recorded player name.
-- Replace legacy Skin hash-learning with bounded, cached Mellow texture-owner
-  resolution and default Nick-skin exclusions. No extra API or Forge is needed.
-  Shared/default/missing skin data cannot reliably reveal who is playing.
-- Keep Player Data, Nick/Denick, Tags and Anticheat Output separate; fix queue
-  overflow deduplication and first-message loss after enabling Output.
-- Reduce repeated option parsing, tag rendering allocations and native output
-  parsing outside a game/Replay. See the source verification notes for limits.
-- All personal key and Bot URL defaults remain blank. Local saved settings are
-  never embedded into the standalone executable.
-
-Historical v21 changes
-- The menu displays v21 beside the red Adnin title.
-- Anticheat runs only in a game or Replay. Lobbies and pre-game waiting rooms
-  stop player sampling, alerts, sounds, party-output events and automatic reports.
-  Leaving that scope clears detection evidence; returning starts fresh samples.
-  ClientSideSounds stays independent, and report cooldowns are preserved.
-- Party Detector IDs now requests its missing Lunar server mode automatically
-  after entering a world or re-enabling the feature. It waits 500 ms, allows at
-  most one attempt per context/enable cycle and spaces attempts by five seconds.
-  Official domains and custom relay connections with the visible Hypixel
-  scoreboard footer are supported; no personal relay address is embedded.
-  Invisible Unicode scoreboard row identifiers are recognized using the current
-  font, while visible extra text and unrelated domains remain excluded.
-  Badlion/Vanilla retains its original mode query.
-- The stability review and measured offline verification are documented in
-  the source project's verification notes. Restart before loading this update.
-- Sound-hook installation and cleanup no longer accumulate repeated tasks;
-  stable connections reuse their discovered channel. Replay scoreboard scans
-  are limited to once per 50 ms without delaying context-change cleanup.
-- Spawn packets reuse a bounded accessor cache, reducing repeated reflection
-  and missing-alias exceptions during player-spawn bursts.
-- User-saved keys and Bot URLs are local settings; they are not embedded in the
-  standalone EXE. All personal credential and Bot URL defaults remain empty.
-
-Historical v20 changes
-- Fixed the packet observer's synchronous pipeline removal, which was confirmed
-  to deadlock the client task queue against a Netty EventLoop in a frozen v19
-  Lunar process. Pipeline updates now run asynchronously on their EventLoop.
-- Reuse the observer on the same connection; bound pending update work and
-  reject stale installation tasks after connection changes or shutdown.
-- Disable observations on shutdown while preserving packet/event forwarding.
-  Native unload is deferred while a previously admitted observation is active.
-  If End is released before that observation returns, press End again to retry
-  unloading. No client-thread wait for the Netty EventLoop is introduced.
-- v20 requires restarting a game that already loaded an older DLL. It cannot
-  repair the existing frozen process through reinjection.
-- Diagnosis used the live frozen v19 process. v20 then passed the runtime
-  handshake in a fresh Lunar process; the user confirmed its menu and movement,
-  and six samples over 50 seconds retained a responsive window and advancing
-  heartbeat. This limited check does not prove long-session stability. See the
-  verification notes for the packet-observer trigger and untested scenarios.
-- Personal keys, Bot URLs, local settings and process diagnostics are not part
-  of the standalone EXE or distribution archives.
-
-Historical v19 changes
-- Urchin uses the Seraph-style cross-match cache: successful and empty
-  responses last ten minutes, failures cool down for 45 seconds, and refreshes
-  happen only at a detected game entry. Completed content and valid in-flight
-  requests survive world changes. Key changes retire pending work but preserve
-  completed content; new requests use the current key.
-- Bot Denicker keeps verified matches and explicit no-result responses for ten
-  minutes, and transport/account-verification failures for 45 seconds. These
-  results survive matches and worlds. Changing the Bot URL or toggle clears them.
-- Replay profile lookup caches verified identities and confirmed [NICK] results
-  for ten minutes; failures use 45 seconds. Native Skin and Number Denicker
-  caches already survive matches, and keep their original cache lifetimes.
-- Team recognition uses your displayed nametag color, even when you use a
-  server Nick. A different self Tab UUID is linked only by a unique visible
-  name; your self identity stays separate from teammates. Confirmed teammate
-  decisions remain fixed for this match and reset for the next match/context.
-  Missing or ambiguous identity/color evidence is not guessed.
-- Output is gated to game or Replay and is split into Player Data, Nick /
-  Denick, Seraph / Urchin Tags and Anticheat. All four default off. Tag Output
-  has Include Self and Include Teammates switches, both initially on.
-- Leaving a game/Replay discards queued party messages. Verified cached Bot
-  results can announce once per eligible match without another HTTP request.
-- Replay roster helpers reuse bounded scratch collections and reduce recurring
-  regex work; fresh negative Bot cache entries avoid duplicate lookup hints.
-  These are code/fixture improvements, not a measured live FPS guarantee.
-- v19 verification is offline. This pass did not inject a live game, make API
-  requests, or send party messages/report commands.
-
-Historical v18 changes
-- Fixed a discarded JNI Future reference in the Lunar scheduler.
-- Added a narrow process-exit guard for the native CRT thread-destructor path.
-  Explicit module unload still uses its original cleanup.
-- Reused UI direct buffers and released textures on menu close, world change
-  and explicit unload. Optional cleanup failures no longer abort HUD ticks.
-- Stopped optional API/Replay workers on unload and prevented late results from
-  repopulating cleared queues. Cross-match Urchin content has an extra budget.
-- Reduced temporary allocations when loading embedded Java helpers.
-- All credentials and personal Bot URL defaults remain blank. Saved game-local
-  settings may be reused on this PC; they are not embedded in the EXE.
-- The v18 build was not injected into a live game during the crash
-  investigation. Offline stress checks do not prove the reported crash resolved.
-
-Previous v17 changes
-- Fixed inherited OpenGL state causing jagged and comb-like rounded edges.
-- Settings > Interface: UI Scale (70-140%) and English / Simplified Chinese /
-  Traditional Chinese. The language preference also applies to injector results.
-- Direct Hypixel requests use the current UUID endpoint and API-Key header.
-  Failed cache entries expire when the configuration is edited.
-- Replaced only Scaffold with Mellow's logic; existing other checks remain.
-- Hypixel returned HTTP 429 during the online check with a long Retry-After.
-  The interface repair does not remove service quotas or validate a limited key.
-- Live client verification was interrupted by Escape before v17 injection.
-  Consult verification notes before treating all gameplay features as tested.
-
-Previous v16 changes
-- The settings panel has smooth system fonts, rounded controls, animated
-  navigation/switches/scrolling, opening and closing transitions, and a red
-  close button. It scales to fit the viewport without hidden clickable rows.
-- Full Replay Tab names take priority over short profile aliases, including
-  names split across formatting codes or scoreboard-team suffixes.
-- Blank Hypixel keys no longer silently choose a proxy. Vega Proxy must be
-  explicitly enabled for proxy statistics and ping. Settings show the selected
-  source or missing key. Existing cached statistics can remain visible.
-- Number's separate key now updates when the visible key is changed or cleared.
-  Requests accepted before configuration synchronization may still complete.
-- Fresh defaults contain no API keys or personal Bot URL. Existing user-local
-  saved settings are separate from the EXE and are not included in the package.
-- Complete build, offline Replay/API tests, 171 actual UI interaction checks
-  and 106 real OpenGL pbuffer checks passed. v16 live injection is unverified.
-
-Retained v15 changes
-- Replay uses the normal red [NICK] display for an explicit absent-account
-  result. Timeouts, API errors and pending requests remain placeholders.
-- Existing Skin, Number and Bot Denicker paths also support confirmed Replay
-  Nick rows. Resolved account statistics do not replace the recorded actor UUID.
-- Anticheat matches normalized Replay names and raw aliases even with colored
-  names or extra display suffixes. Nick eligibility does not require successful
-  account lookup. Replay detections never generate WDR commands.
-- v15 introduced independently controlled Output categories. v19 separates
-  Nick / Denick from Player Data, producing four main switches. Messages use
-  /pc; turning a category off removes its pending fragments.
-- Number Denicker lock contention is addressed in the native runtime. Exact
-  coverage and measured versus offline evidence are listed in the verification
-  report; unresolved or unavailable results remain pending for later refresh.
-
-Retained v14 changes
-- Formatted Replay profile names now use the same normalized lookup key as
-  the native Tab rows. This repairs the v13 live case admitting only one player.
-- Current Tab/world identity and ambiguity checks remain; normal-game bot
-  filtering is unchanged. Live verification status is in 验证状态.md.
-
-Retained v13 changes
-- Repairs the native Replay branch that skipped statistics and showed blanks.
-  Current Tab account names are resolved asynchronously to verified online UUIDs.
-  The replay-bot UUID, GameProfile, name and team are not rewritten.
-- Anticheat matches current replay actors by recorded Tab identity even when
-  their entity, profile and Tab UUIDs differ. Ordinary-game bot filters remain.
-- Alert/report cooldowns survive setting changes and temporary actor churn.
-  Automatic report commands are also limited per player across detector types.
-- Five-block-or-larger Replay jumps reset evidence. Replay NoFall cannot reliably
-  distinguish a 5-40-block seek, so those cases are suppressed; live NoFall remains.
-  Use 1x playback for detection checks. Historical actors cannot generate WDR.
-- Upstream RavenBS-Plus-Plus still has exactly the same five detector types.
-- Sanitized local status now shows Replay and Anticheat counters without player
-  identities, credentials, URLs or raw errors. No personal settings are packaged.
-
-Retained v12 changes
-- Removed Add cheaters as enemy, its saved-setting behavior and the bottom menu
-  watermark. The license is still included in source and embedded in the EXE.
-- Flag interval now has dedicated minus/plus buttons. Disabled controls and
-  the 0/60-second bounds are shown correctly, including when the panel scrolls.
-- A visible sidebar title or row containing replay (case/format insensitive)
-  also permits the overlay. It follows the selected team-color sidebar and the
-  last 15 visible rows. Hidden rows and the Tab objective do not activate Replay.
-  The stats overlay still follows the current eligible Tab roster; it does not
-  insert absent actors from stale Prequeue chat-name caches.
-- Detector sampling uses the real game-tick callback independently of the
-  Session Stats display switch. Frame/scheduled callbacks cannot consume it first.
-- Legit Scaffold associates a fresh sneak edge with a nearby new swing cycle,
-  repairing the phase-0 versus phase-1 timing gap. Three consecutive matching
-  cycles, a held block and the downward-pitch condition remain required.
+New in v23
+- Cache positive teammate names and UUIDs for the current match. Temporary
+  respawn/spectator states, Tab disappearance, entity replacement and a local
+  entity tick reset do not erase an already confirmed teammate.
+- Never use light gray `§7` as a self or teammate color. A teammate already
+  confirmed earlier in the same match remains cached while briefly gray.
+- Pause all five Anticheat checks and new queries/denick work for light-gray
+  players. Suppress their new local/party announcements; retain known player
+  data, Nick/Denick identity, tags and teammate decisions across gray respawns.
+  Party IDs ignores newly observed gray players without erasing earlier groups.
+  White `§f` and dark gray `§8` are not light gray.
+- Repair Lunar Party Detector IDs recovery: only a successful `/locraw` send
+  completes the cycle; transient missing-player/sidebar/sender failures can
+  retry up to three times with five seconds between attempts and a fresh 500 ms
+  waiting-room check. Lobby, active game and Replay restrictions remain.
+- The settings header now displays `v23`.
+- Ping now uses the public Aurora v2 endpoint under the existing API Proxy
+  switch. No Ping API key is sent. The current asynchronous worker/cache are
+  retained: completed results 10 minutes, request failures 45 seconds.
 
 Anticheat:
 - Exposes Autoblock, NoFall, NoSlow, Scaffold and Legit Scaffold. Four checks

@@ -50,7 +50,9 @@ EVIDENCE_FILES = ('bridge-tests.txt', 'denicker-tests.txt', 'java-tests.txt',
                   'output-cache-team-v19.md', 'lunar-hang-v20.md',
                   'stability-performance-v21.md', 'nick-skin-output-v22.md',
                   'lobby-eagle-crash-v22.md', 'input-performance-v22.md',
-                  'input-hook-review-v22.md', 'native-chat-prune-v22.md')
+                  'input-hook-review-v22.md', 'native-chat-prune-v22.md',
+                  'party-query-recovery-v23.md', 'team-cache-v23.md',
+                  'gray-player-policy-v23.md', 'ping-source-v23.md')
 PRIVATE_NAMES = {
     'toggles.json', 'adnin-features.properties', 'adnin-runtime-status.properties',
     'options.txt', 'accounts.json', 'launcher_accounts.json', 'credentials.json',

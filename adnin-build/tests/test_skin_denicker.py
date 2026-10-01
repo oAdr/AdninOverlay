@@ -30,18 +30,24 @@ FIXTURES = {
  }''',
  'net/minecraft/client/network/NetworkPlayerInfo.java': '''package net.minecraft.client.network;
  public final class NetworkPlayerInfo {
+  public boolean lightGray;
   private final com.mojang.authlib.GameProfile profile;
   public NetworkPlayerInfo(com.mojang.authlib.GameProfile p){profile=p;}
   public com.mojang.authlib.GameProfile getGameProfile(){return profile;}
  }''',
  'AdninFeatures.java': '''public final class AdninFeatures {
   static boolean active=true, accept=true;
+  static final java.util.Set<String> ignored=new java.util.HashSet<String>();
+  public static boolean shouldIgnorePlayer(String name){return name!=null&&ignored.contains(name.toLowerCase(java.util.Locale.ROOT));}
   static final java.util.List<String> messages=new java.util.ArrayList<String>();
   public static boolean outputContextAllowed(){return active;}
   public static boolean skinResolved(String nick,String real){
    if(Thread.holdsLock(AdninSkinDenicker.class)) throw new AssertionError("Skin lock held across Features callback");
    if(!accept)return false;messages.add(nick+"|"+real);return true;
   }
+ }''',
+ 'AdninMatchTeams.java': '''public final class AdninMatchTeams {
+  public static boolean isLightGray(net.minecraft.client.network.NetworkPlayerInfo info){return info!=null&&info.lightGray;}
  }''',
  'AdninReplay.java': '''public final class AdninReplay {
   static boolean replay;

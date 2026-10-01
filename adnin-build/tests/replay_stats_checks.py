@@ -236,6 +236,7 @@ def execute(test, final, report, profile, nasm):
             raw_name = name+bytes(16-len(name)) if len(name)<16 else struct.pack('<QQ', ctypes.addressof(storage), 0)
             row_bytes = raw_name+struct.pack('<QQ', len(name), 15 if len(name)<16 else 31)
             ctypes.memmove(ctypes.addressof(row)+0x40, row_bytes, 32)
+            struct.pack_into('<I',row,0x94,kwargs.get('color',0xffffff))
             old_row = row.raw
             snapshot = (ctypes.c_uint64*10)()
             invoke(ctypes.addressof(row), None if kwargs.get('noEnv') else env_ptr, ctypes.addressof(snapshot))
@@ -310,6 +311,25 @@ def execute(test, final, report, profile, nasm):
                     names = run_case(mode=mode, ready=[spec['ready'][ready_index]] if ready else [], cacheHit=hit)
                     test.assertEqual([v for v in names if v in ('lock','queue','unlock','get','format','destroy')],
                         ['lock','queue','unlock','get']+(['format'] if ready and hit else [])+['destroy'])
+        for mode,ready_index in ((0,0),(1,0),(2,1),(3,2),(4,2)):
+            for ready,hit in ((True,1),(False,1),(True,0)):
+                with test.subTest(profile=profile,grayMode=mode,ready=ready,hit=hit):
+                    names=run_case(color=0xaaaaaa,mode=mode,
+                        ready=[spec['ready'][ready_index]] if ready else [],cacheHit=hit)
+                    test.assertEqual([v for v in names if v in ('lock','queue','unlock','get','format','destroy')],
+                        ['get']+(['format'] if ready and hit else [])+['destroy'],
+                        'gray keeps cached stats rendering and skips queue/locks even for a cache miss')
+            with test.subTest(profile=profile,grayNickMode=mode):
+                names=run_case(color=0xaaaaaa,profile='NICK',mode=mode)
+                test.assertEqual(names.count('nick'),1,'gray retains the known Nick label')
+                for forbidden in ('lock','queue','unlock','get','format','destroy'):
+                    test.assertNotIn(forbidden,names)
+        for color in (0x555555,0xffffff,0xff5555,0,0xaaaaa9,0xaaaaab,0xffaaaaaa):
+            with test.subTest(profile=profile,resumedColor=hex(color)):
+                names=run_case(color=color)
+                test.assertEqual([v for v in names if v in ('lock','queue','unlock','get','format','destroy')],
+                    ['lock','queue','unlock','get','format','destroy'],
+                    'all non-light-gray colors retain ordinary request and cached rendering behavior')
         names = run_case(name=b'1234567890123456')
         test.assertIn('format', names, '16-character heap-backed profile name works')
         names = run_case(lockError=5)

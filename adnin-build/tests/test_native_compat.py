@@ -32,6 +32,7 @@ import game_state_checks
 import skin_policy_checks
 import input_hooks_checks
 import chat_poll_prune_checks
+import player_policy_checks
 
 parser = argparse.ArgumentParser(add_help=False)
 parser.add_argument('--input', type=Path, required=True)
@@ -64,6 +65,10 @@ def fixture():
 
 
 class CompatPETests(unittest.TestCase):
+    def test_gray_query_guards_preserve_cached_state_pending_results_and_abi(self):
+        player_policy_checks.verify(self,self.before,self.final,self.report,'vanilla')
+        player_policy_checks.execute(self,self.final,self.report,'vanilla',ARGS.nasm)
+
     def test_chat_poll_pruning_preserves_consumer_boundary_abi_refs_and_chained_unwind(self):
         chat_poll_prune_checks.verify(self,self.before,self.final,self.report,'vanilla')
         chat_poll_prune_checks.execute(self,self.final,self.report,'vanilla',ARGS.nasm)
@@ -143,9 +148,9 @@ class CompatPETests(unittest.TestCase):
         self.assertEqual(report, self.report)
 
     def test_registration_unload_guard_and_all_feature_hooks(self):
-        self.assertEqual(len(self.report['hooks']), 29)
+        self.assertEqual(len(self.report['hooks']), 29 + len(bridge.native_player_policy.FUNCTIONS))
         self.assertEqual({h['callback'] for h in self.report['hooks']},
-                         {'plain', 'plainDenick', 'jsonDenick', 'plainTags', 'jsonTags', 'plainLocal', 'gameActive', 'prelayout', 'render', 'seraphPrefix', 'denicker', 'matchStart', 'columnCatalog', 'replayStats', 'replayUuidCopy', 'numberGetLock', 'numberRegisterLock', 'numberPopLock', 'apiPingProxy', 'hypixelHttp', 'apiRefreshFailures', 'registerClientTick', 'stopClientPumpBeforeUnload'})
+                         {'plain', 'plainDenick', 'jsonDenick', 'plainTags', 'jsonTags', 'plainLocal', 'gameActive', 'prelayout', 'render', 'seraphPrefix', 'denicker', 'matchStart', 'columnCatalog', 'replayStats', 'replayUuidCopy', 'numberGetLock', 'numberRegisterLock', 'numberPopLock', 'apiPingProxy', 'hypixelHttp', 'apiRefreshFailures', 'registerClientTick', 'stopClientPumpBeforeUnload'} | set(bridge.native_player_policy.FUNCTIONS))
         for item in self.report['hooks']:
             expected = bridge.call_bytes(item['callRva'], item['bridgeTargetRva'])
             self.assertEqual(self.pe.get_data(item['callRva'], 5), expected)
@@ -189,7 +194,11 @@ class CompatPETests(unittest.TestCase):
         hook = next(h for h in self.report['hooks'] if h['callRva'] == 0x89819)
         self.assertEqual((hook['originalTargetRva'], hook['callback']), (0x39f40, 'plainDenick'))
         self.assertEqual(before.get_data(0x89819, 5), bytes.fromhex('e82207fbff'))
-        for rva, expected in ((0x894f8, 'e80337020084c00f8430030000'),
+        gate = next(h for h in self.report['hooks'] if h['callRva'] == 0x894f8)
+        self.assertEqual(gate['callback'], 'grayLegacySuccess')
+        self.assertEqual(before.get_data(0x894f8, 5), bytes.fromhex('e803370200'))
+        self.assertEqual(self.pe.get_data(0x894f8, 5), bridge.call_bytes(0x894f8, gate['bridgeTargetRva']))
+        for rva, expected in ((0x894fd, '84c00f8430030000'),
                               (0x89806, '4c8d8df02500004d8b4608488b542458498bcd'),
                               (0xacdb5, '80bfc202000000'), (0xacdbe, '837f3003'),
                               (0xacdc4, '48837f7000'), (0xacdcb, 'c687c202000000')):

@@ -238,8 +238,11 @@ replay_stats:
     mov qword [rsp+0x68], 0
     mov qword [rsp+0x70], 36
     mov qword [rsp+0x78], 63
+    cmp dword [rbx+0x94], 0xaaaaaa
+    je .cached_only
     lea rcx, [rsp+0x60]
     call replay_stats_queue
+.cached_only:
     ; Construct every empty native string with SSO capacity 15. A zero
     ; capacity can make the original short-string assignment allocate a
     ; heap pointer while still tagging its destination as inline storage.

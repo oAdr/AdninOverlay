@@ -1,4 +1,40 @@
-# Adnin build v22
+# Adnin build v23
+
+## v23 teammate cache and Lunar Party Detector recovery
+
+Teammate identities are now cached for the current match by name and UUID.
+Temporary respawn/spectator states, Tab disappearance, entity replacement and
+the local entity tick counter restarting no longer discard a positive teammate
+decision. Light gray `§7` is never used as a team color for self or teammates;
+an already confirmed teammate remains cached while briefly gray. Match, world,
+connection, local identity and Replay transitions still clear the cache.
+
+Light-gray player handling also pauses all five Anticheat checks, new player
+queries and Nick/Denick work, tag announcements and their queued Output.
+Known teammate, identity and tag state is retained while a player temporarily
+turns gray on respawn. Native query gates preserve cached statistics and base
+Tab rows. Party IDs skips new observations already identified as gray without
+retracting an earlier accepted group. Dark gray `§8` and white `§f` are allowed.
+
+Ping now uses Aurora's public v2 Ping endpoint. It sends the player's UUID and
+no API key, and retains the existing API Proxy opt-in, native background worker,
+10-minute completed-response cache and 45-second request-failure retry cache.
+Ping is the first `avg` value; PingVar is `max(avg) - min(avg)`. The Number
+Denicker key setting remains independent of this public Ping endpoint.
+
+Lunar Party Detector IDs now completes a cycle only after `/locraw` is actually
+sent. A transient missing player, changed pre-game sidebar or sender failure can
+recover in the same world, with at most three attempts, five seconds between
+actual attempts, and a fresh 500 ms waiting-room check for each retry. Lobby,
+active-game and Replay scope restrictions remain. The native mode parser and
+entity-ID grouping algorithm is unchanged.
+
+The settings header displays `v23`. Build with
+`Build.ps1 -BuildDirectory build-v23-gray-policy`; package with
+`python scripts/package.py --build build-v23-gray-policy --version v23`.
+See `evidence/team-cache-v23.md`, `evidence/party-query-recovery-v23.md`,
+`evidence/gray-player-policy-v23.md`, `evidence/ping-source-v23.md` and `验证状态.md` for the focused
+checks and live-validation limits.
 
 ## v22 input safety and equivalent-work reduction
 
@@ -19,7 +55,7 @@ Tab/local-command handling remains enabled according to its existing options.
 Build with `Build.ps1 -BuildDirectory build-v22-input-perf`; package with
 `python scripts/package.py --build build-v22-input-perf --version v22`.
 See `evidence/input-performance-v22.md`, `evidence/input-hook-review-v22.md`
-and `verification.md` for verification and the limits of offline performance results.
+and `验证状态.md` for verification and the limits of offline performance results.
 Restart a game containing an older payload before loading this follow-up.
 
 ## Previous v22 lobby, Legit Scaffold and crash-diagnostic follow-up
@@ -141,7 +177,7 @@ it is not a claim that every possible client crash has been resolved.
 The new regression uses real registered Netty 4.0.23 channels and reproduces
 the task-monitor interleaving. The old v19 bytecode fails the controlled test;
 the corrected implementation passes on Java 8 and Java 17. See
-`evidence/lunar-hang-v20.md` and `verification.md` for exact test boundaries.
+`evidence/lunar-hang-v20.md` and `验证状态.md` for exact test boundaries.
 The frozen game was inspected read-only. v20 was subsequently loaded into a
 fresh Lunar 1.8.9 process: the runtime handshake passed, the user confirmed the
 menu and movement work, and six samples over 50 seconds showed an advancing
@@ -302,7 +338,7 @@ Seraph / Urchin Tags, and Anticheat. Nick, Bot, Skin and Number results are
 controlled by Nick / Denick. Fresh installations default all four off. Output
 uses `/pc` and retains the packet-size splitting rules described below.
 
-See `evidence/replay-denick-output-v15.md` and `verification.md` for exact verification
+See `evidence/replay-denick-output-v15.md` and `验证状态.md` for exact verification
 scope, the Number Denicker contention repair and remaining live-test limits.
 Build with `Build.ps1 -BuildDirectory build-v15`, then package with
 `python scripts/package.py --build build-v15 --version v15`.
@@ -317,13 +353,13 @@ formatted raw profile names. v14 removes valid Minecraft format codes before
 validating names and publishing the native lookup key. Conflicting names after
 normalization remain excluded. No ordinary-game profile filter or native ASCII
 gate was relaxed. Three anonymous profile counters support live diagnosis.
-See `evidence/replay-format-v14.md` and `verification.md` for current status. The v13
+See `evidence/replay-format-v14.md` and `验证状态.md` for current status. The v13
 implementation history below remains applicable with this name-key correction.
 The following sections describe the earlier implementation history.
 
 This project builds one distributable `Adnin.exe` targeting Windows x64 Minecraft **1.8.9**, with client selection for Lunar Client, Badlion Client and Vanilla Minecraft. The EXE embeds two runtime DLLs: the Lunar payload and a vanilla-obfuscated compatibility payload shared by Badlion and Vanilla. It verifies the selected payload and extracts it to a local application-data cache identified by its content hash. The injector is C++20; the 2,493 recovered Lunar native functions remain editable NASM, alongside the compatibility native image, added Java feature code and NASM JNI bridges. This is **not a complete recovered C++ rewrite**.
 
-See `verification.md` for v19 automated checks and runtime verification limits, and the release manifest for final artifact hashes. Earlier repairs to the native Replay statistics path, recorded account identities and actor eligibility remain included. Static ABI, signed-classloader and offline fixture checks do not establish live game behavior. Prior release game/API/window evidence remains historical.
+See `验证状态.md` for v19 automated checks and runtime verification limits, and the release manifest for final artifact hashes. Earlier repairs to the native Replay statistics path, recorded account identities and actor eligibility remain included. Static ABI, signed-classloader and offline fixture checks do not establish live game behavior. Prior release game/API/window evidence remains historical.
 
 ## Historical changes in v13
 

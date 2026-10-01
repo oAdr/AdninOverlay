@@ -180,12 +180,13 @@ class DenickerExecutionTests(unittest.TestCase):
         value = self.h.string(text)
         ctypes.memmove(target, value, 32)
 
-    def run_denicker(self, name='isa5', uuid=NICK_UUID, mode=0):
+    def run_denicker(self, name='isa5', uuid=NICK_UUID, mode=0, color=0xffffff):
         row = ctypes.create_string_buffer(0x178)
         result = ctypes.create_string_buffer(0x168)
         self.h.keep.extend((row, result))
         self.assign_string(ctypes.addressof(row) + 0x40, name)
         self.assign_string(ctypes.addressof(row) + 0x148, uuid)
+        struct.pack_into('<I',row,0x94,color)
         before = bytes(row)
         ctypes.c_ubyte.from_address(self.h.base + 0x1a63b8).value = mode
         caller = ctypes.WINFUNCTYPE(ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p)(self.h.base + 0x1100)
@@ -253,6 +254,59 @@ class DenickerExecutionTests(unittest.TestCase):
         self.assertEqual(self.read_string(ctypes.addressof(result) + 0x20), self.original_name)
         self.assertFalse(self.calls('profile'))
         self.assertFalse(self.calls('queue'))
+
+    def test_gray_denicker_reads_known_identity_stats_without_enqueuing(self):
+        for mode in (0,1):
+            for ready in (8,0x60,0xa0):
+                with self.subTest(mode=mode,ready=ready):
+                    self.replay_nick=1
+                    self.ready_mode=ready
+                    self.native_events.clear()
+                    returned,result=self.run_denicker(mode=mode,color=0xaaaaaa)
+                    self.assertEqual(returned,1)
+                    self.assertEqual(self.calls('cache'),[('cache',UUID)])
+                    self.assertEqual(self.read_string(ctypes.addressof(result)+0x20),'Adnin')
+                    self.assertEqual(result.raw[:3],b'\1\0\0')
+                    self.assertEqual(result.raw[0x160],1)
+                    self.assertEqual(self.calls('candidates'),[('candidates','Adnin',1)])
+                    for forbidden in ('register','queue','replay-queue','lock','unlock'):
+                        self.assertFalse(self.calls(forbidden),forbidden)
+
+    def test_gray_denicker_keeps_number_result_and_never_invents_missing_stats(self):
+        self.replay_nick=1
+        for mode in (0,1):
+            with self.subTest(mode=mode,number=True):
+                self.original_name='NativeIdentity'
+                self.original_return=1
+                self.native_events.clear()
+                returned,result=self.run_denicker(mode=mode,color=0xaaaaaa)
+                self.assertEqual(returned,1)
+                self.assertEqual(self.read_string(ctypes.addressof(result)+0x20),'NativeIdentity')
+                for forbidden in ('profile','register','queue','replay-queue','cache','published'):
+                    self.assertFalse(self.calls(forbidden),forbidden)
+            self.original_name,self.original_return='',0
+            for found,flag in ((False,8),(True,None)):
+                with self.subTest(mode=mode,found=found,flag=flag):
+                    self.cache_found,self.ready_mode=found,flag
+                    self.native_events.clear()
+                    returned,result=self.run_denicker(mode=mode,color=0xaaaaaa)
+                    self.assertEqual(returned,0)
+                    self.assertEqual(result.raw[0],0)
+                    self.assertEqual(result.raw[0x160],0)
+                    self.assertEqual(self.calls('cache'),[('cache',UUID)])
+                    for forbidden in ('register','queue','replay-queue','lock','unlock','published'):
+                        self.assertFalse(self.calls(forbidden),forbidden)
+
+    def test_gray_denicker_resumes_enqueue_only_after_color_recovers(self):
+        self.replay_nick=1
+        for mode in (0,1):
+            for color in (0xaaaaaa,0xffffff,0x555555,0xff5555,0,0xaaaaa9,0xaaaaab,0xffaaaaaa):
+                with self.subTest(mode=mode,color=hex(color)):
+                    self.native_events.clear()
+                    self.assertEqual(self.run_denicker(mode=mode,color=color)[0],1)
+                    work=[e[0] for e in self.native_events if e[0] in ('register','queue','replay-queue','lock','unlock')]
+                    self.assertEqual(work,[] if color==0xaaaaaa else
+                        ['register','queue'] if mode==0 else ['lock','replay-queue','unlock'])
 
     def test_legacy_skin_identity_is_retired_and_native_setting_reaches_mellow(self):
         self.skin_enabled = True

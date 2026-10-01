@@ -5,6 +5,11 @@ public class AdninClientPump
 implements Runnable {
     @Override
     public void run() {
+        try {
+            AdninFeatures.refreshIgnoredPlayers(net.minecraft.client.Minecraft.getMinecraft());
+        } catch (Exception | LinkageError unavailable) {
+            // Optional read-only roster work cannot interrupt the native pump.
+        }
         AdninClientPump.nativeClientPump();
         try {
             AdninFeatures.tick();

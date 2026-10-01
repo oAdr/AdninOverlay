@@ -6,6 +6,10 @@ dd api_key_ready-$$, api_key_ready_end-$$, api_key_ready_unwind-$$
 dd api_uuid_ready-$$, api_uuid_ready_end-$$, api_uuid_ready_unwind-$$
 dd api_ping_proxy-$$, api_ping_proxy_end-$$, api_ping_proxy_unwind-$$
 
+db 'ADNPURL1'
+dd aurora_ping_url-$$
+aurora_ping_url: db 'https://bordic.xyz/api/v2/resources/ping?uuid=',0
+
 api_key_ready:
     ; AL = whether the string contains a byte above ASCII space. This rejects
     ; empty/whitespace-only input even before the GUI has normalized the field.
@@ -54,7 +58,7 @@ align 4, db 0
 api_uuid_ready_unwind: db 1, 0, 0, 0
 
 api_ping_proxy:
-    ; Ping has its own third-party endpoint. It needs the same explicit
+    ; Aurora Ping has its own public endpoint and sends no API key. It needs the same explicit
     ; proxy opt-in; without it the existing caller sees ordinary no-result.
     cmp byte [rel $$-CODE_RVA+API_PROXY_RVA], 0
     jne .enabled

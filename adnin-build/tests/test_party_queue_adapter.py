@@ -51,9 +51,12 @@ FIXTURES = {
     public final class FontRenderer { public int getStringWidth(String s) { return s.length() == 1 && Character.isSurrogate(s.charAt(0)) ? 0 : s.length(); } }''',
     'net/minecraft/client/entity/EntityPlayerSP.java': '''package net.minecraft.client.entity;
     public final class EntityPlayerSP {
-        public int calls; public String message;
+        public int calls, failures; public String message;
         public String getName() { return "OwnedFixture"; }
-        public void sendChatMessage(String s) { calls++; message = s; }
+        public void sendChatMessage(String s) {
+            if (failures > 0) { failures--; throw new IllegalStateException("Owned sender fixture"); }
+            calls++; message = s;
+        }
     }''',
     'net/minecraft/scoreboard/ScoreObjective.java': '''package net.minecraft.scoreboard;
     public final class ScoreObjective { public String title = "BED WARS"; public String getDisplayName() { return title; } }''',
@@ -111,6 +114,31 @@ FIXTURES = {
                 // Keep the positive 250ms probe cache; LIVE must still inspect current rows.
                 lobby(board); AdninPartyQueueQuery.tick();
                 check(mc.thePlayer.calls == 0, "Immediate sender revalidation rejects a lobby even within the probe interval");
+                waiting(board); observe();
+                set("armedAt", System.nanoTime() / 1000000L - 501L);
+                AdninPartyQueueQuery.tick();
+                check(mc.thePlayer.calls == 0, "Rejected sender retains the five-second attempt rate limit");
+                due(); observe();
+                check(mc.thePlayer.calls == 1, "Current waiting evidence recovers after a failed live revalidation without a manual toggle");
+            } else if (mode.equals("missing-player")) {
+                waiting(board); observe(); due();
+                net.minecraft.client.entity.EntityPlayerSP player = mc.thePlayer;
+                mc.thePlayer = null; AdninPartyQueueQuery.tick();
+                check(player.calls == 0, "Missing player at the deadline cannot send");
+                mc.thePlayer = player; observe();
+                check(player.calls == 0, "A returning player begins a fresh readiness delay");
+                due(); observe();
+                check(player.calls == 1, "A returning player can still query in the same world");
+            } else if (mode.equals("sender-recovers")) {
+                waiting(board); mc.thePlayer.failures = 1;
+                observe(); due(); observe();
+                check(mc.thePlayer.calls == 0, "A temporarily failing sender does not report a successful packet");
+                observe();
+                set("armedAt", System.nanoTime() / 1000000L - 501L);
+                AdninPartyQueueQuery.tick();
+                check(mc.thePlayer.calls == 0, "Sender exceptions cannot cause immediate retry spam");
+                due(); observe();
+                check(mc.thePlayer.calls == 1, "Production sender recovers after the bounded retry delay");
             } else if (mode.equals("active") || mode.equals("replay")) {
                 waiting(board); observe(); due(); AdninFeatures.active = true; AdninPartyQueueQuery.tick();
                 check(mc.thePlayer.calls == 0, "Native active game or Replay revokes a pending query immediately");
@@ -132,6 +160,9 @@ FIXTURES = {
             } else if (mode.equals("missing-sidebar")) {
                 waiting(board); observe(); due(); board.objective = null; AdninPartyQueueQuery.tick();
                 check(mc.thePlayer.calls == 0, "A removed sidebar cannot use cached pregame authorization");
+                board.objective = new net.minecraft.scoreboard.ScoreObjective(); waiting(board);
+                observe(); due(); observe();
+                check(mc.thePlayer.calls == 1, "A sidebar restored after the due-time rejection can query in the same world");
             } else if (mode.equals("long-delay")) {
                 waiting(board); observe(); due();
                 set("armedAt", System.nanoTime() / 1000000L - 60000L);
@@ -206,7 +237,7 @@ def main():
         subprocess.run(compile_args + [str(p) for p in sources], check=True, timeout=60)
         cp = str(output) + (os.pathsep + str(args.classes.resolve()) if args.classes else '')
         scenarios = [args.scenario] if args.scenario else [
-            'lobby', 'relay-lobby', 'waiting', 'relay-waiting', 'lost-before-send',
+            'lobby', 'relay-lobby', 'waiting', 'relay-waiting', 'lost-before-send', 'missing-player', 'sender-recovers',
             'active', 'replay', 'replay-row', 'disabled', 'consumed-same-world', 'missing-sidebar',
             'long-delay', 'new-world', 'new-connection', 'foreign', 'solo', 'shutdown', 'sender']
         for scenario in scenarios:

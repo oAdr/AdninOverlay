@@ -32,6 +32,7 @@ import native_game_state
 import native_skin_policy
 import native_input_hooks
 import native_chat_poll
+import native_player_policy
 
 ROOT = Path(__file__).resolve().parents[1]
 MAGIC = b'ADNINB01'
@@ -71,6 +72,7 @@ HOOKS = (
     (0x9f1d5, 0xa9e90, 'apiRefreshFailures'),
     (0xd5d3a, 0xc270, 'lunarSchedule'),
 )
+HOOKS += tuple((site,target,name) for site,target,name,_ in native_player_policy.PROFILES['lunar'])
 # Hash of the fixed original .text with only reembed.py's verified operand
 # patches normalized to zero. This pins all other original machine code.
 TEXT_LINEAGE_SHA256 = 'c35696823c7004ce7567dbc704b4e8adf60e259f57d8f3694fe6ec230cd803cd'
@@ -81,6 +83,7 @@ FUNCTION_NAMES = ('output', 'invoke', 'string', 'layout', 'render', 'denicker', 
                   'apiKeyReady', 'apiUuidReady', 'apiPingProxy', 'hypixelHttp', 'apiDecodeComponent', 'apiRefreshFailures', 'processEntry', 'gameActive')
 FUNCTION_NAMES += native_input_hooks.FUNCTION_NAMES
 FUNCTION_NAMES += ('chatPollTail',)
+FUNCTION_NAMES += native_player_policy.FUNCTIONS
 LUNAR_FUNCTION_NAMES = FUNCTION_NAMES + ('lunarSchedule', 'lunarStop')
 LUNAR_UNLOAD_SITE = 0x150da
 LUNAR_UNLOAD_BEFORE = bytes.fromhex('ff1548a51100')
@@ -179,6 +182,13 @@ def read_metadata(payload, code_rva):
     for index,name in enumerate(('apiKeyReady','apiUuidReady','apiPingProxy')):
         begin,end,unwind = api_values[index*3:index*3+3]
         result.update({name:begin,name+'Begin':begin,name+'End':end,name+'Unwind':unwind})
+    ping_url_at = payload.find(b'ADNPURL1')
+    require(ping_url_at >= 160 and payload.find(b'ADNPURL1',ping_url_at+1)<0
+            and ping_url_at+12<=len(payload), 'Missing or ambiguous Aurora Ping URL metadata')
+    ping_url = struct.unpack_from('<I',payload,ping_url_at+8)[0]
+    require(payload[ping_url:ping_url+len(native_api_policy.AURORA_PING_URL)+1]
+            == native_api_policy.AURORA_PING_URL+b'\0', 'Invalid Aurora Ping URL')
+    result['auroraPingUrl'] = ping_url
     http_at = payload.find(b'ADNHYP01')
     require(http_at >= 160 and payload.find(b'ADNHYP01',http_at+1)<0 and http_at+44<=len(payload),
             'Missing or ambiguous Hypixel request metadata')
@@ -208,6 +218,13 @@ def read_metadata(payload, code_rva):
     for index, name in enumerate(('replayDenickGate', 'replayNickName', 'replayUuidCopy')):
         begin, end, unwind = denick_values[index * 3:index * 3 + 3]
         result.update({name: begin, name + 'Begin': begin, name + 'End': end, name + 'Unwind': unwind})
+    gray_at = payload.find(b'ADNGRY01')
+    require(gray_at >= 160 and payload.find(b'ADNGRY01',gray_at+1)<0 and gray_at+68<=len(payload),
+            'Missing or ambiguous gray-player query metadata')
+    gray_values = struct.unpack_from('<15I',payload,gray_at+8)
+    for index,name in enumerate(native_player_policy.FUNCTIONS):
+        begin,end,unwind=gray_values[index*3:index*3+3]
+        result.update({name:begin,name+'Begin':begin,name+'End':end,name+'Unwind':unwind})
     stop_at = payload.find(b'ADNLST01')
     if stop_at >= 0:
         schedule_at = payload.find(b'ADNSCH01')
@@ -302,6 +319,7 @@ def rebuild(data, nasm):
     game_state = native_game_state.reviewed_hook(pe,'lunar',rva,meta)
     skin_policy = native_skin_policy.reviewed_patches(pe, 'lunar')
     chat_poll = native_chat_poll.reviewed_patch(pe, 'lunar', rva, meta)
+    player_policy = native_player_policy.reviewed_policy(pe, 'lunar')
 
     exception = pe.OPTIONAL_HEADER.DATA_DIRECTORY[3]
     require(exception.VirtualAddress and exception.Size and exception.Size % 12 == 0,
@@ -410,7 +428,7 @@ def rebuild(data, nasm):
                   runtimeFunctionTable=dict(rva=rva + table_offset, size=len(table), count=len(functions)),
                   patches=patches, legacyAnticheat=legacy_anticheat, gameTickHook=game_tick_hook,
                   replayOverlay=replay_overlay, replayStats=replay_stats, replayDenicker=replay_denick, numberPolling=number_polling,
-                  nativeApiPolicy=api_policy, skinDenickerPolicy=skin_policy,
+                  nativeApiPolicy=api_policy, skinDenickerPolicy=skin_policy, grayPlayerPolicy=player_policy,
                   headerLocalization=header_localization, schedulerLocalReference=scheduler,
                   processTerminationGuard=process_entry, nativeGameState=game_state, nativeChatPolling=chat_poll,
                   outputRouting=output_routing(HOOKS),

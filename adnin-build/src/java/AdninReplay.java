@@ -27,6 +27,11 @@ public final class AdninReplay {
     private static final RosterCounts EMPTY_ROSTER_COUNTS = new RosterCounts();
     private static volatile RosterCounts rosterCounts = EMPTY_ROSTER_COUNTS;
     private static volatile Map<EntityPlayer, String> actors = Collections.emptyMap();
+    // Retain identity aliases while gray players temporarily pause new queries.
+    // Client-side checks can read their current authoritative Tab team
+    // without a roster scan per actor; native callers only read the names map.
+    private static volatile Map<String, String> rosterNames = Collections.emptyMap();
+    private static volatile Map<String, NetworkPlayerInfo> rosterInfos = Collections.emptyMap();
     private static final ObservationWindow observation = new ObservationWindow();
     private static Object world;
     private static long nextRoster;
@@ -66,6 +71,11 @@ public final class AdninReplay {
     /** Normalize a bounded raw Tab alias and read its current mapping without API work. */
     public static String recordedName(String rawTabName) {
         return replay ? profiles.accountName(accountKey(rawTabName)) : "";
+    }
+
+    /** Client thread only: the same bounded immutable Tab snapshot as actor admission. */
+    public static NetworkPlayerInfo playerInfo(String recordedName) {
+        return replay?rosterInfos.get(accountKey(recordedName).toLowerCase(Locale.ROOT)):null;
     }
 
     /** Original account classification only; a later Bot resolution cannot replace it. */
@@ -145,8 +155,9 @@ public final class AdninReplay {
     }
 
     private static void clearRoster() {
-        if (world != null || !actors.isEmpty()) {
-            actors = Collections.emptyMap(); profiles.publish(Collections.<String, String>emptyMap());
+        if (world != null || !actors.isEmpty() || !rosterNames.isEmpty()) {
+            actors = Collections.emptyMap(); rosterNames=Collections.emptyMap(); rosterInfos=Collections.emptyMap();
+            profiles.publish(Collections.<String, String>emptyMap());
         }
         world = null; nextRoster = 0;
         tabProfiles = 0; formattedTabProfiles = 0; validTabProfiles = 0;
@@ -181,6 +192,7 @@ public final class AdninReplay {
 
     private static void refreshActors(Minecraft mc) {
         Map<String, String> tabs = new HashMap<String, String>();
+        Map<String, NetworkPlayerInfo> tabInfos = new HashMap<String, NetworkPlayerInfo>();
         Map<String, String> candidates = new HashMap<String, String>();
         Set<String> ambiguousRaw = new HashSet<String>();
         Set<String> ambiguous = new HashSet<String>();
@@ -204,7 +216,10 @@ public final class AdninReplay {
                 valid++;
                 String name = displayedAccount(raw, display);
                 if (name.isEmpty()) continue;
-                String previous = tabs.put(AdninReplayProfiles.lower(raw), name);
+                String rawKey=AdninReplayProfiles.lower(raw);
+                if(!tabInfos.containsKey(rawKey))tabInfos.put(rawKey,info);
+                else if(tabInfos.get(rawKey)!=info)tabInfos.put(rawKey,null);
+                String previous = tabs.put(rawKey, name);
                 if (previous != null && !previous.equalsIgnoreCase(name)) {
                     ambiguousRaw.add(AdninReplayProfiles.lower(raw));
                     ambiguous.add(AdninReplayProfiles.lower(raw));
@@ -254,23 +269,40 @@ public final class AdninReplay {
             matched++;
         }
         Map<String, String> eligible = new HashMap<String, String>();
+        Set<String> paused=new HashSet<String>();
+        Map<String, String> names = new HashMap<String, String>();
+        Map<String, NetworkPlayerInfo> infos = new HashMap<String, NetworkPlayerInfo>();
         for (Map.Entry<String, String> entry : tabs.entrySet()) {
             // Tab identities remain queryable outside entity tracking distance.
             // Detection still uses the separate current-world actor map below.
-            if (!ambiguous.contains(entry.getKey())
-                    && !ambiguous.contains(AdninReplayProfiles.lower(entry.getValue())))
-                eligible.put(entry.getKey(), entry.getValue());
+            String key=entry.getKey(), value=entry.getValue(), shown=AdninReplayProfiles.lower(value);
+            if (!ambiguous.contains(key) && !ambiguous.contains(shown)) {
+                names.put(key,value);names.put(shown,value);
+                NetworkPlayerInfo info=tabInfos.get(key);
+                addRosterInfo(infos,key,info);addRosterInfo(infos,shown,info);
+                if(info!=null) {
+                    eligible.put(key,value);
+                    if(AdninMatchTeams.isLightGray(info))paused.add(shown);
+                }
+            }
         }
         for (java.util.Iterator<Map.Entry<EntityPlayer, String>> it = next.entrySet().iterator(); it.hasNext();) {
             Map.Entry<EntityPlayer, String> entry = it.next();
             if (duplicateActors.contains(AdninReplayProfiles.lower(entry.getValue()))) it.remove();
         }
         actors = Collections.unmodifiableMap(next);
-        profiles.publish(eligible);
+        rosterNames=Collections.unmodifiableMap(names);
+        rosterInfos=Collections.unmodifiableMap(infos);
+        profiles.publish(eligible,paused);
         tabProfiles = observed; formattedTabProfiles = formatted; validTabProfiles = valid;
         counts.duplicate = matched - next.size();
         counts.ambiguousTabAliases = ambiguous.size();
         rosterCounts = counts;
+    }
+
+    private static void addRosterInfo(Map<String,NetworkPlayerInfo> infos,String name,NetworkPlayerInfo info) {
+        if(!infos.containsKey(name))infos.put(name,info);
+        else if(infos.get(name)!=info)infos.put(name,null); // Never choose an ambiguous Tab row.
     }
 
     private static void addAlias(Map<String, String> candidates, Set<String> ambiguous, String alias, String account) {

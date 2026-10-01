@@ -594,6 +594,12 @@
     ],
     [
       "net/minecraft/entity/Entity",
+      "getEntityId",
+      "()I",
+      "F"
+    ],
+    [
+      "net/minecraft/entity/Entity",
       "isInLava",
       "()Z",
       "ab"

@@ -9,7 +9,7 @@ public final class AdninPartyQueueQueryTest {
         addressRules(); footerRules(); boundaries(); lateToggle(); transitions(); gates(); waitingScope(); proxyScope(); failures(); referenceLifecycle(); shutdown();
         System.out.println("AdninPartyQueueQueryTest: " + checks
             + " checks passed; 500ms boundary, explicit enable cycles, 5s throttling, mandatory waiting/domain/footer scope, 250ms probes,"
-            + " failure retirement and weak lifecycle; no game, settings, native library or network");
+            + " bounded failed-send recovery and weak lifecycle; no game, settings, native library or network");
     }
 
     private static void addressRules() {
@@ -174,29 +174,58 @@ public final class AdninPartyQueueQueryTest {
 
     private static void failures() throws Exception {
         Fixture busy = new Fixture(); busy.tick(0); busy.ready = false; busy.tick(500);
-        busy.ready = true; busy.tick(501); busy.tick(10000);
-        check(busy.sender.calls == 0, "Busy at due time consumes the attempt rather than retrying every frame");
+        busy.ready = true; busy.tick(501); busy.tick(1000);
+        check(busy.sender.calls == 0, "Missing player cancels the deadline and recovery waits a fresh 500ms");
+        busy.tick(1001);
+        check(busy.sender.calls == 1, "A transiently missing player does not permanently disable the query");
         for (int failure = 0; failure < 3; ++failure) {
             Fixture value = new Fixture(); value.sender.failure = failure + 1;
             value.tick(0); value.tick(500);
             for (int i = 0; i < 2000; ++i) value.tick(501 + i);
-            value.enabled = false; value.tick(4000); value.enabled = true; value.tick(4500); value.tick(5000);
+            value.tick(5499);
             check(value.sender.calls == 1 && value.sender.sent == 0,
-                "Busy/exception/unavailable sender never retries every frame or bypasses throttle: " + failure);
+                "False/exception/unavailable sender never retries every frame or bypasses throttle: " + failure);
+            value.sender.failure = 0;
             value.tick(5500);
-            check(value.sender.calls == 2 && value.sender.sent == 0,
-                "A genuine explicit re-enable may retry a failed cycle only after five seconds: " + failure);
+            check(value.sender.calls == 2 && value.sender.sent == 1,
+                "The same world recovers at five seconds without requiring a manual toggle: " + failure);
             value.tick(60000);
-            check(value.sender.calls == 2, "Failed re-enabled cycle remains consumed: " + failure);
+            check(value.sender.calls == 2, "A successful retry completes the current cycle: " + failure);
+
+            Fixture exhausted = new Fixture(); exhausted.sender.failure = failure + 1;
+            exhausted.tick(0); exhausted.tick(500); exhausted.tick(501); exhausted.tick(5500);
+            exhausted.tick(5501); exhausted.tick(10500); exhausted.tick(10501); exhausted.tick(60000);
+            check(exhausted.sender.calls == AdninPartyQueueQuery.MAX_ATTEMPTS && exhausted.sender.sent == 0,
+                "Persistent failure stops after the finite attempt budget: " + failure);
+            exhausted.sender.failure = 0;
+            exhausted.enabled = false; exhausted.tick(60001); exhausted.enabled = true; exhausted.tick(60002);
+            exhausted.tick(60502);
+            check(exhausted.sender.calls == AdninPartyQueueQuery.MAX_ATTEMPTS + 1 && exhausted.sender.sent == 1,
+                "An explicit re-enable may recover an exhausted budget after a fresh delay: " + failure);
         }
         Fixture read = new Fixture(); read.tick(0); read.policy.readFailed(200);
         check(!read.policy.canRead(200) && !read.policy.canRead(1199), "Failed state read has a full 1000ms backoff");
         check(read.policy.canRead(1200), "State reads resume at the exact backoff boundary");
-        read.tick(1200); read.tick(1700);
-        check(read.sender.calls == 0, "Read failure retires the current world's pending query");
+        read.tick(1200); read.tick(1699);
+        check(read.sender.calls == 0, "Read recovery requires fresh waiting evidence and a new delay");
+        read.tick(1700);
+        check(read.sender.calls == 1, "The same world recovers after a transient state-read failure");
         check((Boolean) field(read.policy, "enabledBefore"), "Read failure never invents an off/on enable transition");
-        read.world = new Object(); read.tick(2000); read.tick(2500);
-        check(read.sender.calls == 1, "A later world recovers independently from an earlier failed state read");
+        read.policy.readFailed(1800); check(read.policy.canRead(2800), "Post-success read failure also recovers after backoff");
+        read.tick(2800); read.tick(10000);
+        check(read.sender.calls == 1, "A read failure cannot rearm an already successful query");
+        read.world = new Object(); read.tick(11000); read.tick(11500);
+        check(read.sender.calls == 2, "A later world independently starts its own query cycle");
+
+        Fixture missingSender = new Fixture();
+        missingSender.policy.tick(0, missingSender.world, missingSender.connection, true, true,
+            missingSender.address, true, null, missingSender.scope);
+        missingSender.policy.tick(500, missingSender.world, missingSender.connection, true, true,
+            missingSender.address, true, null, missingSender.scope);
+        missingSender.tick(501); missingSender.tick(5499);
+        check(missingSender.sender.calls == 0, "A missing sender still consumes the bounded attempt interval");
+        missingSender.tick(5500);
+        check(missingSender.sender.sent == 1, "A sender becoming available recovers after the same rate limit");
     }
 
     private static void proxyScope() {

@@ -1,4 +1,67 @@
-# Adnin v22 verification
+# Adnin v23 verification
+
+## Current v23 gray pause, teammate cache, Party recovery and Aurora Ping
+
+The coherent `build-v23-gray-policy` completed successfully on October 1, 2026,
+with unchanged production source fingerprints throughout the build. It
+supersedes the earlier team-only v23 candidate. Game/render priorities, input
+behavior, native mode parsing, entity-ID grouping and Anticheat sampling remain
+unchanged.
+
+Light-gray name tokens pause new player detection, queries and generated
+announcements across Anticheat, tags, Nick/Denick, statistics, Ping and Party
+observations. Existing same-player identity, teammate, cached data and tag
+presentation survive a temporary gray respawn. Already accepted Party history
+is retained. White and dark gray remain eligible. Snapshot readers are
+lock-free; refresh is bounded to 250 ms and synchronized with shutdown.
+
+Positive teammate names/UUIDs survive same-match respawn and entity changes.
+The Lunar Party query can recover from missing players, sidebar rejection or
+sender failure, with at most three attempts and five seconds between attempts.
+
+Ping now uses the Aurora v2 public route with UUID and no Ping API key. The
+existing API Proxy opt-in and native worker/cache remain: completed responses
+are eligible for on-demand refresh after ten minutes; transport failures after
+45 seconds. Ping uses the first parsed `avg`; PingVar is the range of averages.
+
+Full coherent-build verification passed:
+
+- 6/6 CTests, including injector UI/cache and crash-diagnostic checks.
+- Native Lunar/compatibility suites: 78/45; reembedding 33; Denicker 18;
+  Java compatibility 13; native tick 3.
+- Complete Java suite, including Output categories 508, Bot cache 2,379,
+  resource lifecycle 8,048, Replay profiles 203 and owner-loader bootstrap.
+- Focused production adapters: teammate helper 130; Anticheat adapter 650;
+  all-five-check gray policy 166; Replay roster 154 and Replay/Anticheat 30;
+  Urchin scope 64; Skin Denicker 2,290.
+- Party-query policy 197; scoreboard scope 94; production query adapter
+  41 checks across 20 scenarios.
+- Input lifecycle, game tick, menu lifecycle and clipping/geometry equivalence
+  checks passed. Focused changed Java paths also passed on Java 8 and Java 17.
+- Native gray guards: five per profile, 120 execution cases, 15 color restores
+  and 10 unwind checks each. Cached values and one-shot results are preserved.
+- Aurora tests verify seven API policy patches, endpoint relocation, unchanged
+  native fetch/parser instructions outside the URL displacement, Proxy gating
+  and offline response-contract fixtures.
+- Package privacy regression: 36 passed; one host symlink test skipped.
+
+| Artifact | Bytes | SHA256 |
+| --- | ---: | --- |
+| Adnin.exe | 7,508,992 | `fd9115ab75d66518b0a63e5ca64a39fab096e0c9e2fba3b13b6054cc81c4de7b` |
+| Adnin.dll | 2,696,192 | `40135b2c700e5ab53e51747927bca55c594e67c3b47f854378aff71a6344e261` |
+| AdninVanilla.dll | 2,578,432 | `4452a2fd2c27ad0158d3e9a30053da0279d5d58425cf1f6cf741692fdf2ff5d7` |
+
+An independent read-only check confirms EXE resources 101 and 102 match the
+two DLLs byte-for-byte. Direct decoding of the embedded DLLs resolves Lunar
+Ping LEA `0x97ba8` to `0x28dfa6` and compatibility LEA `0x99d18` to `0x270fc6`;
+both contain the Aurora Ping URL in `.adncode`.
+
+No running game was injected or operated for this repair. Fresh Lunar/Badlion
+multiplayer, long-session performance and successful live Aurora Ping display
+remain unverified. Public route checks returned structured no-data responses;
+they do not prove a successful Ping measurement. Current build reports and
+the v23 evidence notes are authoritative; generic historical test text files
+retained in the source archive are not this build's test transcript.
 
 ## Current v22 input safety and equivalent-work reduction
 

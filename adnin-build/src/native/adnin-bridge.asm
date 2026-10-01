@@ -608,6 +608,7 @@ render_unwind:
 %include "adnin-replay.asm"
 %include "adnin-replay-stats.asm"
 %include "adnin-replay-denick.asm"
+%include "adnin-player-policy.asm"
 %include "adnin-number-poll.asm"
 %include "adnin-api-policy.asm"
 %include "adnin-process-entry.asm"

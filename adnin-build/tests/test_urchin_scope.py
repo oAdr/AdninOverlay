@@ -24,9 +24,11 @@ FIXTURES.update({
   static boolean replay;
   public static boolean isReplay(){return replay;}
   public static String recordedName(String name){return name;}
+  public static String actorName(net.minecraft.entity.player.EntityPlayer p){return p.getName();}
+  public static net.minecraft.client.network.NetworkPlayerInfo playerInfo(String name){return null;}
   public static boolean isNick(String name){return false;}
  }''',
- 'AdninSkinDenicker.java':'public final class AdninSkinDenicker { public static void tick(net.minecraft.client.Minecraft mc){} public static void clearContext(){} public static void shutdown(){} }',
+ 'AdninSkinDenicker.java':'public final class AdninSkinDenicker { public static void tick(net.minecraft.client.Minecraft mc){} public static void clearContext(){} public static void shutdown(){} static void appendIgnoredAliases(java.util.Set<String> aliases,int limit){} }',
  'net/minecraft/client/Minecraft.java':'''package net.minecraft.client;
  public final class Minecraft {
   public static Minecraft current;
@@ -73,6 +75,7 @@ public final class AdninUrchinScopeTest {
   field("currentMatch").setLong(null,100);starts().set(100);
   field("nativeGameActive").setBoolean(null,false);field("nextScan").setLong(null,0);
   field("waitingUrchin").set(null,null);
+  field("ignoredAt").setLong(null,Long.MIN_VALUE);AdninFeatures.refreshIgnoredPlayers(mc);
   return mc;
  }
  static void player(Minecraft mc,String name){
@@ -169,14 +172,93 @@ public final class AdninUrchinScopeTest {
   waiting=job("Waiting",100);requests().add(waiting);method("pollRequest").invoke(null);AdninFeatures.shutdown();
   check(field("waitingUrchin").get(null)==null&&!claim(waiting),"Shutdown clears the string-only paced reference and prevents restart");
  }
+ @SuppressWarnings("unchecked") static void grayPauses()throws Exception{
+  Minecraft mc=scene();AdninFeatures.setGameActive(true);
+  UUID id=UUID.fromString("62345678-1234-1234-8234-222222222222");
+  NetworkPlayerInfo info=new NetworkPlayerInfo(new GameProfile(id,"GrayNick"));
+  info.team=new net.minecraft.scoreboard.ScorePlayerTeam();info.team.prefix="\u00a77";
+  info.display=new net.minecraft.util.ChatComponentText("\u00a7cGrayNick");mc.connection.roster.put(id,info);
+  net.minecraft.entity.player.EntityPlayer actor=new net.minecraft.entity.player.EntityPlayer(id,info.getGameProfile(),"GrayNick");
+  actor.numericEntityId=991;mc.theWorld.playerEntities.add(actor);
+  field("ignoredAt").setLong(null,Long.MIN_VALUE);AdninFeatures.refreshIgnoredPlayers(mc);
+  check(AdninFeatures.shouldIgnorePlayer("gRaYnIcK")&&AdninFeatures.shouldIgnorePlayerId(id)
+      &&AdninFeatures.shouldIgnorePlayerEntityId(991),"Atomic gray snapshot shares nametag, UUID and entity-ID decisions");
+  check(!AdninFeatures.shouldIgnorePlayer("Unrelated")&&!AdninFeatures.shouldIgnorePlayerId(null)
+      &&!AdninFeatures.shouldIgnorePlayerEntityId(0),"Unknown identity and invalid IDs do not become excluded");
+  mc.theWorld.rejectRosterReads=true;
+  field("ignoredAt").setLong(null,System.nanoTime()/1000000L);AdninFeatures.refreshIgnoredPlayers(mc);
+  check(AdninFeatures.shouldIgnorePlayer("GrayNick")&&AdninFeatures.shouldIgnorePlayerId(id)&&AdninFeatures.shouldIgnorePlayerEntityId(991),
+      "Pure native/Netty guards and a repeated sub-250ms preflight do not inspect the world roster");
+  mc.theWorld.rejectRosterReads=false;
+  AdninGui4.botDenicker=true;AdninGui4.chatOutputDenick=true;AdninGui4.chatOutputTags=true;
+  AdninGui4.chatOutput=true;AdninGui4.chatOutputAnticheat=true;
+  field("urlSnapshot").set(null,"https://fixture.invalid/?q=<>");
+  method("scanPlayers",Minecraft.class,long.class).invoke(null,mc,System.currentTimeMillis());
+  check(((Set<String>)field("present").get(null)).contains("graynick"),"A gray respawn remains in the same-name display roster");
+  check(AdninFeatures.getBotProfile("GrayNick").isEmpty(),"Unknown gray Bot identity remains unresolved");
+  AdninFeatures.lookupNick("GrayNick",System.currentTimeMillis());
+  check(requests().isEmpty()&&((BlockingQueue<?>)field("nickHints").get(null)).isEmpty(),"Gray Bot sources create no HTTP job or native hint");
+  check(!claim(new String[]{"22","bot","GrayNick","GrayNick","fixture-key",""}),"A formerly queued Bot job cannot begin while its subject is gray");
+  String[] bot={"22","bot","GrayNick","","GrayNick","","RealOwner","12345678-1234-4234-8234-123456789abc","\u0001https://fixture.invalid/?q=<>"};
+  method("applyBotResult",String[].class,long.class,Minecraft.class).invoke(null,bot,System.currentTimeMillis(),mc);
+  check(AdninFeatures.getBotProfile("GrayNick").isEmpty()&&((Map<?,?>)field("botProfiles").get(null)).containsKey("graynick"),
+      "An in-flight success is cached while gray display retains the prior unknown identity");
+  check(((Set<?>)field("announced").get(null)).isEmpty()&&AdninFeatures.pollPartyCommand(System.currentTimeMillis())==null,
+      "A late gray success cannot announce locally or to Party");
+  field("ignoredAt").setLong(null,Long.MIN_VALUE);AdninFeatures.refreshIgnoredPlayers(mc);
+  check(AdninFeatures.shouldIgnorePlayer("RealOwner"),"Cached Bot owner alias shares its gray source's notification filter");
+  for(int category=0;category<4;category++){
+   String message=category==1?"[Urchin] GrayNick: sniper":"GrayNick -> result";
+   AdninFeatures.enqueueParty(category,message,1000);
+  }
+  check(AdninFeatures.pollPartyCommand(1001)==null,"All four Output categories reject a gray subject at admission");
+  check(AdninFeatures.nativeRenderGeneratedEvent("[Adnin] GrayNick is nicked",false,3)==1,
+      "Filtered native local events return handled instead of falling through to the old renderer");
+  AdninFeatures.enqueueParty(1,"[Urchin] Unrelated: reason mentions GrayNick",2000);
+  check("/pc [Urchin] Unrelated: reason mentions GrayNick".equals(AdninFeatures.pollPartyCommand(2001)),
+      "Tag reasons are opaque; a gray name mentioned only in a reason does not suppress another subject");
+  long cacheNow=AdninReplayProfiles.now();cache().beginMatch(99,Collections.singletonMap("GrayNick","GrayNick"),cacheNow);
+  cache().complete(99,"GrayNick",Collections.singletonList("sniper"),true,cacheNow);
+  method("beginUrchinMatch",Minecraft.class,long.class).invoke(null,mc,System.currentTimeMillis());
+  check(requests().isEmpty()&&staged().isEmpty(),"Frozen game-start roster schedules no new Urchin request for gray players");
+  // Bot resolution changes the query identity; use its current UUID for a fresh success fixture.
+  cache().beginMatch(101,Collections.singletonMap("GrayNick","OwnedLookup"),cacheNow);
+  cache().complete(101,"OwnedLookup",Collections.singletonList("sniper"),true,cacheNow);
+  method("applyUrchinContent").invoke(null);
+  check(!((Map<?,?>)field("tags").get(null)).containsKey("graynick")&&!((Map<?,?>)field("tagLabels").get(null)).containsKey("graynick")
+      &&cache().visibleTags().containsKey("graynick"),"New in-flight Urchin content is cached without changing the pre-gray empty display");
+  check(AdninFeatures.pollPartyCommand(System.currentTimeMillis())==null,"Gray cached Urchin content creates no notification");
+  info.team.prefix="\u00a7c";field("ignoredAt").setLong(null,Long.MIN_VALUE);AdninFeatures.refreshIgnoredPlayers(mc);
+  check(!AdninFeatures.shouldIgnorePlayer("GrayNick")&&!AdninFeatures.shouldIgnorePlayerId(id)&&!AdninFeatures.shouldIgnorePlayerEntityId(991),
+      "Restored team color retires all three current gray exclusions together");
+  check(AdninFeatures.getBotProfile("GrayNick").startsWith("RealOwner|"),"Restored color reuses the same cached Bot identity");
+  method("applyUrchinContent").invoke(null);
+  check(((Map<?,?>)field("tags").get(null)).containsKey("graynick")&&((Map<?,?>)field("tagLabels").get(null)).containsKey("graynick"),
+      "Color restoration makes completed Urchin contents and labels visible");
+  check(AdninFeatures.pollPartyCommand(System.currentTimeMillis())!=null,"An unannounced cached tag may announce after color recovery");
+  AdninFeatures.clearPartyQueue();
+  AdninFeatures.enqueueParty(0,"GrayNick - FKDR: 10 and remaining details",3000);
+  check(AdninFeatures.pollPartyCommand(3000,12)!=null,"The first permitted data fragment retains its original subject metadata");
+  info.team.prefix="\u00a77";field("ignoredAt").setLong(null,Long.MIN_VALUE);AdninFeatures.refreshIgnoredPlayers(mc);
+  check(AdninFeatures.pollPartyCommand(3001)==null,"A queued data remainder is rechecked when its subject turns gray before delivery");
+  check(((Map<?,?>)field("tags").get(null)).containsKey("graynick")&&AdninFeatures.getBotProfile("GrayNick").startsWith("RealOwner|"),
+      "Delivery suppression never erases prior data or Denick identity");
+  info.team.prefix="\u00a78";field("ignoredAt").setLong(null,Long.MIN_VALUE);AdninFeatures.refreshIgnoredPlayers(mc);
+  check(!AdninFeatures.shouldIgnorePlayer("GrayNick"),"Dark gray is distinct from the excluded light-gray color");
+  AdninGui4.botDenicker=false;AdninGui4.chatOutputDenick=false;AdninGui4.chatOutputTags=false;AdninGui4.chatOutput=false;AdninGui4.chatOutputAnticheat=false;
+  AdninFeatures.clearPartyQueue();
+ }
  public static void main(String[] args)throws Exception{
-  delayedConfig();queuedAndInflight();pacedOwnerReplacement();pacedLifecycle();
+  delayedConfig();queuedAndInflight();pacedOwnerReplacement();grayPauses();pacedLifecycle();
   check(field("worker").get(null)==null&&field("settingsPath").get(null)==null,"Tests never initialized a game, API worker, settings path, or network");
   System.out.println("AdninUrchinScopeTest: "+checks+" checks passed; real tick, deferred config, queue retirement, paced-start and in-flight cache boundaries; no IO or sends");
  }
 }
 '''
 })
+
+FIXTURES['net/minecraft/entity/player/EntityPlayer.java'] = FIXTURES['net/minecraft/entity/player/EntityPlayer.java'].replace(
+    'public int ticksExisted,', 'public int numericEntityId; public int getEntityId(){return numericEntityId;} public int ticksExisted,')
 
 
 def main():

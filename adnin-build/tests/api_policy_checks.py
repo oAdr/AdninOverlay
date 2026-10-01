@@ -3,15 +3,93 @@
 Original DLL functions, personal configuration and HTTP are never executed.
 """
 import ctypes
+import json
 import os
+import re
 import struct
 import subprocess
 import tempfile
 from pathlib import Path
+from urllib.parse import parse_qs, urlsplit
 import pefile
 import bridge
 import native_api_policy
 import replay_denick_checks
+
+
+AURORA_ENDPOINT = 'https://bordic.xyz/api/v2/resources/ping?uuid='
+PREVIOUS_PING_ENDPOINT = b'https://api.bordic.xyz/v3/player/ping?uuid=\0'
+
+
+def verify_aurora_contract(test, old, new, policy, spec, report):
+    """Pin the new provider and unchanged native parser; no HTTP is performed."""
+    ping = policy['ping']
+    test.assertEqual(ping['provider'], 'aurora')
+    test.assertEqual(ping['endpoint'], AURORA_ENDPOINT)
+    test.assertIs(ping['requiresApiKey'], False)
+    test.assertEqual(ping['urlOperandRva'], spec['pingUrlLea'])
+    old_url = old.get_data(spec['pingUrlOriginal'], len(PREVIOUS_PING_ENDPOINT))
+    test.assertEqual(old_url, PREVIOUS_PING_ENDPOINT)
+    # The old read-only string can remain in the image; only its live reference
+    # changes. A blanket search for its presence would not prove a live request.
+    test.assertEqual(new.get_data(spec['pingUrlOriginal'], len(old_url)), old_url)
+    site = spec['pingUrlLea']
+    before, after = old.get_data(site, 7), new.get_data(site, 7)
+    test.assertEqual(before[:3], b'\x48\x8d\x15')
+    test.assertEqual(after[:3], before[:3])
+    test.assertEqual(site + 7 + struct.unpack_from('<i', before, 3)[0], spec['pingUrlOriginal'])
+    endpoint_rva = report['section']['rva'] + report['metadata']['auroraPingUrl']
+    test.assertEqual(site + 7 + struct.unpack_from('<i', after, 3)[0], endpoint_rva)
+    test.assertEqual(new.get_data(endpoint_rva, len(AURORA_ENDPOINT) + 1), AURORA_ENDPOINT.encode('ascii') + b'\0')
+    patch = next(item for item in policy['patches'] if item['siteRva'] == site)
+    test.assertEqual(bytes.fromhex(patch['before']), before)
+    test.assertEqual(bytes.fromhex(patch['after']), after)
+    # The full native fetch/parser body is identical except for the four-byte
+    # displacement. This includes status, JSON avg parsing, unavailable outputs,
+    # range calculation and cleanup; no replacement parser is being executed.
+    function = next(entry.struct for entry in old.DIRECTORY_ENTRY_EXCEPTION
+                    if entry.struct.BeginAddress == spec['pingTarget'])
+    test.assertEqual(function.EndAddress - function.BeginAddress, 0xfe2)
+    test.assertLessEqual(function.BeginAddress, site)
+    test.assertLess(site + 7, function.EndAddress)
+    expected = bytearray(old.get_data(function.BeginAddress, 0xfe2))
+    at = site - function.BeginAddress
+    expected[at + 3:at + 7] = after[3:7]
+    test.assertEqual(bytes(expected), new.get_data(function.BeginAddress, 0xfe2))
+    for field in ('pingUrlLea', 'pingUrlOriginal'):
+        damaged = bytearray(old.__data__)
+        damaged[old.get_offset_from_rva(spec[field])] ^= 1
+        with test.assertRaisesRegex(ValueError, 'Native API policy'):
+            native_api_policy.reviewed_patches(pefile.PE(data=bytes(damaged)),
+                'lunar' if spec['pingTarget'] == 0x97b00 else 'vanilla',
+                report['section']['rva'], report['metadata'])
+
+    # These owned fixtures record the reviewed Aurora success/data/avg contract.
+    # They are contract examples, not a claim of executing the native JSON code
+    # or of obtaining successful data from the live service.
+    fixtures = (
+        (200, '{"success":true,"data":[{"avg":87}]}', (87, 0)),
+        (200, '{"success":true,"data":[{"avg":87},{"avg":50},{"avg":110}]}', (87, 60)),
+        (200, '{"success":true,"data":[]}', (-1, -1)),
+        (200, '{"success":false,"data":[{"avg":87}]}', (-1, -1)),
+        (404, '{"success":false,"cause":"No data found [uuid]"}', (-1, -1)),
+    )
+    for status, payload, expected_values in fixtures:
+        with test.subTest(auroraStatus=status, auroraPayload=payload):
+            response = json.loads(payload)
+            avgs = ([item['avg'] for item in response.get('data', [])
+                     if isinstance(item, dict) and type(item.get('avg')) is int]
+                    if status == 200 and response.get('success') is True else [])
+            values = (avgs[0], max(avgs) - min(avgs)) if avgs else (-1, -1)
+            test.assertEqual(values, expected_values)
+            if avgs:
+                test.assertEqual([int(value) for value in re.findall(r'"avg"\s*:\s*(-?[0-9]+)', payload)], avgs)
+    for uuid in ('12345678123442348234123456789abc', '12345678-1234-4234-8234-123456789abc'):
+        parts = urlsplit(AURORA_ENDPOINT + uuid)
+        test.assertEqual((parts.scheme, parts.netloc, parts.path), ('https', 'bordic.xyz', '/api/v2/resources/ping'))
+        test.assertEqual(parse_qs(parts.query), {'uuid': [uuid]})
+        test.assertIsNone(parts.username)
+        test.assertIsNone(parts.password)
 
 
 def verify_pe(test,before,final,report,profile):
@@ -19,7 +97,7 @@ def verify_pe(test,before,final,report,profile):
     spec=native_api_policy.PROFILES[profile]
     policy=report['nativeApiPolicy']
     test.assertEqual(policy,native_api_policy.reviewed_patches(old,profile,report['section']['rva'],report['metadata']))
-    test.assertEqual(len(policy['patches']),6)
+    test.assertEqual(len(policy['patches']),7)
     for item in policy['patches']:
         site=item['siteRva']; original=bytes.fromhex(item['before']); replacement=bytes.fromhex(item['after'])
         test.assertEqual(old.get_data(site,len(original)),original)
@@ -33,8 +111,9 @@ def verify_pe(test,before,final,report,profile):
         with test.assertRaisesRegex(ValueError,'Native API policy'):
             native_api_policy.reviewed_patches(pefile.PE(data=bytes(changed)),profile,report['section']['rva'],report['metadata'])
     ping=policy['ping']
-    test.assertIn(ping,report['hooks'])
+    test.assertIn({k:ping[k] for k in ('callRva','originalTargetRva','bridgeTargetRva','callback')},report['hooks'])
     test.assertEqual(new.get_data(ping['callRva'],5),bridge.call_bytes(ping['callRva'],ping['bridgeTargetRva']))
+    verify_aurora_contract(test,old,new,policy,spec,report)
     for start,end,_ in spec['guards']:
         expected=bytearray(old.get_data(start,end-start))
         if start<=spec['refreshCall']<end:
@@ -145,6 +224,9 @@ def execute(test,final,report,profile,nasm):
         put(spec['uuidSite']+24,bytes.fromhex('410fb6c6ffc0c3'))
         put(spec['uuidFail'],b'\x31\xc0\xc3')
         put(spec['pingTarget'],b'\xb8\x01\0\0\0\xc3')
+        # Execute only the authored URL relocation in the private mock image.
+        # This leaf copies RDX to the return register; it cannot issue a request.
+        put(spec['pingUrlLea'],by_site[spec['pingUrlLea']]+b'\x48\x89\xd0\xc3')
         callers={}
         with tempfile.TemporaryDirectory(prefix='adnin-api-policy-') as tmp:
             temp=Path(tmp)
@@ -167,6 +249,9 @@ def execute(test,final,report,profile,nasm):
             machine=assemble(source,temp/'number-compare');put(start,machine)
             number=ctypes.WINFUNCTYPE(ctypes.c_int,P)(base+start)
         kernel.FlushInstructionCache(P(-1),base,report['imageSize'])
+        endpoint_pointer=ctypes.WINFUNCTYPE(P)(base+spec['pingUrlLea'])()
+        test.assertEqual(endpoint_pointer,base+section['rva']+report['metadata']['auroraPingUrl'])
+        test.assertEqual(ctypes.string_at(endpoint_pointer,len(AURORA_ENDPOINT)+1),AURORA_ENDPOINT.encode('ascii')+b'\0')
         values=(b'',b' ',b'\t\r\n',bytes(range(33)),b'fixture-a',b' \tfixture-b\r\n',b'F'*48,b' '*48,b'\xc2\xa0',
                 b'12345678-1234-4234-8234-123456789abc')
         for current in (0,32):

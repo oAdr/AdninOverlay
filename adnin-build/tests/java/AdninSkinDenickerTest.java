@@ -29,6 +29,7 @@ public final class AdninSkinDenickerTest {
     private static Minecraft context(){
         AdninGui4.api_hypixel="fixture-key";AdninSkinDenicker.clearContext();AdninSkinDenicker.setEnabled(true);AdninFeatures.active=true;AdninFeatures.accept=true;
         AdninFeatures.messages.clear();AdninReplay.replay=false;AdninReplay.names.clear();AdninReplay.nicks.clear();
+        AdninFeatures.ignored.clear();
         Minecraft m=new Minecraft();now+=1000;AdninSkinDenicker.tick(m,now);return m;
     }
     private static void tick(Minecraft m){now+=300;AdninSkinDenicker.tick(m,now);}
@@ -61,6 +62,28 @@ public final class AdninSkinDenickerTest {
         long parsed=((Long)field("parses")).longValue();int reads=m.connection.reads;
         for(int i=0;i<2000;i++)check(AdninSkinDenicker.getProfile("NickCase",now).equals(p),"hot callback cache");
         check(m.connection.reads==reads&&((Long)field("parses")).longValue()==parsed,"no game scans/parses on native path");
+        NetworkPlayerInfo gray=m.connection.players.get(0);gray.lightGray=true;AdninFeatures.ignored.add("nickcase");
+        int known=size("current"),attempted=size("attempted");tick(m);
+        check(AdninSkinDenicker.getProfile("NickCase",now).equals(p)&&size("current")==known&&size("attempted")==attempted,
+            "Gray respawn preserves the same-name cached identity and prior attempt state");
+        check(size("pending")==0&&((Long)field("parses")).longValue()==parsed,"Gray cached reads never schedule or reparse texture evidence");
+        java.util.Set<String> aliases=new java.util.HashSet<String>();aliases.add("nickcase");
+        AdninSkinDenicker.appendIgnoredAliases(aliases,1024);
+        check(aliases.contains("realplayer"),"Gray source alias enriches immutable delivery filtering with its cached Skin owner");
+        tick(m);check(AdninFeatures.messages.size()==1,"Gray transitions do not reannounce a previously presented result");
+        gray.lightGray=false;AdninFeatures.ignored.clear();tick(m);
+        check(AdninSkinDenicker.getProfile("NickCase",now).equals(p)&&AdninFeatures.messages.size()==1,
+            "Color recovery retains cached identity and the already-announced marker");
+        NetworkPlayerInfo unknownGray=player("GrayUnknown",NICK_ID,texture("UnknownOwner"));unknownGray.lightGray=true;
+        m.connection.players.add(unknownGray);AdninFeatures.ignored.add("grayunknown");
+        check(AdninSkinDenicker.getProfile("GrayUnknown",now).isEmpty()&&size("pending")==0,
+            "A new gray nickname creates no Skin request");
+        tick(m);check(!AdninSkinDenicker.hasAttempted("GrayUnknown")&&((Long)field("parses")).longValue()==parsed,
+            "Gray never becomes a no-result classification or parses a new texture");
+        unknownGray.lightGray=false;AdninFeatures.ignored.clear();
+        tick(m);
+        check(request(m,"GrayUnknown").startsWith("UnknownOwner|"),"Restored color allows the first actual Skin lookup");
+        m.connection.players.remove(unknownGray);tick(m);parsed=((Long)field("parses")).longValue();
         AdninSkinDenicker.clearContext();tick(m);p=request(m,"NickCase");check(((Long)field("parses")).longValue()==parsed,"same texture across matches reuses evidence");
         AdninSkinDenicker.markPublished("NickCase",p);tick(m);check(AdninFeatures.messages.size()==2,"new match may announce cached native publish");
         m.connection.players.clear();m.connection.players.add(player("NickCase",NICK_ID,texture("OtherOwner")));

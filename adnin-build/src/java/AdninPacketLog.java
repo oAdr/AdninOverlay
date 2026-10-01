@@ -268,6 +268,10 @@ public class AdninPacketLog {
             SpawnAccessors accessors = accessorsFor(object.getClass());
             int n = accessors.entity.integer(object);
             UUID uUID = accessors.uuid.uuid(object);
+            // The client publishes a small immutable nametag snapshot. Netty
+            // reads no world/entity data and still forwards this exact packet;
+            // only Adnin's auxiliary party-ID observation is declined.
+            if (AdninFeatures.shouldIgnorePlayerId(uUID) || AdninFeatures.shouldIgnorePlayerEntityId(n)) return;
             int n2 = accessors.x.integer(object);
             int n3 = accessors.y.integer(object);
             int n4 = accessors.z.integer(object);

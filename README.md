@@ -19,14 +19,13 @@ Adnin is based on the original **Frenchify v1.6** releases:
 - **Client-side anticheat:** Autoblock, NoFall, NoSlow, Scaffold, and Legit Scaffold alerts, with optional reporting and party output.
 - **Utilities and interface:** local block-placement sounds, quick-buy bindings, hitbox options, adjustable UI scale, and English, Simplified Chinese, and Traditional Chinese.
 
-## What's New in v22
+## What's New in v23
 
-- Safer input-hook ownership and unload handling; background or menu End presses cannot request unload. Slider drags and keyboard repeat are cleaned up when the menu closes or resizes.
-- Improved self-Nick and Replay teammate recognition, with a local Skin Denicker adapted from Mellow's texture-owner model.
-- Mellow Eagle detection under the existing Legit Scaffold switch, plus fixes for Output queue deduplication and dropped first messages.
-- Lunar automatic mode queries require a visible Bed Wars pre-game sidebar; stale Urchin requests are retired when leaving a match.
-- Automatic local crash diagnostics and a success notification that does not take game focus. Abnormal exits can create sanitized `Adnin-crash-*.log` files on the Desktop; reports are not uploaded.
-- Reduced repeated chat-history conversion, overlay configuration, and menu rendering work. Measurements are from controlled offline fixtures; live FPS improvements are not established.
+- Confirmed teammate identities remain cached through respawn, spectator changes, and temporary Tab disappearance within the current match.
+- Light-gray (`§7`) players pause new statistics, Ping, denicker, anticheat, tag, and Output processing while preserving existing cached information. Light gray is no longer treated as a team color.
+- Lunar Party queries recover from temporary readiness or sender failures, with up to three attempts spaced five seconds apart in an eligible pre-game waiting room.
+- Ping uses the Aurora v2 public endpoint without a Ping API key. PingVar shows the range of returned average samples, not statistical variance; the existing API Proxy option remains explicit.
+- Includes the v22 input, Replay, Skin Denicker, Output, and local crash-diagnostic improvements.
 
 Skin metadata identifies a texture owner and may not identify the player wearing a shared skin. Restart Minecraft before updating from an older payload.
 
@@ -49,7 +48,7 @@ For multiple game instances, specify the target process:
 
 Replace `1234` with the game process ID and use `lunar`, `badlion`, or `vanilla` as appropriate. Command-line runs default to a dry run unless `--inject` is supplied.
 
-Keep saved settings and API keys private. Restart Minecraft before loading a different Adnin version. Compatibility is limited to the targeted runtimes; see the [v22 verification notes](adnin-build/verification.md) for testing coverage and remaining limitations.
+Keep saved settings and API keys private. Restart Minecraft before loading a different Adnin version. Compatibility is limited to the targeted runtimes; see the [v23 verification notes](adnin-build/verification.md) for testing coverage and remaining limitations.
 
 ## Build from Source
 

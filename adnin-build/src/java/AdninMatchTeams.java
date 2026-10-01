@@ -60,7 +60,9 @@ public final class AdninMatchTeams {
             resetMatch();return;
         }
         if (observedTick==mc.thePlayer.ticksExisted) return;
-        if (mc.thePlayer.ticksExisted<observedTick) resetMatch();
+        // Respawning replaces the local entity and restarts its ticks inside
+        // the same match. Match/world/connection events above own invalidation;
+        // a lower entity tick must not erase already recognized teammates.
         observedTick=mc.thePlayer.ticksExisted;
         int count=0;
         Collection<NetworkPlayerInfo> roster=mc.getNetHandler().getPlayerInfoMap();
@@ -85,16 +87,17 @@ public final class AdninMatchTeams {
             if(!duplicate)localInfo=match;
             tabName=profileName(localInfo);
         }
-        addId(ownIds,id);addName(ownNames,localName);addName(ownNames,profileName);
-        addName(ownNames,tabName);addName(ownNames,visible);
-        if(localInfo!=null && localInfo.getGameProfile()!=null)addId(ownIds,localInfo.getGameProfile().getId());
         String ownTabText=localInfo==null?null:formatted(localInfo.getDisplayName());
         String ownTabName=displayedName(ownTabText,tabName,localName,profileName);
-        addName(ownNames,ownTabName);
         boolean viewing=mc.thePlayer.isSpectator() || spectator(ownDisplay)
             || spectator(ownTabText)
             || localInfo!=null && localInfo.getGameType()==WorldSettings.GameType.SPECTATOR;
-        if(viewing) { resetMatch(); return; }
+        // A temporary respawn spectator state cannot create new team evidence,
+        // but confirmed same-match identities remain valid for callers.
+        if(viewing) { entities.clear(); return; }
+        addId(ownIds,id);addName(ownNames,localName);addName(ownNames,profileName);
+        addName(ownNames,tabName);addName(ownNames,visible);addName(ownNames,ownTabName);
+        if(localInfo!=null && localInfo.getGameProfile()!=null)addId(ownIds,localInfo.getGameProfile().getId());
         if(ownColor==0) {
             ownColor=localColor(localInfo,ownDisplay,visible,localName,profileName,ownTabText,ownTabName);
         }
@@ -116,11 +119,14 @@ public final class AdninMatchTeams {
             String display=player==null?tabDisplay(info):formatted(player.getDisplayName());
             if(spectator(display))continue;
             String shown=displayedName(display,name,player==null?null:player.getName(),null);
-            if(teamIds.contains(playerId)) {
+            if(teamIds.contains(playerId) || isTeammate(name) || isTeammate(shown)) {
                 // A recognized player's later nick/display change adds an alias
                 // without revisiting their team decision during this match.
-                addName(teamNames,name);addName(teamNames,shown);continue;
+                addId(teamIds,playerId);addName(teamNames,name);addName(teamNames,shown);
+                if(player!=null)addName(teamNames,player.getName());
+                continue;
             }
+            if(isLightGray(player,info,shown))continue;
             char observed=nameColor(display,shown);
             /* Replay/entity wrappers sometimes expose only an unformatted
                name while the Tab entry still carries the authoritative team
@@ -132,7 +138,12 @@ public final class AdninMatchTeams {
                 char tabColor=nameColor(tabText,tabShown);
                 if(tabColor!=0) { display=tabText; shown=tabShown; observed=tabColor; }
             }
-            if(observed!=ownColor)continue;
+            /* Light gray (§7) is the transient spectator/respawn nametag
+               color used by the server. It is not a real Bed Wars team
+               color, so it must never establish a teammate identity. A
+               positive teammate decision is still match-cached above and is
+               intentionally retained while that player briefly turns gray. */
+            if(!usableTeamColor(observed) || observed!=ownColor)continue;
             addId(teamIds,playerId);addName(teamNames,name);addName(teamNames,shown);
             if(player!=null)addName(teamNames,player.getName());
         }
@@ -147,6 +158,80 @@ public final class AdninMatchTeams {
         return player!=null && (teamIds.contains(player.getUniqueID()) || isTeammate(player.getName()));
     }
 
+    /**
+     * Current Tab nametag policy shared by player-data and identity features.
+     * An explicitly formatted scoreboard name wins over a custom Tab label.
+     * Only a proven light-gray name token is excluded; rank text, unknown
+     * formatting, dark gray and white are never treated as light-gray names.
+     * This helper has no monitor, cache, world scan or IO side effects.
+     */
+    public static boolean isLightGray(NetworkPlayerInfo info) {
+        String name=plain(profileName(info));
+        if(!valid(name))return false;
+        return currentNameColor(tabDisplay(info),name,null,null)=='7';
+    }
+
+    /** Current actor policy, including Replay names unlike the bot profile. */
+    public static boolean isLightGray(EntityPlayer player,NetworkPlayerInfo info,String admittedName) {
+        String tabName=plain(profileName(info));
+        if(info!=null && info.getPlayerTeam()!=null && valid(tabName)) {
+            String text=ScorePlayerTeam.formatPlayerName(info.getPlayerTeam(),profileName(info));
+            // Explicit resets also carry authority: a stale custom display
+            // label must not replace unknown scoreboard nametag formatting.
+            if(explicitColor(text))return currentNameColor(text,tabName,admittedName,null)=='7';
+        }
+        if(player!=null) {
+            String text=formatted(player.getDisplayName());
+            String profile=player.getGameProfile()==null?null:player.getGameProfile().getName();
+            char color=currentNameColor(text,admittedName,player.getName(),profile);
+            if(color!=0 || explicitColor(text))return color=='7';
+        }
+        return isLightGray(info);
+    }
+
+    private static char currentNameColor(String text,String first,String second,String third) {
+        if(text==null || text.length()>4096 || text.indexOf('\u00a7')<0)return 0;
+        // The ordinary exact-account path is allocation-free. Replay suffixes
+        // and server Nick display aliases use the established token parser.
+        char color=nameColor(text,first);
+        if(color!=0)return color;
+        color=nameColor(text,displayedName(text,first,second,third));
+        if(color!=0)return color;
+        // Replay may concatenate a separately formatted team marker directly
+        // before a full/suffixed account. Remove only a witnessed marker whose
+        // remainder starts with one of our known identities; never guess that
+        // the first letter of an unknown or mixed-color player name is a team.
+        String unmarked=withoutKnownTeamMarker(text,first,second,third);
+        return unmarked==null?0:nameColor(unmarked,displayedName(unmarked,first,second,third));
+    }
+
+    private static String withoutKnownTeamMarker(String text,String first,String second,String third) {
+        if(text==null || text.length()>4096)return null;
+        String clean=withoutBracketSections(plain(text)).trim();
+        int end=0;while(end<clean.length() && nameCharacter(clean.charAt(end)))end++;
+        if(end<2 || end>17)return null;
+        String token=clean.substring(0,end);
+        if("RBGYAPWS".indexOf(Character.toUpperCase(token.charAt(0)))<0
+            || knownPrefix(token,first) || knownPrefix(token,second) || knownPrefix(token,third))return null;
+        String remainder=token.substring(1);
+        if(!knownPrefix(remainder,first) && !knownPrefix(remainder,second) && !knownPrefix(remainder,third))return null;
+        boolean bracket=false;
+        for(int i=0;i<text.length();i++) {
+            char c=text.charAt(i);
+            if(c=='\u00a7' && i+1<text.length()) {i++;continue;}
+            if(c=='[') {bracket=true;continue;}
+            if(c==']') {bracket=false;continue;}
+            if(bracket || !nameCharacter(c))continue;
+            if(Character.toLowerCase(c)==Character.toLowerCase(token.charAt(0))
+                && i+1<text.length() && text.charAt(i+1)=='\u00a7')return text.substring(0,i)+text.substring(i+1);
+            return null;
+        }
+        return null;
+    }
+    private static boolean knownPrefix(String token,String known) {
+        return valid(known) && token.length()>=known.length() && token.regionMatches(true,0,known,0,known.length());
+    }
+
     private static String profileName(NetworkPlayerInfo info) {
         return info==null || info.getGameProfile()==null?"":info.getGameProfile().getName();
     }
@@ -158,17 +243,17 @@ public final class AdninMatchTeams {
         // identity; the profile's old scoreboard entry may still be a rank.
         if(info!=null && valid(shown) && !shown.equalsIgnoreCase(tabName)) {
             char color=nameColor(tabText,shown);
-            if(color!=0)return color;
+            if(color!=0)return usableTeamColor(color)?color:0;
         }
         if(info!=null && info.getPlayerTeam()!=null && valid(tabName)) {
             char color=nameColor(ScorePlayerTeam.formatPlayerName(info.getPlayerTeam(),tabName),tabName);
-            if(color!=0)return color;
+            if(color!=0)return usableTeamColor(color)?color:0;
         }
         boolean serverAlias=valid(shown) && !shown.equalsIgnoreCase(visible)
             || valid(tabName) && !tabName.equalsIgnoreCase(visible);
         if(info!=null && serverAlias) {
             char color=nameColor(tabText,shown);
-            if(color!=0)return color;
+            if(color!=0)return usableTeamColor(color)?color:0;
         }
         /* Under server Nick the local entity can retain its account name and
            rank/reset formatting. Do not freeze that as the match's team while
@@ -181,7 +266,7 @@ public final class AdninMatchTeams {
             String name=displayedName(fallback,tabName,localName,profileName);
             color=nameColor(fallback,name);addName(ownNames,name);
         }
-        return color;
+        return usableTeamColor(color)?color:0;
     }
     private static String tabDisplay(NetworkPlayerInfo info) {
         if(info==null)return null;
@@ -336,4 +421,11 @@ public final class AdninMatchTeams {
         }
         return result;
     }
+
+    /**
+     * Returns whether a nametag color can identify a Bed Wars team. §7 light
+     * gray is deliberately excluded: the server uses it transiently for
+     * respawning/spectating players and it does not represent a team.
+     */
+    static boolean usableTeamColor(char color) { return color!=0 && color!='7'; }
 }

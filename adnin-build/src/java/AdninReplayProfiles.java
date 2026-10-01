@@ -26,6 +26,8 @@ final class AdninReplayProfiles implements Runnable {
     private final Map<String, String> values = new LinkedHashMap<String, String>();
     private final Map<String, Long> expires = new HashMap<String, Long>();
     private Map<String, String> roster = Collections.emptyMap();
+    private Set<String> paused = Collections.emptySet();
+    private Map<String,String> pausedValues=Collections.emptyMap();
     private boolean started, stopped;
     private Thread worker;
     // Preserve failed as all completed attempts without a verified UUID; absent is a subset.
@@ -37,8 +39,13 @@ final class AdninReplayProfiles implements Runnable {
     }
 
     synchronized void publish(Map<String, String> next) {
+        publish(next,Collections.<String>emptySet());
+    }
+
+    /** Gray-name pauses keep identity/cache state while stopping new queries. */
+    synchronized void publish(Map<String, String> next,Set<String> pausedNames) {
         if (stopped) return;
-        if (next.isEmpty() && roster.isEmpty() && queue.isEmpty() && pending.isEmpty()) return;
+        if (next.isEmpty() && roster.isEmpty() && queue.isEmpty() && pending.isEmpty() && paused.isEmpty()) return;
         Map<String, String> copy = new HashMap<String, String>();
         for (Map.Entry<String, String> entry : next.entrySet()) {
             if (copy.size() >= LIMIT) break;
@@ -59,11 +66,22 @@ final class AdninReplayProfiles implements Runnable {
         roster = aliases;
         Set<String> names = new HashSet<String>();
         for (String name : copy.values()) names.add(lower(name));
+        Set<String> nextPaused=new HashSet<String>();
+        Map<String,String> nextPausedValues=new HashMap<String,String>();
+        if(pausedNames!=null)for(String name:pausedNames) {
+            if(nextPaused.size()>=LIMIT)break;
+            if(validName(name) && names.contains(lower(name))) {
+                String key=lower(name);nextPaused.add(key);
+                String value=paused.contains(key)?pausedValues.get(key):values.get(key);
+                nextPausedValues.put(key,value==null?"":value);
+            }
+        }
+        paused=nextPaused;pausedValues=nextPausedValues;
         // Cancel departed jobs that have not started. An in-flight marker must
         // survive departure/reentry until that specific request completes.
         for (java.util.Iterator<String> it = queue.iterator(); it.hasNext();) {
             String queued = it.next();
-            if (!names.contains(queued)) { it.remove(); pending.remove(queued); }
+            if (!names.contains(queued) || paused.contains(queued)) { it.remove(); pending.remove(queued); }
         }
     }
 
@@ -79,6 +97,13 @@ final class AdninReplayProfiles implements Runnable {
         String name = accountName(rawName);
         if (name.isEmpty()) return "";
         String key = lower(name);
+        // A transient gray respawn must not erase an already known UUID/NICK,
+        // even when its ordinary refresh TTL expires during that pause. Only
+        // the original bounded cache is read; no query or negative marker is
+        // created here. Normal TTL behavior resumes when the color returns.
+        if(paused.contains(key)) {
+            String cached=pausedValues.get(key);return cached==null?"":cached;
+        }
         Long until = expires.get(key);
         if (until != null && now < until) return values.get(key);
         if (pending.size() < LIMIT && pending.add(key)) {
@@ -152,6 +177,8 @@ final class AdninReplayProfiles implements Runnable {
         worker = null;
         queue.clear(); pending.clear(); values.clear(); expires.clear();
         roster = Collections.emptyMap();
+        paused=Collections.emptySet();
+        pausedValues=Collections.emptyMap();
         notifyAll();
     }
 

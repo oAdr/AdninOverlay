@@ -74,7 +74,62 @@ public final class AdninReplayProfilesTest {
         check(!slow.lookup("ReplayBot", 2).isEmpty() && !slow.resolveOne(2), "Reentry uses completed content without a hidden second job");
         nickCache(id);
         completeRecordedName(id);
+        grayPause(id);
         System.out.println("AdninReplayProfilesTest: " + checks + " checks passed; synthetic identities, no network");
+    }
+
+    private static void grayPause(final String id) throws Exception {
+        final String[] answer={id};
+        AdninReplayProfiles profiles=new AdninReplayProfiles(new AdninReplayProfiles.Resolver() {
+            public String resolve(String name) {return answer[0];}
+        },false);
+        Map<String,String> roster=Collections.singletonMap("GrayAlias","GrayPlayer");
+        java.util.Set<String> gray=Collections.singleton("grayplayer");
+        profiles.publish(roster,gray);
+        check("GrayPlayer".equals(profiles.accountName("GrayAlias")),"Gray pause preserves the current exact alias");
+        for(int i=0;i<50;i++)check(profiles.lookup("GrayAlias",i).isEmpty(),"Unknown gray player stays unknown without a query");
+        check(profiles.requests()==0 && !profiles.resolveOne(0),"Gray first observation schedules no work");
+        profiles.publish(roster);profiles.lookup("GrayAlias",0);
+        profiles.publish(roster,gray);
+        check(!profiles.resolveOne(0),"Turning gray cancels an admitted but unstarted request");
+        check(profiles.requests()==1 && profiles.completions()==0,"Cancellation invents neither a profile nor a failure");
+        profiles.publish(roster);profiles.lookup("GrayAlias",1);profiles.resolveOne(1);
+        String known=profiles.lookup("GrayAlias",2);
+        check(known.equals("grayplayer|"+id),"A normal name resolves the ordinary exact account");
+        profiles.publish(roster,gray);
+        check(known.equals(profiles.lookup("GrayAlias",900000)) && profiles.requests()==2,
+            "Gray pause preserves the prior same-name UUID after TTL without a refresh");
+        profiles.publish(roster);answer[0]="NICK";profiles.lookup("GrayAlias",900001);profiles.resolveOne(900001);
+        profiles.publish(roster,gray);
+        check("NICK".equals(profiles.lookup("GrayAlias",1900000)) && profiles.requests()==3,
+            "Gray pause preserves an established NICK instead of classifying the same name again");
+        profiles.publish(Collections.singletonMap("GrayAlias","OtherPlayer"),Collections.singleton("otherplayer"));
+        check(profiles.lookup("GrayAlias",1900001).isEmpty(),"A different recorded account never inherits the old paused identity");
+        profiles.publish(roster,gray);check("NICK".equals(profiles.lookup("GrayAlias",1900002)),"Same name restores its bounded cached state");
+        profiles.shutdown();check(profiles.lookup("GrayAlias",1900003).isEmpty(),"Shutdown clears paused roster access");
+
+        final java.util.concurrent.CountDownLatch entered=new java.util.concurrent.CountDownLatch(1);
+        final java.util.concurrent.CountDownLatch release=new java.util.concurrent.CountDownLatch(1);
+        final AdninReplayProfiles inFlight=new AdninReplayProfiles(new AdninReplayProfiles.Resolver() {
+            public String resolve(String name) throws IOException {
+                entered.countDown();try {if(!release.await(3,java.util.concurrent.TimeUnit.SECONDS))throw new IOException("fixture timeout");}
+                catch(InterruptedException failure) {Thread.currentThread().interrupt();throw new IOException("interrupted");}
+                return id;
+            }
+        },false);
+        inFlight.publish(roster);inFlight.lookup("GrayAlias",0);
+        Thread worker=new Thread(new Runnable(){public void run(){inFlight.resolveOne(0);}});worker.start();
+        try {
+            check(entered.await(2,java.util.concurrent.TimeUnit.SECONDS),"Owned request began before the gray transition");
+            inFlight.publish(roster,gray);
+            for(int i=0;i<50;i++)inFlight.lookup("GrayAlias",i);
+            check(inFlight.requests()==1,"Gray callbacks never duplicate an already in-flight request");
+        } finally {release.countDown();worker.join(3000);}
+        check(!worker.isAlive() && inFlight.completions()==1 && inFlight.lookup("GrayAlias",900000).isEmpty(),
+            "Already sent result caches without changing an unknown gray player's prior classification");
+        check(!inFlight.resolveOne(900001),"Gray pause creates no follow-up query after an in-flight result");
+        inFlight.publish(roster);check(known.equals(inFlight.lookup("GrayAlias",1)),"Restoring normal color can reveal the already completed cache result");
+        inFlight.shutdown();
     }
 
     private static void completeRecordedName(final String id) {

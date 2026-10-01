@@ -6,6 +6,9 @@ Existing configuration setters, worker locks and cleanup paths are preserved.
 import hashlib
 import struct
 
+AURORA_PING_URL = b'https://bordic.xyz/api/v2/resources/ping?uuid='
+OLD_PING_URL = b'https://api.bordic.xyz/v3/player/ping?uuid='
+
 PROFILES = {
     'lunar': dict(proxy=0x1a73d4, keyLength=0x1a4bd0,
         http=0x2ddb0, resolver=0x9ded0, assign=0x3790,
@@ -19,6 +22,7 @@ PROFILES = {
         uuidSite=0x942d0, uuidFail=0x94bde,
         uuidBefore='803dfd30110000750c48837b100074054532f6eb0341b601',
         pingCall=0xa03fc, pingTarget=0x97b00,
+        pingUrlLea=0x97ba8, pingUrlOriginal=0x170188,
         pingContext='488d55af488d4de7e8ff76ffff84c0750e',
         shadow=0x1a4758, numberKey=0x1a4d60,
         numberSites=((0x1936c,3,8,24,'48833dfcb318000f'),
@@ -43,6 +47,7 @@ PROFILES = {
         uuidSite=0x96450, uuidFail=0x96d5e,
         uuidBefore='803dfd8e0e0000750c48837b100074054532f6eb0341b601',
         pingCall=0xa28cc, pingTarget=0x99c70,
+        pingUrlLea=0x99d18, pingUrlOriginal=0x148b48,
         pingContext='488d55af488d4de7e89f73ffff84c0750e',
         shadow=0x17c7c8, numberKey=0x17cd40,
         numberSites=((0x19571,3,8,24,'48833d673216000f'),
@@ -77,6 +82,9 @@ def reviewed_patches(pe, profile, code_rva, metadata):
     checked(spec['uuidSite']-12,bytes.fromhex('48837c2470000f840e090000'),'UUID initialized-string guard')
     checked(spec['uuidFail'],bytes.fromhex('32db488b5424784883fa0f'),'UUID no-result cleanup')
     checked(spec['pingCall']-8,bytes.fromhex(spec['pingContext']),'ping argument/result ABI')
+    checked(spec['pingUrlLea']-3,b'\x4c\x8b\xc0'+rel32(b'\x48\x8d\x15',spec['pingUrlLea'],spec['pingUrlOriginal'])
+            +bytes.fromhex('488d8dc0010000'),'ping URL argument ABI')
+    checked(spec['pingUrlOriginal'],OLD_PING_URL+b'\0','original Ping URL')
     checked(spec['numberCall']-16,bytes.fromhex(spec['numberContext']),'Number setter ABI')
     checked(spec['refreshCall']-6,bytes.fromhex(spec['refreshContext']),'Stats locked configuration refresh ABI')
     for site,context in spec['httpSites']:
@@ -91,6 +99,10 @@ def reviewed_patches(pe, profile, code_rva, metadata):
     def add(site,before,after,reason,**details):
         require(len(before)==len(after),'equal patch size')
         patches.append(dict(siteRva=site,before=before.hex(),after=after.hex(),reason=reason,**details))
+    url_site=spec['pingUrlLea']
+    add(url_site,pe.get_data(url_site,7),rel32(b'\x48\x8d\x15',url_site,code_rva+metadata['auroraPingUrl']),
+        'Use the public Aurora Ping endpoint; retain UUID encoding, background worker, parser and cache',
+        oldTargetRva=spec['pingUrlOriginal'],newTargetRva=code_rva+metadata['auroraPingUrl'],displacementOffset=3)
     site=spec['nameSite']
     # The original function has already reset its outputs before this guard.
     replacement=rel32(b'\xe8',site,code_rva+metadata['apiKeyReady'])+b'\x84\xc0\x74'
@@ -117,7 +129,10 @@ def reviewed_patches(pe, profile, code_rva, metadata):
         keyPresenceSourceRva=spec['keyLength'],numberKeyRva=spec['numberKey'],
         numberIndependentCopyCompared=True,currentEmptyConfigRejectsOldWorkerKey=True,
         ping=dict(callRva=spec['pingCall'],originalTargetRva=spec['pingTarget'],
-                  bridgeTargetRva=code_rva+metadata['apiPingProxy'],callback='apiPingProxy'),
+                  bridgeTargetRva=code_rva+metadata['apiPingProxy'],callback='apiPingProxy',
+                  provider='aurora',endpoint=AURORA_PING_URL.decode('ascii'),requiresApiKey=False,
+                  urlOperandRva=spec['pingUrlLea'],explicitProxyOptInPreserved=True,
+                  backgroundWorkerAndCachePreserved=True),
         http=dict(authentication='API-Key request header',playerParameter='uuid',
                   nameResolution='original native Mojang resolver',
                   legacyKeyQueryRemovedBeforeNetwork=True,temporaryHeaderClearedOnNormalReturn=True,

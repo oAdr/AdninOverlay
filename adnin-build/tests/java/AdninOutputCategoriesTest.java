@@ -31,6 +31,7 @@ public final class AdninOutputCategoriesTest {
             pumpTransitions();
             tagFilters();
             categoryRouting();
+            grayNativeOutput();
             queuePolicy();
             guiHitboxes();
             replayBotGate();
@@ -210,6 +211,42 @@ public final class AdninOutputCategoriesTest {
             AdninGui4.nativeGeneratedEvent("unknown native category", false, unknown);
         }
         eq(null, AdninFeatures.pollPartyCommand(NOW), "Unknown producer categories cannot enter the party queue");
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void grayNativeOutput() throws Exception {
+        Field ignored = feature("ignoredPlayers");
+        Object original = ignored.get(null), none = feature("NO_IGNORED").get(null);
+        Constructor<?> ctor = original.getClass().getDeclaredConstructor(Set.class, Set.class, Set.class);
+        ctor.setAccessible(true);
+        Object gray = ctor.newInstance(Collections.singleton("graynick"), Collections.emptySet(), Collections.emptySet());
+        String originalLanguage = AdninLanguage.getLanguage();
+        configure(true, true, true, true); AdninFeatures.setGameActive(true);
+        try {
+            for (String locale : new String[]{"en", "zh_CN", "zh_TW"}) {
+                AdninLanguage.setLanguage(locale);
+                for (String body : new String[]{"[Adnin] Fetching stats for GrayNick...",
+                        "[Adnin] Unable to fetch stats for: GrayNick", "[Adnin] GrayNick is nicked"}) {
+                    for (boolean json : new boolean[]{false, true}) {
+                        String text = json ? "{\"text\":\"" + body + "\"}" : body;
+                        ignored.set(null, none); AdninFeatures.clearPartyQueue();
+                        AdninFeatures.nativeGeneratedEvent(text, json, AdninFeatures.OUTPUT_PLAYERS);
+                        Deque<String[]> queue = (Deque<String[]>) feature("outbox").get(null);
+                        check(queue.size() == 1, "Native template is admitted before the gray pause in " + locale);
+                        eq("GrayNick", queue.peekFirst()[3], "Translated/plain JSON output retains the original player subject");
+                        ignored.set(null, gray);
+                        eq(null, AdninFeatures.pollPartyCommand(System.currentTimeMillis()),
+                                "Color changes suppress queued translated data before delivery");
+                        eq(1, AdninFeatures.nativeRenderGeneratedEvent(text, json, AdninFeatures.OUTPUT_PLAYERS),
+                                "Gray native text/JSON is handled without falling through to local rendering");
+                        AdninFeatures.nativeGeneratedEvent(text, json, AdninFeatures.OUTPUT_PLAYERS);
+                        check(queue.isEmpty(), "Gray native text/JSON cannot enqueue party output");
+                    }
+                }
+            }
+        } finally {
+            ignored.set(null, original); AdninLanguage.setLanguage(originalLanguage); AdninFeatures.clearPartyQueue();
+        }
     }
 
     private static void queuePolicy() {

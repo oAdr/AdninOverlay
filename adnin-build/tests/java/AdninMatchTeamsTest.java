@@ -47,6 +47,96 @@ public final class AdninMatchTeamsTest {
         check(AdninMatchTeams.displayedName("\u00a7c20","OriginalSelf",null,null).isEmpty(),"Unknown health value does not become a player alias");
     }
 
+    private static void lightGrayPolicy() {
+        Minecraft mc=scene();
+        check(!AdninMatchTeams.isLightGray((NetworkPlayerInfo)null)
+            && !AdninMatchTeams.isLightGray(null,null,null),"Missing identities never invent a light gray color");
+        NetworkPlayerInfo info=tab(mc,id(870),"ColorPlayer",null);
+        String[][] cases={{"\u00a77ColorPlayer","true"},{"\u00a77\u00a7lColorPlayer","true"},
+            {"\u00a77[VIP] \u00a7cColorPlayer","false"},{"\u00a7c[VIP] \u00a77ColorPlayer","true"},
+            {"\u00a78ColorPlayer","false"},{"\u00a7fColorPlayer","false"},{"ColorPlayer","false"},
+            {"\u00a77[ColorPlayer] \u00a7rColorPlayer","false"},{"\u00a77Color\u00a7cPlayer","false"},
+            {"\u00a77\u00a7kColorPlayer","false"},{"\u00a7rColorPlayer","false"}};
+        for(String[] row:cases) {
+            info.display=new ChatComponentText(row[0]);
+            check(AdninMatchTeams.isLightGray(info)==Boolean.parseBoolean(row[1]),"Tab light gray policy uses actual whole name: "+row[0]);
+        }
+        info.team=new ScorePlayerTeam();info.team.prefix="\u00a7c";info.display=new ChatComponentText("\u00a77ColorPlayer");
+        check(!AdninMatchTeams.isLightGray(info),"Actual red scoreboard nametag outranks gray custom Tab display");
+        info.team.prefix="\u00a77";info.display=new ChatComponentText("\u00a7cColorPlayer");
+        check(AdninMatchTeams.isLightGray(info),"Actual gray scoreboard nametag outranks red custom Tab display");
+        info.team.prefix="\u00a77[VIP] \u00a7r";info.display=new ChatComponentText("\u00a77ColorPlayer");
+        check(!AdninMatchTeams.isLightGray(info),"Gray scoreboard rank and explicit name reset stay unknown");
+        info.team.prefix="";check(AdninMatchTeams.isLightGray(info),"Unformatted scoreboard permits current Tab fallback");
+        info=tab(mc,id(871),"ShortAlias","\u00a77RecordedPlayer");
+        check(AdninMatchTeams.isLightGray(info),"Full Replay display name may differ from the raw Tab profile");
+        info=tab(mc,id(876),"RecordedPlayer\u00a7r","\u00a77RecordedPlayer");
+        check(AdninMatchTeams.isLightGray(info),"Formatted raw Replay aliases still expose the current gray name");
+        info=tab(mc,id(872),"XiaoShu_SKY202",null);info.team=new ScorePlayerTeam();info.team.prefix="\u00a77";info.team.suffix="6";
+        check(AdninMatchTeams.isLightGray(info),"Scoreboard suffix is part of the full visible Replay name");
+        info.team.prefix="\u00a7cR\u00a77";
+        check(AdninMatchTeams.isLightGray(info),"Separate red team marker cannot hide the gray full Replay name");
+        info=tab(mc,id(875),"RedPlayer","\u00a7cR\u00a77edPlayer");
+        check(!AdninMatchTeams.isLightGray(info),"A real account's first letter is never removed as an invented marker");
+        info=tab(mc,id(873),"123456","\u00a77123456 20");
+        check(AdninMatchTeams.isLightGray(info),"Known numeric Nick is not mistaken for the health suffix");
+        EntityOtherPlayerMP actor=actor(mc,id(874),"NPC42","\u00a77RecordedPlayer");
+        check(AdninMatchTeams.isLightGray(actor,null,"RecordedPlayer"),"Replay actor color uses admitted full name instead of bot profile");
+        actor.display="\u00a77[VIP] \u00a7cRecordedPlayer";
+        check(!AdninMatchTeams.isLightGray(actor,null,"RecordedPlayer"),"Gray actor rank cannot exclude a colored recorded player");
+        actor.display="NPC42";info=tab(mc,id(874),"RecordedPlayer","\u00a77RecordedPlayer");
+        check(AdninMatchTeams.isLightGray(actor,info,"RecordedPlayer"),"Unformatted actor may fall back to its current Tab color");
+        actor.display="\u00a7rNPC42";
+        check(!AdninMatchTeams.isLightGray(actor,info,"RecordedPlayer"),"Explicit actor reset does not inherit a stale Tab color");
+        actor.display="\u00a77RecordedPlayer";info.team=new ScorePlayerTeam();info.team.prefix="\u00a7c";
+        check(!AdninMatchTeams.isLightGray(actor,info,"RecordedPlayer"),"Scoreboard nametag authority also applies to an entity callback");
+        info.team.prefix="\u00a77";actor.display="\u00a7cRecordedPlayer";
+        check(AdninMatchTeams.isLightGray(actor,info,"RecordedPlayer"),"Gray scoreboard nametag excludes an actor with stale red text");
+        AdninMatchTeams.clear();
+    }
+    private static void lightGrayAndRespawn() {
+        Minecraft mc=scene();
+        mc.thePlayer.display="\u00a77NickSelf";
+        NetworkPlayerInfo local=tab(mc,LOCAL,"NickSelf","\u00a77NickSelf");
+        local.team=new ScorePlayerTeam();local.team.prefix="\u00a77";
+        EntityOtherPlayerMP gray=actor(mc,id(880),"GrayPlayer","\u00a77GrayPlayer");
+        tab(mc,id(880),"GrayPlayer","\u00a77GrayPlayer");
+        EntityOtherPlayerMP red=actor(mc,id(881),"RedPlayer","\u00a7cRedPlayer");
+        tab(mc,id(881),"RedPlayer","\u00a7cRedPlayer");
+        AdninMatchTeams.setGameActive(true);tick(mc);
+        check(!AdninMatchTeams.isTeammate(gray) && !AdninMatchTeams.isTeammate(red),
+            "Local light gray cannot freeze a team color or identify other gray players");
+        mc.thePlayer.display="\u00a7cNickSelf";tick(mc);
+        check(!AdninMatchTeams.isTeammate(red),"Authoritative gray Tab team cannot fall through to stale red entity text");
+        mc.thePlayer.display="\u00a7cNickSelf";
+        local.display=new ChatComponentText("\u00a7cNickSelf");local.team.prefix="\u00a7c";tick(mc);
+        check(!AdninMatchTeams.isTeammate(gray) && AdninMatchTeams.isTeammate(red),
+            "Later valid local color identifies red team without admitting gray players");
+        gray.display="\u00a7cGrayPlayer";tick(mc);
+        check(AdninMatchTeams.isTeammate(gray),"Formerly gray player is eligible after its actual team color arrives");
+        // Cache membership by visible name, independent of a respawn's entity
+        // instance, short spectator interval or its reset ticksExisted value.
+        red.display="\u00a77RedPlayer";mc.thePlayer.ticksExisted=0;tick(mc);
+        check(AdninMatchTeams.isTeammate(red),"Local tick rewind and gray teammate retain same-match identity");
+        mc.thePlayer.spectator=true;local.gameType=WorldSettings.GameType.SPECTATOR;tick(mc);
+        check(AdninMatchTeams.isTeammate("RedPlayer"),"Temporary local spectator respawn does not clear known teammates");
+        mc.thePlayer.spectator=false;local.gameType=WorldSettings.GameType.SURVIVAL;
+        EntityPlayerSP respawn=new EntityPlayerSP(LOCAL,new GameProfile(LOCAL,"OriginalSelf"),"OriginalSelf");
+        respawn.display="\u00a77NickSelf";mc.thePlayer=respawn;tick(mc);
+        check(AdninMatchTeams.isTeammate("RedPlayer"),"New local entity with the same identity keeps the match cache");
+        mc.connection.roster.remove(id(881));mc.theWorld.playerEntities.remove(red);tick(mc);
+        check(AdninMatchTeams.isTeammate("RedPlayer"),"Temporarily absent Tab name remains a cached teammate");
+        EntityOtherPlayerMP replacement=actor(mc,id(882),"RedPlayer","\u00a77RedPlayer");
+        tab(mc,id(882),"RedPlayer","\u00a77RedPlayer");tick(mc);
+        check(AdninMatchTeams.isTeammate(replacement),"Same-match cached player name survives a changed entity UUID");
+        AdninMatchTeams.beginMatch();tick(mc);
+        check(!AdninMatchTeams.isTeammate("RedPlayer"),"Next match cannot reuse a teammate learned before the reset");
+        check(AdninMatchTeams.nameColor("\u00a77GrayPlayer","GrayPlayer")=='7'
+            && !AdninMatchTeams.usableTeamColor('7'),"Light gray remains a text color but never a team color");
+        check(AdninMatchTeams.usableTeamColor('8') && AdninMatchTeams.usableTeamColor('f'),
+            "Dark gray and white remain usable team colors");
+        AdninMatchTeams.clear();
+    }
     private static void numericNames() {
         Minecraft mc=scene();mc.thePlayer.display="\u00a7c123456 20";
         tab(mc,LOCAL,"123456","\u00a7c123456");
@@ -124,7 +214,7 @@ public final class AdninMatchTeamsTest {
         check(!AdninMatchTeams.isTeammate("RedFriend"),"Same-identity explicit reset remains fail-closed without scoreboard evidence");
         NetworkPlayerInfo viewed=mc.connection.getPlayerInfo(LOCAL);viewed.team=new ScorePlayerTeam();viewed.team.prefix="\u00a7c";
         viewed.display=new ChatComponentText("\u00a7c[Viewer] NickSelf");tick(mc);
-        check(!AdninMatchTeams.isTeammate("RedFriend") && !AdninMatchTeams.isSelf("NickSelf"),"Server-only viewer label cannot establish a local team");
+        check(!AdninMatchTeams.isTeammate("RedFriend") && AdninMatchTeams.isSelf("NickSelf"),"Server-only viewer label cannot establish a local team or erase the existing self identity");
         AdninMatchTeams.clear();
     }
     private static void lifecycle() {
@@ -226,5 +316,5 @@ public final class AdninMatchTeamsTest {
             && AdninMatchTeams.nameColor("\u00a7a[VIP] \u00a7cFixture123","Fixture123")=='c',
             "Rank brackets keep the existing formatted token path");
     }
-    public static void main(String[] args) throws Exception {colors();numericNames();nickedSelfServerIdentity();lifecycle();fallbackAndSpectators();replayAliasesAndBounds();lexicalFastPaths();System.out.println("AdninMatchTeamsTest: "+checks+" checks passed; actual production helper, offline nick/team/match/replay fixtures");}
+    public static void main(String[] args) throws Exception {colors();lightGrayPolicy();lightGrayAndRespawn();numericNames();nickedSelfServerIdentity();lifecycle();fallbackAndSpectators();replayAliasesAndBounds();lexicalFastPaths();System.out.println("AdninMatchTeamsTest: "+checks+" checks passed; actual production helper, offline nick/team/match/replay fixtures");}
 }

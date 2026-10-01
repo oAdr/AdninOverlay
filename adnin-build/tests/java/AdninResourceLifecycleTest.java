@@ -63,7 +63,7 @@ public final class AdninResourceLifecycleTest {
             "Retired request cannot repopulate cache");
         profiles.publish(Collections.singletonMap("NewAlias", "NewPlayer"));
         check(profiles.accountName("NewAlias").isEmpty() && !profiles.resolveOne(3), "Shutdown cannot restart admission");
-        for (String name : new String[]{"values", "expires", "pending", "queue", "roster"}) {
+        for (String name : new String[]{"values", "expires", "pending", "queue", "roster", "paused", "pausedValues"}) {
             Object value = field(AdninReplayProfiles.class, name).get(profiles);
             check(value instanceof Map ? ((Map<?,?>)value).isEmpty() : ((Collection<?>)value).isEmpty(),
                 "Shutdown releases Replay " + name);
@@ -126,16 +126,43 @@ public final class AdninResourceLifecycleTest {
                 catch (Throwable failure) { publicationError.set(failure); }
             }
         }, "owned-late-result");
+        final AtomicReference<Throwable> preflightError = new AtomicReference<Throwable>();
+        Thread preflight = new Thread(new Runnable() {
+            public void run() {
+                try { AdninFeatures.refreshIgnoredPlayers(null); }
+                catch (Throwable failure) { preflightError.set(failure); }
+            }
+        }, "owned-gray-preflight");
+        final AtomicReference<Throwable> guardError = new AtomicReference<Throwable>();
+        Thread guards = new Thread(new Runnable() {
+            public void run() {
+                try {
+                    AdninFeatures.shouldIgnorePlayer("Player");
+                    AdninFeatures.shouldIgnorePlayerId(null);
+                    AdninFeatures.shouldIgnorePlayerEntityId(1);
+                } catch (Throwable failure) { guardError.set(failure); }
+            }
+        }, "owned-gray-guards");
         synchronized (owner) {
-            publication.start();
+            publication.start(); preflight.start(); guards.start();
             long until = System.nanoTime() + TimeUnit.SECONDS.toNanos(2);
             while (publication.getState() != Thread.State.BLOCKED && publication.isAlive()
                     && System.nanoTime() < until) Thread.yield();
             check(publication.getState() == Thread.State.BLOCKED,
                 "Result publication uses the same barrier as shutdown");
+            until = System.nanoTime() + TimeUnit.SECONDS.toNanos(2);
+            while (preflight.getState() != Thread.State.BLOCKED && preflight.isAlive()
+                    && System.nanoTime() < until) Thread.yield();
+            check(preflight.getState() == Thread.State.BLOCKED,
+                "Gray preflight shares shutdown's barrier before touching mutable display state");
+            guards.join(2000);
+            check(!guards.isAlive() && guardError.get() == null,
+                "Native and Netty gray guards do not acquire the Features lifecycle monitor");
             AdninFeatures.shutdown();
         }
-        daemon.join(2000); publication.join(2000);
+        daemon.join(2000); publication.join(2000); preflight.join(2000);
+        check(!preflight.isAlive() && preflightError.get() == null,
+            "A delayed gray preflight exits cleanly after shutdown");
         check(!publication.isAlive() && publicationError.get() == null && results.isEmpty(),
             "A late completed result cannot repopulate the retired queue");
         check(!daemon.isAlive(), "API daemon exits without a game tick or network request");
@@ -143,7 +170,8 @@ public final class AdninResourceLifecycleTest {
         check("".equals(field(owner,"keySnapshot").get(null)) && "".equals(field(owner,"urlSnapshot").get(null)),
             "Unload releases worker configuration snapshots");
         for (String name : new String[]{"requests","results","nickHints","matchRequests","botCache","botProfiles",
-                "candidateTimes","requested","tags","tagLabels","announced","present","displayNames","nametagNames","outbox","sent"}) {
+                "candidateTimes","requested","tags","tagLabels","announced","present","displayNames","nametagNames","outbox","sent",
+                "ignoredScratch","ignoredIdsScratch","ignoredEntitiesScratch","ignoredRosterScratch"}) {
             Object value = field(owner,name).get(null);
             check(value instanceof Map ? ((Map<?,?>)value).isEmpty() : ((Collection<?>)value).isEmpty(),
                 "Unload clears " + name);

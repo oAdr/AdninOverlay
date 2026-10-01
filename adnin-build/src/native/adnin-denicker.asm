@@ -252,6 +252,9 @@ denicker_result:
     mov qword [rsp+0x68], 0
     mov qword [rsp+0x70], 36
     mov qword [rsp+0x78], 63
+    ; Respawn gray pauses new requests without discarding known identity/stats.
+    cmp dword [rbx+0x54], 0xaaaaaa ; row name + 0x54 == row RGB + 0x94
+    je .read_stats
     cmp byte [rel $$-CODE_RVA+MODE_FLAG_RVA], 0
     je .ordinary_queue
     lea rcx, [rsp+0x60]
