@@ -1,5 +1,34 @@
 # Adnin build v23
 
+## Shared configuration and Lunar queue auto-start follow-up
+
+All clients now use `%LOCALAPPDATA%/Adnin/config.properties`: Hypixel, Seraph,
+Aurora and Urchin keys, Bot Denicker URL, every feature switch, Anticheat,
+Output, interface language/scale and all four overlay column layouts. The
+first startup imports the latest valid legacy `toggles.json` from Adnin's
+hash-specific payload cache and that client's old `adnin-features.properties`.
+Native-loaded values remain usable when no previous cache file is available.
+Once the shared file exists it is authoritative;
+missing, blank, malformed or unreadable credentials cannot fall back to an old
+client file. Old files are preserved but no longer saved or reapplied over the
+shared profile. Switching clients loads the shared state on initialization;
+an already-running client does not live-reload external edits.
+
+Menu changes use the existing background worker with a 600 ms debounce and
+atomic replacement. Unchanged snapshots skip disk writes. The recurring
+synchronous native `toggles.json` writers are retired in both payloads. The
+injector reads its language from this same file. Personal settings remain
+outside the EXE and both archives, with blank compiled key/URL defaults.
+
+Lunar queue scope now handles proven zero-width single-BMP symbol row keys,
+including the current waiting-room key, as well as supplementary symbols.
+Only keys the current font proves invisible are omitted. Visible symbols,
+malformed keys and unrelated sidebar text still refuse auto-query.
+
+Build with `Build.ps1 -BuildDirectory build-v23-party-shared-config` and package
+with `python scripts/package.py --build build-v23-party-shared-config --version v23`.
+See `evidence/shared-config-party-v23.md` and `验证状态.md` for verification.
+
 ## v23 teammate cache and Lunar Party Detector recovery
 
 Teammate identities are now cached for the current match by name and UUID.
@@ -17,23 +46,31 @@ Tab rows. Party IDs skips new observations already identified as gray without
 retracting an earlier accepted group. Dark gray `§8` and white `§f` are allowed.
 
 Ping now uses Aurora's public v2 Ping endpoint. It sends the player's UUID and
-no API key, and retains the existing API Proxy opt-in, native background worker,
+no API key, works independently of API Proxy, and retains the native background worker,
 10-minute completed-response cache and 45-second request-failure retry cache.
 Ping is the first `avg` value; PingVar is `max(avg) - min(avg)`. The Number
 Denicker key setting remains independent of this public Ping endpoint.
 
-Lunar Party Detector IDs now completes a cycle only after `/locraw` is actually
-sent. A transient missing player, changed pre-game sidebar or sender failure can
+Lunar Party Detector IDs now completes a cycle only after its `/locraw` query
+receives a validated response. A transient missing player, changed pre-game sidebar or sender failure can
 recover in the same world, with at most three attempts, five seconds between
 actual attempts, and a fresh 500 ms waiting-room check for each retry. Lobby,
 active-game and Replay scope restrictions remain. The native mode parser and
-entity-ID grouping algorithm is unchanged.
+entity-ID grouping algorithm is unchanged. The fallback packet observer runs
+after decoding; a bounded plain-chat response window hands the verified mode to
+the original native parser before its Prequeue consumer. No packet is swallowed.
+
+Respawn output is rechecked at the actual delivery boundary, including cache-hit
+statistics and tags. An explicit light-gray player-name token from the current
+actor, Tab or scoreboard pauses work even when another source still shows the
+old team color. Previously known identity and teammate state is preserved.
 
 The settings header displays `v23`. Build with
-`Build.ps1 -BuildDirectory build-v23-gray-policy`; package with
-`python scripts/package.py --build build-v23-gray-policy --version v23`.
+`Build.ps1 -BuildDirectory build-v23-followup`; package with
+`python scripts/package.py --build build-v23-followup --version v23`.
 See `evidence/team-cache-v23.md`, `evidence/party-query-recovery-v23.md`,
-`evidence/gray-player-policy-v23.md`, `evidence/ping-source-v23.md` and `验证状态.md` for the focused
+`evidence/gray-player-policy-v23.md`, `evidence/ping-source-v23.md`,
+`evidence/respawn-party-ping-v23.md` and `验证状态.md` for the focused
 checks and live-validation limits.
 
 ## v22 input safety and equivalent-work reduction
@@ -399,7 +436,7 @@ The actual visible sidebar title and its last 15 visible rows are checked for `r
 
 The always-installed tick HUD skips native Session Stats drawing when disabled or stopped. A shared lifecycle lock spans its native preparation and complete draw, and both native profiles wait for Java stop before End-key unloading. This keeps any remaining Java HUD wrapper inert after native unload; it does not claim that the old GUI object was restored. See `evidence/session-hud-lifecycle-v12.md`.
 
-New settings are saved in the same game-local `adnin-features.properties`. The release does not include that file, API keys, or personal endpoint settings. `resources/THIRD_PARTY_NOTICES.txt` includes the Raven MIT license and is also embedded verbatim in the EXE as resource 202.
+Settings are saved in the common user profile described above. The release does not include personal settings, API keys or endpoint values. `resources/THIRD_PARTY_NOTICES.txt` includes the Raven MIT license and is also embedded verbatim in the EXE as resource 202.
 
 ## Features
 
@@ -506,13 +543,13 @@ Double-click launches without a console and shows one compact result window with
 
 ## Empty defaults and existing local settings
 
-All compiled API key fields and the custom Bot URL start empty. **A clean first run means a game-data directory without saved settings; launching a new EXE on the same PC is not a clean settings profile.** Urchin and Bot settings are loaded from `mc.mcDataDir/adnin-features.properties`, not from the EXE folder or the extracted-DLL cache. `urchin.apiKey` and `botDenicker.url` in that file replace the empty in-memory defaults during the first feature initialization. An existing file is therefore reused after changing EXEs or restarting the game with the same game-data directory.
+All compiled API key fields and the custom Bot URL start empty. All supported clients use `%LOCALAPPDATA%/Adnin/config.properties`, outside the EXE folder and game directories. Launching a new EXE on the same PC reuses that user profile. A new installation with neither shared nor legacy settings starts blank.
 
-Initialization is latched for the current Java class instance. Reopening the menu does not repeatedly reload the file. Editing or clearing the Urchin key or Bot URL through the menu schedules a save back to the same file, using a short delay and a temporary-file replacement. This is separate from the recovered native configuration, which handles the original Hypixel, Seraph and Aurora key fields; native configuration does not independently persist the two new Urchin/Bot fields.
+Initialization is latched for the current Java class instance. Reopening the menu does not repeatedly reload the file. Every API, URL and option shares the same debounced background save. The first client started without a common profile migrates its legacy settings once; other clients' old files cannot overwrite it. An existing common file is authoritative even if partial or damaged. The original native per-client recurring writer and separate language writer are retired. Old files are preserved for recovery, not included in the package.
 
 During the v5 investigation, the existing local settings file was identified using metadata only. Its private contents were not read or changed, and no saved credential value was compared or cleared. The audit confirmed empty source and v4 compiled defaults and traced the settings lifecycle; the displayed old values are consistent with the existing-file reuse described above.
 
-Do not share `adnin-features.properties`. `adnin-runtime-status.properties` contains only initialization/counter diagnostics and a fixed Urchin error category. User settings, personal API keys and custom Bot URLs are excluded from release archives. Public service endpoint constants remain necessary for Urchin and Mojang functionality.
+Do not share `config.properties` or old personal configuration files. `adnin-runtime-status.properties` beside the common profile contains only initialization/counter diagnostics and fixed error categories. User settings, personal API keys and custom Bot URLs are excluded from release archives. Public service endpoint constants remain necessary for functionality.
 
 ## Build
 

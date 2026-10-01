@@ -614,11 +614,13 @@ render_unwind:
 %include "adnin-process-entry.asm"
 %include "adnin-input-hooks.asm"
 %include "adnin-chat-poll.asm"
+%include "adnin-config-save.asm"
 %ifdef ADNIN_COMPAT_PROFILE
 %include "adnin-compat.asm"
 %else
 %include "adnin-scheduler.asm"
 %include "adnin-lunar-stop.asm"
+%include "adnin-party-mode.asm"
 %endif
 align 16, db 0
 payload_end:

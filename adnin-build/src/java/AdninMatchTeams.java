@@ -99,6 +99,10 @@ public final class AdninMatchTeams {
         addName(ownNames,tabName);addName(ownNames,visible);addName(ownNames,ownTabName);
         if(localInfo!=null && localInfo.getGameProfile()!=null)addId(ownIds,localInfo.getGameProfile().getId());
         if(ownColor==0) {
+            // Do not establish a new team from a lagging red scoreboard while
+            // the local player's actual displayed Nick is temporarily gray.
+            // An already established same-match color and membership stay cached.
+            if(isLightGray(mc.thePlayer,localInfo,visible))return;
             ownColor=localColor(localInfo,ownDisplay,visible,localName,profileName,ownTabText,ownTabName);
         }
         if(ownColor==0) return;
@@ -160,7 +164,8 @@ public final class AdninMatchTeams {
 
     /**
      * Current Tab nametag policy shared by player-data and identity features.
-     * An explicitly formatted scoreboard name wins over a custom Tab label.
+     * A proven gray name in either the scoreboard or current Tab component
+     * pauses work: during respawn those two packets can arrive separately.
      * Only a proven light-gray name token is excluded; rank text, unknown
      * formatting, dark gray and white are never treated as light-gray names.
      * This helper has no monitor, cache, world scan or IO side effects.
@@ -168,24 +173,20 @@ public final class AdninMatchTeams {
     public static boolean isLightGray(NetworkPlayerInfo info) {
         String name=plain(profileName(info));
         if(!valid(name))return false;
-        return currentNameColor(tabDisplay(info),name,null,null)=='7';
+        if(info.getPlayerTeam()!=null && currentNameColor(
+                ScorePlayerTeam.formatPlayerName(info.getPlayerTeam(),profileName(info)),name,null,null)=='7')return true;
+        return currentNameColor(formatted(info.getDisplayName()),name,null,null)=='7';
     }
 
     /** Current actor policy, including Replay names unlike the bot profile. */
     public static boolean isLightGray(EntityPlayer player,NetworkPlayerInfo info,String admittedName) {
-        String tabName=plain(profileName(info));
-        if(info!=null && info.getPlayerTeam()!=null && valid(tabName)) {
-            String text=ScorePlayerTeam.formatPlayerName(info.getPlayerTeam(),profileName(info));
-            // Explicit resets also carry authority: a stale custom display
-            // label must not replace unknown scoreboard nametag formatting.
-            if(explicitColor(text))return currentNameColor(text,tabName,admittedName,null)=='7';
-        }
         if(player!=null) {
             String text=formatted(player.getDisplayName());
             String profile=player.getGameProfile()==null?null:player.getGameProfile().getName();
-            char color=currentNameColor(text,admittedName,player.getName(),profile);
-            if(color!=0 || explicitColor(text))return color=='7';
+            if(currentNameColor(text,admittedName,player.getName(),profile)=='7')return true;
         }
+        // A non-gray or reset entity component cannot override a separate,
+        // explicitly gray current Tab/scoreboard name during a respawn update.
         return isLightGray(info);
     }
 

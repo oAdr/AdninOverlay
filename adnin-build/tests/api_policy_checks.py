@@ -27,6 +27,8 @@ def verify_aurora_contract(test, old, new, policy, spec, report):
     test.assertEqual(ping['provider'], 'aurora')
     test.assertEqual(ping['endpoint'], AURORA_ENDPOINT)
     test.assertIs(ping['requiresApiKey'], False)
+    test.assertIs(ping['requiresProxy'], False)
+    test.assertIs(ping['hypixelProviderIndependent'], True)
     test.assertEqual(ping['urlOperandRva'], spec['pingUrlLea'])
     old_url = old.get_data(spec['pingUrlOriginal'], len(PREVIOUS_PING_ENDPOINT))
     test.assertEqual(old_url, PREVIOUS_PING_ENDPOINT)
@@ -264,7 +266,10 @@ def execute(test,final,report,profile,nasm):
                     for kind,call in callers.items():
                         with test.subTest(profile=profile,currentPresent=bool(current),proxy=proxy,kind=kind,size=len(value),ready=ready):
                             result=call(key,ctypes.addressof(snap))
-                            expected=(int(bool(proxy)) if kind=='ping' else int(ready) if kind=='key' else 2 if proxy else int(ready))
+                            # Ping is a public Aurora request. Its worker must
+                            # run with both empty Hypixel credentials and a
+                            # disabled Vega/API Proxy provider.
+                            expected=(1 if kind=='ping' else int(ready) if kind=='key' else 2 if proxy else int(ready))
                             test.assertEqual(result,expected)
                             r14,rbx,rcx,rdx,r8,r9=struct.unpack('<6Q',snap)
                             test.assertEqual(r14,0x9876543212345600+(int(bool(proxy)) if kind=='uuid' else 0))

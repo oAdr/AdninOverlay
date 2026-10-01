@@ -5,11 +5,15 @@ import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.lang.ref.WeakReference;
 import java.util.Arrays;
 import java.util.UUID;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelPipeline;
+import net.minecraft.network.play.server.S02PacketChat;
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.IChatComponent;
 
 public class AdninPacketLog {
     public static volatile int seenSpawnPlayerCount = 0;
@@ -27,7 +31,8 @@ public class AdninPacketLog {
     private static volatile InstallRequest current;
     // At most one queued/running EventLoop action and one installed observer.
     // A rapid connection change replaces only current, never grows a task queue.
-    private static InstallRequest pending, installed;
+    private static InstallRequest pending;
+    private static volatile InstallRequest installed;
     private static final Object ACCESSOR_LOCK = new Object();
     private static final Object[] NO_ARGUMENTS = new Object[0];
     private static volatile SpawnAccessors spawnAccessors;
@@ -292,6 +297,29 @@ public class AdninPacketLog {
         }
     }
 
+    /** Only the installed decoded-packet observer owns a response admission token. */
+    static Object observerToken(Object connection) {
+        InstallRequest owner = current;
+        return owner != null && owner == installed && owner.observes() && owner.connection.get() == connection
+            ? owner : null;
+    }
+
+    private static void observeModeIfNeeded(InstallRequest owner, Object packet) {
+        try {
+            if (!(packet instanceof S02PacketChat) || !AdninPartyQueueQuery.awaitsMode(owner)) return;
+            S02PacketChat chat = (S02PacketChat)packet;
+            if (chat.getType() != 0 && chat.getType() != 1) return;
+            IChatComponent component = chat.getChatComponent();
+            // Locraw is one unstyled server text component. Player chat,
+            // translations, interactive text and actionbar content are excluded.
+            if (component == null || component.getClass() != ChatComponentText.class
+                    || !component.getSiblings().isEmpty() || !component.getChatStyle().isEmpty()) return;
+            AdninPartyQueueQuery.observeMode(owner, ((ChatComponentText)component).getChatComponentText_TextValue(),
+                System.nanoTime() / 1000000L);
+        } catch (RuntimeException unavailable) { }
+          catch (LinkageError unavailable) { }
+    }
+
     public static void install(Object netHandler) {
         if (stopped || netHandler == null) return;
         try {
@@ -322,7 +350,7 @@ public class AdninPacketLog {
                 }
                 if (current != null && current.channel == channel && !current.closed) return;
                 current = installed != null && installed.channel == channel && !installed.closed
-                    ? installed : new InstallRequest(channel);
+                    ? installed : new InstallRequest(channel, netHandler);
                 installState = "install:queued";
                 dispatchLocked();
             }
@@ -393,10 +421,11 @@ public class AdninPacketLog {
 
     private static final class InstallRequest implements Runnable {
         final Channel channel;
+        final WeakReference<Object> connection;
         volatile boolean closed;
         ChannelHandler handler;
         int action;
-        InstallRequest(Channel channel) { this.channel = channel; }
+        InstallRequest(Channel channel, Object connection) { this.channel = channel; this.connection = new WeakReference<Object>(connection); }
         boolean observes() { return !stopped && !closed && current == this; }
 
         @Override public void run() {
@@ -426,9 +455,10 @@ public class AdninPacketLog {
                             return;
                         }
                         if (handler == null) handler = createHandler(this);
-                        for (String anchor : new String[]{"packet_handler", "decoder", "inbound_handler", "splitter", "encoder"}) {
+                        for (String anchor : new String[]{"packet_handler", "decoder", "inbound_handler"}) {
                             if (pipeline.get(anchor) == null) continue;
-                            pipeline.addBefore(anchor, HANDLER_KEY, handler);
+                            if ("decoder".equals(anchor)) pipeline.addAfter(anchor, HANDLER_KEY, handler);
+                            else pipeline.addBefore(anchor, HANDLER_KEY, handler);
                             installed = this; installState = "install:ok:" + anchor;
                             return;
                         }
@@ -486,7 +516,10 @@ public class AdninPacketLog {
                 switch (string) {
                     case "channelRead": {
                         if (objectArray != null && objectArray.length >= 2) {
-                            if (owner.observes()) AdninPacketLog.logSpawnPlayerIfNeeded(objectArray[1]);
+                            if (owner.observes()) {
+                                observeModeIfNeeded(owner, objectArray[1]);
+                                AdninPacketLog.logSpawnPlayerIfNeeded(objectArray[1]);
+                            }
                             if (channelContext != null) {
                                 if (methodArray[0] == null) {
                                     methodArray[0] = AdninPacketLog.findMethodByName(channelContext.getClass(), "fireChannelRead", Object.class);

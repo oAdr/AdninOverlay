@@ -58,13 +58,11 @@ align 4, db 0
 api_uuid_ready_unwind: db 1, 0, 0, 0
 
 api_ping_proxy:
-    ; Aurora Ping has its own public endpoint and sends no API key. It needs the same explicit
-    ; proxy opt-in; without it the existing caller sees ordinary no-result.
-    cmp byte [rel $$-CODE_RVA+API_PROXY_RVA], 0
-    jne .enabled
-    xor eax, eax
-    ret
-.enabled:
+    ; Keep the bridge's established symbol/ABI, but Aurora Ping is an independent
+    ; public provider. Hypixel's proxy selector and its key must not disable it
+    ; or synthesize a failed-cache entry before any request was attempted.
+    ; Column demand, gray admission and the original worker/cache still own
+    ; scheduling; this tail call adds no work to the game/render thread.
     jmp IMAGE_BASE+NATIVE_PROXY_PING
 api_ping_proxy_end:
 align 4, db 0

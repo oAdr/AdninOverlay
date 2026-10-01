@@ -4,6 +4,15 @@ Reviewed on 2026-10-01 by static inspection of `build-v22-input-perf/native-fixe
 
 ## v23 migration contract
 
+The current `build-v23-followup` additionally removes the unintended Hypixel
+API Proxy gate from Aurora Ping. Proxy OFF previously returned a false fetch
+result without making a request, then retained it for the normal failure TTL.
+The Ping tailcall now always reaches its public provider; Hypixel statistics
+and Number Denicker retain their own credential/provider rules. Native mock
+tests exercise Proxy values 0/1/2 with missing, blank and populated dummy keys.
+The background worker, completed/failed cache intervals and no-data behavior
+remain unchanged. See `respawn-party-ping-v23.md` for current build results.
+
 The requested change replaces the native Bordic v3 Ping endpoint with the Aurora v2 Ping endpoint used by Mellow:
 
 - Previous endpoint: `https://api.bordic.xyz/v3/player/ping?uuid=`.
@@ -64,6 +73,6 @@ The worker beginning at Lunar RVA `0xa0260` checks refresh eligibility at `0xa03
 
 ## Verification limits
 
-- The coherent v23 build passed both native suites (Lunar 78, compatibility 45). Its API fixtures verify all seven policy patches and the full native Ping fetch/parser body remains unchanged except for the URL displacement. Independent reads of EXE resources 101/102 confirm both embedded DLLs exactly match their built files and directly resolve the Ping URL operands to the Aurora string. Final artifact hashes are recorded in `验证状态.md`.
+- The earlier `build-v23-gray-policy` passed both native suites (Lunar 78, compatibility 45) but retained the now-removed Proxy gate. Current-build results and final artifact hashes are recorded in `验证状态.md`. Endpoint tests still pin all seven API patches and the original fetch/parser body outside the URL displacement.
 - The public Aurora route returned a structured no-data response. Successful upstream data parsing, real-time latency and client rendering behavior were not validated live in this review.
 - Compatibility function addresses were checked against the build profile mapping; the detailed calculation and cache branches cited here were inspected in the Lunar binary.

@@ -74,6 +74,7 @@ public final class AdninPartyQueueScopeTest {
         check(!allows(clipped, "Viewer"), "Enough hidden entries can clip every candidate under the actual renderer rule");
 
         supplementaryRowKeys();
+        bmpRowKeys();
         pregameScope();
 
         Scoreboard oversized = new Scoreboard();
@@ -202,6 +203,39 @@ public final class AdninPartyQueueScopeTest {
         unteamed.setObjectiveInDisplaySlot(1, objective);
         unteamed.getValueFromObjective("www.hypixel.ne" + rowKey + "t", objective).setScorePoints(1);
         check(!allows(unteamed, "Viewer"), "An unteamed raw footer never undergoes global Unicode removal");
+    }
+
+    private static void bmpRowKeys() throws Exception {
+        String rowKey = "\u26bd";
+        check(allowsTeamLine("\u00a7ewww.hypixel.ne", rowKey, "\u00a7et"),
+            "A witnessed zero-width Lunar BMP-symbol row key also composes a complete footer");
+        check(!allowsTeamLine("www.hypixel.ne", rowKey, "t", null),
+            "A BMP symbol requires current-font proof before omission");
+        AdninPartyQueueQuery.GlyphWidth visible = new AdninPartyQueueQuery.GlyphWidth() {
+            public int width(char value) { return 4; }
+        };
+        check(!allowsTeamLine("www.hypixel.ne", rowKey, "t", visible),
+            "A visible resource-pack BMP symbol remains in the footer");
+        for (String phase : new String[]{"Waiting...", "Starting in 20s", "Starting in 0:10"}) {
+            Scoreboard board = waitingBoard("BED WARS", "Players: 12/16", phase);
+            ScoreObjective objective = board.getObjectiveInDisplaySlot(1);
+            board.removeObjectiveFromEntity(phase, objective);
+            ScorePlayerTeam team = board.createTeam("phase");
+            team.setNamePrefix(phase); team.setNameSuffix("");
+            assignOfflineTeam(board, rowKey, team);
+            board.getValueFromObjective(rowKey, objective).setScorePoints(2);
+            check((AdninPartyQueueQuery.inspectSidebar(board, "Viewer", new FakeGlyphs()) & AdninPartyQueueQuery.SCOPE_WAITING) != 0,
+                "Live Lunar BMP-key wait/countdown triggers the automatic-query scope: " + phase);
+            check(!waiting(board), "An unproven BMP phase key cannot authorize a query");
+            check((AdninPartyQueueQuery.inspectSidebar(board, "Viewer", visible) & AdninPartyQueueQuery.SCOPE_WAITING) == 0,
+                "A visible BMP phase key cannot authorize a query");
+            team.setNameSuffix(" extra");
+            check((AdninPartyQueueQuery.inspectSidebar(board, "Viewer", new FakeGlyphs()) & AdninPartyQueueQuery.SCOPE_WAITING) == 0,
+                "Omitting one key never strips visible text from the phase suffix");
+        }
+        for (String key : new String[]{rowKey + rowKey, rowKey + "x", "\u200b", "\u00a7", "\uD83C", "\uDF82"})
+            check(!allowsTeamLine("www.hypixel.ne", key, "t"),
+                "Compound, format, control or unpaired-surrogate BMP keys remain intact");
     }
 
     private static boolean allowsTeamLine(String prefix, String entry, String suffix) throws Exception {

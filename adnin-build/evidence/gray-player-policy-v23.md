@@ -1,5 +1,12 @@
 # v23 light-gray player pause
 
+The current `build-v23-followup` extends the original stage recorded below:
+cached-stat/tag producer guards, immediate delivery checks and conflict-aware
+actor/Tab/scoreboard color admission close the respawn gaps. Replay also uses
+the admitted actor's current name color. The bulk snapshot interval remains
+250 ms. Current counts and build results are in `respawn-party-ping-v23.md`
+and `../验证状态.md`; the smaller counts below are historical stage results.
+
 The requested scope is all player detection and queries, not only team
 recognition. An explicit light-gray name token (`§7`, RGB `0xAAAAAA`) pauses
 new observations and work. A gray rank prefix alone is not a gray name. White

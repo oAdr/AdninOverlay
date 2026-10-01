@@ -2,6 +2,11 @@
 
 Reviewed on October 1, 2026. This follow-up is included in the v23 package.
 
+This note records the earlier send-recovery stage. `build-v23-followup` adds
+decoded-packet placement, response-window validation, same-world scope retirement
+and the Lunar native mode handoff. A successful send alone no longer completes
+the live cycle. See `respawn-party-ping-v23.md` for the current behavior/tests.
+
 ## Reproduced defect
 
 The Lunar query policy consumed its one opportunity before invoking the live

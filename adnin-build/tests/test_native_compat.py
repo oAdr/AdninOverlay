@@ -33,6 +33,7 @@ import skin_policy_checks
 import input_hooks_checks
 import chat_poll_prune_checks
 import player_policy_checks
+import shared_config_checks
 
 parser = argparse.ArgumentParser(add_help=False)
 parser.add_argument('--input', type=Path, required=True)
@@ -65,6 +66,10 @@ def fixture():
 
 
 class CompatPETests(unittest.TestCase):
+    def test_shared_settings_retire_synchronous_writer_and_preserve_jni_abi(self):
+        shared_config_checks.verify(self,self.before,self.final,self.report,'vanilla')
+        shared_config_checks.execute(self,self.final,self.report,'vanilla',ARGS.nasm)
+
     def test_gray_query_guards_preserve_cached_state_pending_results_and_abi(self):
         player_policy_checks.verify(self,self.before,self.final,self.report,'vanilla')
         player_policy_checks.execute(self,self.final,self.report,'vanilla',ARGS.nasm)
@@ -148,9 +153,10 @@ class CompatPETests(unittest.TestCase):
         self.assertEqual(report, self.report)
 
     def test_registration_unload_guard_and_all_feature_hooks(self):
-        self.assertEqual(len(self.report['hooks']), 29 + len(bridge.native_player_policy.FUNCTIONS))
+        self.assertEqual(len(self.report['hooks']), 30 + len(bridge.native_player_policy.PROFILES['vanilla'])
+                         + len(bridge.native_player_policy.PRODUCERS['vanilla']))
         self.assertEqual({h['callback'] for h in self.report['hooks']},
-                         {'plain', 'plainDenick', 'jsonDenick', 'plainTags', 'jsonTags', 'plainLocal', 'gameActive', 'prelayout', 'render', 'seraphPrefix', 'denicker', 'matchStart', 'columnCatalog', 'replayStats', 'replayUuidCopy', 'numberGetLock', 'numberRegisterLock', 'numberPopLock', 'apiPingProxy', 'hypixelHttp', 'apiRefreshFailures', 'registerClientTick', 'stopClientPumpBeforeUnload'} | set(bridge.native_player_policy.FUNCTIONS))
+                         {'configSave', 'plain', 'plainDenick', 'jsonDenick', 'plainTags', 'jsonTags', 'plainLocal', 'gameActive', 'prelayout', 'render', 'seraphPrefix', 'denicker', 'matchStart', 'columnCatalog', 'replayStats', 'replayUuidCopy', 'numberGetLock', 'numberRegisterLock', 'numberPopLock', 'apiPingProxy', 'hypixelHttp', 'apiRefreshFailures', 'registerClientTick', 'stopClientPumpBeforeUnload'} | set(bridge.native_player_policy.FUNCTIONS))
         for item in self.report['hooks']:
             expected = bridge.call_bytes(item['callRva'], item['bridgeTargetRva'])
             self.assertEqual(self.pe.get_data(item['callRva'], 5), expected)

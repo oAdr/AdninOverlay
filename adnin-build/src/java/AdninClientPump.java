@@ -6,6 +6,7 @@ implements Runnable {
     @Override
     public void run() {
         try {
+            AdninFeatures.ensureInitialized();
             AdninFeatures.refreshIgnoredPlayers(net.minecraft.client.Minecraft.getMinecraft());
         } catch (Exception | LinkageError unavailable) {
             // Optional read-only roster work cannot interrupt the native pump.

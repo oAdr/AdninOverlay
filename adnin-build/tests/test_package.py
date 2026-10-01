@@ -49,7 +49,7 @@ class PackagePrivacyTest(unittest.TestCase):
         (self.root / 'resources/THIRD_PARTY_NOTICES.txt').write_text('Owned third-party notice fixture\n', encoding='utf8')
 
     def test_private_names_are_rejected_in_every_directory_and_case(self):
-        for name in ('adnin-features.properties', 'TOGGLES.JSON', '.env.local',
+        for name in ('adnin-features.properties', 'TOGGLES.JSON', 'config.properties', 'language.txt', '.env.local',
                      'config.json', 'accounts.json', 'credential.pem'):
             with self.subTest(name=name):
                 self.assertBlocked('adnin-build/tests/fixtures/' + name, b'')

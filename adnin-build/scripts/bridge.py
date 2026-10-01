@@ -33,6 +33,8 @@ import native_skin_policy
 import native_input_hooks
 import native_chat_poll
 import native_player_policy
+import native_party_mode
+import native_shared_config
 
 ROOT = Path(__file__).resolve().parents[1]
 MAGIC = b'ADNINB01'
@@ -71,8 +73,11 @@ HOOKS = (
     (0xaedf4, 0x2ddb0, 'hypixelHttp'),
     (0x9f1d5, 0xa9e90, 'apiRefreshFailures'),
     (0xd5d3a, 0xc270, 'lunarSchedule'),
+    (native_party_mode.SITE, native_party_mode.TARGET, native_party_mode.FUNCTION),
+    (*native_shared_config.PROFILES['lunar'], 'configSave'),
 )
 HOOKS += tuple((site,target,name) for site,target,name,_ in native_player_policy.PROFILES['lunar'])
+HOOKS += tuple((site,target,name) for site,target,name,_ in native_player_policy.PRODUCERS['lunar'])
 # Hash of the fixed original .text with only reembed.py's verified operand
 # patches normalized to zero. This pins all other original machine code.
 TEXT_LINEAGE_SHA256 = 'c35696823c7004ce7567dbc704b4e8adf60e259f57d8f3694fe6ec230cd803cd'
@@ -83,8 +88,9 @@ FUNCTION_NAMES = ('output', 'invoke', 'string', 'layout', 'render', 'denicker', 
                   'apiKeyReady', 'apiUuidReady', 'apiPingProxy', 'hypixelHttp', 'apiDecodeComponent', 'apiRefreshFailures', 'processEntry', 'gameActive')
 FUNCTION_NAMES += native_input_hooks.FUNCTION_NAMES
 FUNCTION_NAMES += ('chatPollTail',)
+FUNCTION_NAMES += ('configSave',)
 FUNCTION_NAMES += native_player_policy.FUNCTIONS
-LUNAR_FUNCTION_NAMES = FUNCTION_NAMES + ('lunarSchedule', 'lunarStop')
+LUNAR_FUNCTION_NAMES = FUNCTION_NAMES + ('lunarSchedule', 'lunarStop', 'partyMode')
 LUNAR_UNLOAD_SITE = 0x150da
 LUNAR_UNLOAD_BEFORE = bytes.fromhex('ff1548a51100')
 
@@ -222,8 +228,15 @@ def read_metadata(payload, code_rva):
     require(gray_at >= 160 and payload.find(b'ADNGRY01',gray_at+1)<0 and gray_at+68<=len(payload),
             'Missing or ambiguous gray-player query metadata')
     gray_values = struct.unpack_from('<15I',payload,gray_at+8)
-    for index,name in enumerate(native_player_policy.FUNCTIONS):
+    for index,name in enumerate(native_player_policy.QUERY_FUNCTIONS):
         begin,end,unwind=gray_values[index*3:index*3+3]
+        result.update({name:begin,name+'Begin':begin,name+'End':end,name+'Unwind':unwind})
+    producer_at = payload.find(b'ADNGRY02')
+    require(producer_at >= 160 and payload.find(b'ADNGRY02',producer_at+1)<0 and producer_at+32<=len(payload),
+            'Missing or ambiguous gray-player producer metadata')
+    producer_values = struct.unpack_from('<6I',payload,producer_at+8)
+    for index,name in enumerate(native_player_policy.PRODUCER_FUNCTIONS):
+        begin,end,unwind=producer_values[index*3:index*3+3]
         result.update({name:begin,name+'Begin':begin,name+'End':end,name+'Unwind':unwind})
     stop_at = payload.find(b'ADNLST01')
     if stop_at >= 0:
@@ -236,12 +249,22 @@ def read_metadata(payload, code_rva):
                 'Invalid Lunar stop metadata')
         begin, end, unwind = struct.unpack_from('<3I', payload, stop_at + 8)
         result.update(lunarStop=begin, lunarStopBegin=begin, lunarStopEnd=end, lunarStopUnwind=unwind)
+        party_at = payload.find(b'ADNPTY01')
+        require(party_at >= 160 and payload.find(b'ADNPTY01', party_at+1)<0 and party_at+20<=len(payload),
+                'Missing or ambiguous Lunar Party mode metadata')
+        begin,end,unwind = struct.unpack_from('<3I',payload,party_at+8)
+        result.update(partyMode=begin,partyModeBegin=begin,partyModeEnd=end,partyModeUnwind=unwind)
     result.update(native_input_hooks.read_metadata(payload,code_rva,require))
     chat_at = payload.find(b'ADNCHP01')
     require(chat_at >= 160 and payload.find(b'ADNCHP01',chat_at+1)<0 and chat_at+20<=len(payload),
             'Missing or ambiguous chat collector metadata')
     begin,end,unwind = struct.unpack_from('<3I',payload,chat_at+8)
     result.update(chatPollTail=begin,chatPollTailBegin=begin,chatPollTailEnd=end,chatPollTailUnwind=unwind)
+    config_at = payload.find(b'ADNCFG01')
+    require(config_at >= 160 and payload.find(b'ADNCFG01',config_at+1)<0 and config_at+20<=len(payload),
+            'Missing or ambiguous shared-config metadata')
+    begin,end,unwind = struct.unpack_from('<3I',payload,config_at+8)
+    result.update(configSave=begin,configSaveBegin=begin,configSaveEnd=end,configSaveUnwind=unwind)
     for name in (LUNAR_FUNCTION_NAMES if stop_at >= 0 else FUNCTION_NAMES):
         begin, end, unwind = (result[name + suffix] for suffix in ('Begin', 'End', 'Unwind'))
         require(result['headerSize'] <= begin < end <= len(payload), 'Invalid bridge function: ' + name)
@@ -320,6 +343,7 @@ def rebuild(data, nasm):
     skin_policy = native_skin_policy.reviewed_patches(pe, 'lunar')
     chat_poll = native_chat_poll.reviewed_patch(pe, 'lunar', rva, meta)
     player_policy = native_player_policy.reviewed_policy(pe, 'lunar')
+    party_mode = native_party_mode.reviewed_hook(pe, rva, meta)
 
     exception = pe.OPTIONAL_HEADER.DATA_DIRECTORY[3]
     require(exception.VirtualAddress and exception.Size and exception.Size % 12 == 0,
@@ -364,6 +388,7 @@ def rebuild(data, nasm):
         result[offset:offset + len(replacement)] = replacement
         patches.append(dict(offset=offset, before=before.hex(), after=replacement.hex(), reason=reason))
 
+    shared_config = native_shared_config.reviewed_hook(pe, 'lunar', rva, meta)
     hooks = []
     patch(process_entry['offset'],bytes.fromhex(process_entry['after']),process_entry['reason'])
     for site, target, name in HOOKS:
@@ -431,6 +456,8 @@ def rebuild(data, nasm):
                   nativeApiPolicy=api_policy, skinDenickerPolicy=skin_policy, grayPlayerPolicy=player_policy,
                   headerLocalization=header_localization, schedulerLocalReference=scheduler,
                   processTerminationGuard=process_entry, nativeGameState=game_state, nativeChatPolling=chat_poll,
+                  lunarPartyModeHandoff=party_mode,
+                  sharedConfiguration=shared_config,
                   outputRouting=output_routing(HOOKS),
                   lunarUnloadGuard=dict(callRva=LUNAR_UNLOAD_SITE, bridgeTargetRva=rva + meta['lunarStop'],
                     originalIatRva=0x12f628, stopOwner='AdninGui4', stopMethod='nativeStopGameModules',

@@ -23,8 +23,9 @@ Adnin is based on the original **Frenchify v1.6** releases:
 
 - Confirmed teammate identities remain cached through respawn, spectator changes, and temporary Tab disappearance within the current match.
 - Light-gray (`§7`) players pause new statistics, Ping, denicker, anticheat, tag, and Output processing while preserving existing cached information. Light gray is no longer treated as a team color.
-- Lunar Party queries recover from temporary readiness or sender failures, with up to three attempts spaced five seconds apart in an eligible pre-game waiting room.
-- Ping uses the Aurora v2 public endpoint without a Ping API key. PingVar shows the range of returned average samples, not statistical variance; the existing API Proxy option remains explicit.
+- Lunar Party queries complete after a validated `/locraw` response and recover from temporary failures. Waiting-room detection also handles font-proven invisible BMP symbols.
+- Ping uses the Aurora v2 public endpoint without a Ping API key, independently of the Hypixel API Proxy setting. PingVar shows the range of returned average samples, not statistical variance.
+- All clients share `%LOCALAPPDATA%/Adnin/config.properties`, including keys, feature switches, language, scale, and overlay columns. Existing settings migrate on first startup; changes save in the background.
 - Includes the v22 input, Replay, Skin Denicker, Output, and local crash-diagnostic improvements.
 
 Skin metadata identifies a texture owner and may not identify the player wearing a shared skin. Restart Minecraft before updating from an older payload.
@@ -48,7 +49,7 @@ For multiple game instances, specify the target process:
 
 Replace `1234` with the game process ID and use `lunar`, `badlion`, or `vanilla` as appropriate. Command-line runs default to a dry run unless `--inject` is supplied.
 
-Keep saved settings and API keys private. Restart Minecraft before loading a different Adnin version. Compatibility is limited to the targeted runtimes; see the [v23 verification notes](adnin-build/verification.md) for testing coverage and remaining limitations.
+Keep `%LOCALAPPDATA%/Adnin/config.properties` and API keys private. Once the shared file exists, it takes precedence over legacy client settings; running clients do not live-reload external edits. Restart Minecraft before loading a different Adnin version. Compatibility is limited to the targeted runtimes; see the [v23 verification notes](adnin-build/verification.md) for testing coverage and remaining limitations.
 
 ## Build from Source
 

@@ -151,11 +151,18 @@ public class AdninReplayRosterTest {
         EntityOtherPlayerMP p=actor(mc,"GrayBot","\\u00a77GrayRecorded",94);
         tab(mc,"GrayAlias","\\u00a77GrayRecorded",94);refresh(mc);
         NetworkPlayerInfo info=mc.connection.roster.get(0);
+        info.team=new net.minecraft.scoreboard.ScorePlayerTeam();info.team.prefix="\\u00a7c";refresh(mc);
         check("GrayRecorded".equals(AdninReplay.actorName(p)) && "GrayRecorded".equals(AdninReplay.recordedName("GrayAlias")),
             "Gray Replay pause preserves actor and recorded-name identity mappings");
         check(AdninReplay.playerInfo("GrayRecorded")==info && AdninReplay.playerInfo("GrayAlias")==info,
             "Both admitted aliases expose the same current Tab object without per-actor roster scans");
         int before=count("replayProfileRequests");
+        p.display="\\u00a7cGrayRecorded";refresh(mc);
+        check(AdninReplay.profile("GrayRecorded").isEmpty() && count("replayProfileRequests")==before,
+            "Gray Replay Tab pauses profile lookup despite still-red actor and scoreboard");
+        p.display="\\u00a77GrayRecorded";info.display="\\u00a7cGrayRecorded";refresh(mc);
+        check(AdninReplay.profile("GrayRecorded").isEmpty() && count("replayProfileRequests")==before,
+            "Gray Replay actor pauses profile lookup despite still-red Tab and scoreboard");
         for(int i=0;i<50;i++)check(AdninReplay.profile(i%2==0?"GrayAlias":"GrayRecorded").isEmpty(),
             "Unknown gray Replay profile keeps its original unresolved state");
         check(count("replayProfileRequests")==before,"Gray Replay aliases create no identity query");

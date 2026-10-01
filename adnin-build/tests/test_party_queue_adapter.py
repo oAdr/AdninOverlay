@@ -15,6 +15,11 @@ FIXTURES = {
     'AdninFeatures.java': '''public final class AdninFeatures {
         public static boolean active; public static boolean outputContextAllowed() { return active; }
     }''',
+    'AdninPacketLog.java': '''public final class AdninPacketLog {
+        static final Object TOKEN = new Object();
+        static Object observerToken(Object connection) { return TOKEN; }
+        public static void install(Object connection) { }
+    }''',
     'AdninReplay.java': '''public final class AdninReplay {
         public static net.minecraft.scoreboard.ScoreObjective sidebar(net.minecraft.scoreboard.Scoreboard b, String n) {
             return b == null ? null : b.getObjectiveInDisplaySlot(1);
@@ -48,14 +53,21 @@ FIXTURES = {
     }''',
     'net/minecraft/client/network/NetHandlerPlayClient.java': 'package net.minecraft.client.network; public final class NetHandlerPlayClient { }',
     'net/minecraft/client/gui/FontRenderer.java': '''package net.minecraft.client.gui;
-    public final class FontRenderer { public int getStringWidth(String s) { return s.length() == 1 && Character.isSurrogate(s.charAt(0)) ? 0 : s.length(); } }''',
+    public final class FontRenderer {
+        public int bmpWidth;
+        public int getStringWidth(String s) {
+            if (s.length() == 1 && s.charAt(0) == '\\u26bd') return bmpWidth;
+            return s.length() == 1 && Character.isSurrogate(s.charAt(0)) ? 0 : s.length();
+        }
+    }''',
     'net/minecraft/client/entity/EntityPlayerSP.java': '''package net.minecraft.client.entity;
     public final class EntityPlayerSP {
-        public int calls, failures; public String message;
+        public int calls, failures; public String message; public Runnable onSend;
         public String getName() { return "OwnedFixture"; }
         public void sendChatMessage(String s) {
             if (failures > 0) { failures--; throw new IllegalStateException("Owned sender fixture"); }
             calls++; message = s;
+            if (onSend != null) onSend.run();
         }
     }''',
     'net/minecraft/scoreboard/ScoreObjective.java': '''package net.minecraft.scoreboard;
@@ -65,18 +77,22 @@ FIXTURES = {
     'net/minecraft/scoreboard/Team.java': 'package net.minecraft.scoreboard; public class Team { }',
     'net/minecraft/scoreboard/ScorePlayerTeam.java': '''package net.minecraft.scoreboard;
     public final class ScorePlayerTeam extends Team {
-        public static String formatPlayerName(Team t, String s) { return s; }
+        public String prefix = "", suffix = "";
+        public static String formatPlayerName(Team t, String s) {
+            return t instanceof ScorePlayerTeam ? ((ScorePlayerTeam)t).prefix + s + ((ScorePlayerTeam)t).suffix : s;
+        }
     }''',
     'net/minecraft/scoreboard/Scoreboard.java': '''package net.minecraft.scoreboard;
     public final class Scoreboard {
         public ScoreObjective objective = new ScoreObjective();
         public final java.util.List<Score> rows = new java.util.ArrayList<Score>();
+        public final java.util.Map<String, ScorePlayerTeam> teams = new java.util.HashMap<String, ScorePlayerTeam>();
         public ScoreObjective getObjectiveInDisplaySlot(int s) { return objective; }
         public java.util.Collection<Score> getSortedScores(ScoreObjective s) { return rows; }
-        public ScorePlayerTeam getPlayersTeam(String n) { return null; }
-        public void set(String... values) { rows.clear(); for (String s : values) rows.add(new Score(s)); }
+        public ScorePlayerTeam getPlayersTeam(String n) { return teams.get(n); }
+        public void set(String... values) { rows.clear(); teams.clear(); for (String s : values) rows.add(new Score(s)); }
     }''',
-    'AdninPartyQueueAdapterTest.java': '''import java.lang.reflect.*;
+    'AdninPartyQueueAdapterTest.java': r'''import java.lang.reflect.*;
     import net.minecraft.client.Minecraft;
     import net.minecraft.scoreboard.Scoreboard;
     public final class AdninPartyQueueAdapterTest {
@@ -90,7 +106,15 @@ FIXTURES = {
             set("lastAttemptAt", System.nanoTime() / 1000000L - 5001L);
         }
         static void observe() throws Exception { set("scopeProbed", false); AdninPartyQueueQuery.tick(); }
+        static Object response() throws Exception { Field f=AdninPartyQueueQuery.class.getDeclaredField("response"); f.setAccessible(true); return f.get(null); }
+        static long sentAt(Object r) throws Exception { Field f=r.getClass().getDeclaredField("sentAt"); f.setAccessible(true); return f.getLong(r); }
+        static int mode(Object r) throws Exception { Field f=r.getClass().getDeclaredField("mode"); f.setAccessible(true); return ((java.util.concurrent.atomic.AtomicInteger)f.get(r)).get(); }
         static void waiting(Scoreboard b) { b.set("www.hypixel.net", "Map: Owned", "Players: 12/16", "Waiting...", "Mode: Doubles"); }
+        static void bmpWaiting(Scoreboard b, String phase) {
+            b.set("www.hypixel.net", "Map: Owned", "Players: 12/16", "\u26bd", "Mode: Doubles");
+            net.minecraft.scoreboard.ScorePlayerTeam t = new net.minecraft.scoreboard.ScorePlayerTeam();
+            t.prefix = phase; b.teams.put("\u26bd", t);
+        }
         static void lobby(Scoreboard b) { b.set("www.hypixel.net", "Your Level: 200", "Coins: 10000", "Tokens: 100", "Lobby: bedwarslobby18"); }
         static void sendNow(Minecraft mc) throws Exception {
             observe(); due(); observe();
@@ -98,6 +122,10 @@ FIXTURES = {
         }
         public static void main(String[] args) throws Exception {
             final Minecraft mc = new Minecraft(); Minecraft.current = mc;
+            mc.thePlayer.onSend = new Runnable() { public void run() {
+                AdninPartyQueueQuery.observeMode(AdninPacketLog.TOKEN,
+                    "{\"server\":\"mini123A\",\"gametype\":\"BEDWARS\",\"mode\":\"eight_two\"}", System.nanoTime()/1000000L);
+            }};
             final Scoreboard board = mc.theWorld.board;
             String mode = args[0];
             if (mode.equals("lobby") || mode.equals("relay-lobby")) {
@@ -109,6 +137,23 @@ FIXTURES = {
                 if (mode.startsWith("relay")) mc.server.serverIP = "relay.invalid";
                 waiting(board); sendNow(mc); due(); observe();
                 check(mc.thePlayer.calls == 1, "Stable context never repeats the automatic query");
+            } else if (mode.equals("bmp-waiting") || mode.equals("bmp-countdown") || mode.equals("relay-bmp-waiting")) {
+                if (mode.startsWith("relay")) mc.server.serverIP = "relay.invalid";
+                bmpWaiting(board, mode.equals("bmp-countdown") ? "Starting in 20s" : "Waiting...");
+                sendNow(mc);
+                check(AdninPartyQueueQuery.pollMode() == 2, "BMP-key queue accepts the response and hands the verified mode to native");
+                due(); observe();
+                check(mc.thePlayer.calls == 1, "BMP-key queue never repeats a completed mode query");
+                lobby(board); observe();
+                check(response() == null, "Leaving BMP-key pregame retires the completed response");
+            } else if (mode.equals("bmp-visible") || mode.equals("bmp-becomes-visible")) {
+                bmpWaiting(board, "Waiting...");
+                if (mode.equals("bmp-visible")) mc.fontRendererObj.bmpWidth = 4;
+                observe(); due();
+                mc.fontRendererObj.bmpWidth = 4; AdninPartyQueueQuery.tick();
+                check(mc.thePlayer.calls == 0, "Visible BMP glyph at observation or immediate send cannot authorize a query");
+                mc.fontRendererObj.bmpWidth = 0; observe(); due(); observe();
+                check(mc.thePlayer.calls == 1, "Restoring witnessed zero-width BMP rendering permits a bounded retry");
             } else if (mode.equals("lost-before-send")) {
                 waiting(board); observe(); due();
                 // Keep the positive 250ms probe cache; LIVE must still inspect current rows.
@@ -154,9 +199,39 @@ FIXTURES = {
                 waiting(board); sendNow(mc);
                 AdninFeatures.active = true; observe(); AdninFeatures.active = false;
                 lobby(board); due(); observe(); waiting(board); due(); observe(); due(); observe();
-                check(mc.thePlayer.calls == 1, "Same-world active/lobby/waiting transitions cannot repeat a consumed attempt");
+                check(mc.thePlayer.calls == 2, "Same-world active/lobby/waiting transition restores the native cleared mode once");
                 AdninGui4.partyQueueDetector = false; observe(); AdninGui4.partyQueueDetector = true; observe(); due(); observe();
-                check(mc.thePlayer.calls == 2, "An actual explicit re-enable starts exactly one fresh opportunity");
+                check(mc.thePlayer.calls == 3, "An actual explicit re-enable starts exactly one fresh opportunity");
+            } else if (mode.equals("response-window")) {
+                waiting(board); mc.thePlayer.onSend=null; sendNow(mc);
+                Object pending=response(); long at=sentAt(pending);
+                String valid="{\"server\":\"mini123A\",\"gametype\":\"BEDWARS\",\"mode\":\"eight_two\"}";
+                check(AdninPartyQueueQuery.awaitsMode(AdninPacketLog.TOKEN,at), "Current token starts a bounded response window");
+                check(!AdninPartyQueueQuery.awaitsMode(new Object(),at), "Wrong observer token cannot parse response");
+                check(!AdninPartyQueueQuery.awaitsMode(AdninPacketLog.TOKEN,at-1), "Backward time cannot parse response");
+                check(!AdninPartyQueueQuery.awaitsMode(AdninPacketLog.TOKEN,at+4501), "Expired window avoids parsing further chat");
+                AdninPartyQueueQuery.observeMode(new Object(),valid,at);
+                AdninPartyQueueQuery.observeMode(AdninPacketLog.TOKEN,valid,at-1);
+                AdninPartyQueueQuery.observeMode(AdninPacketLog.TOKEN,valid,at+4501);
+                AdninPartyQueueQuery.observeMode(AdninPacketLog.TOKEN,"[Player] "+valid,at);
+                check(mode(pending)==0 && AdninPartyQueueQuery.pollMode()==0, "Wrong token, stale and player responses cannot publish a mode");
+                AdninPartyQueueQuery.observeMode(AdninPacketLog.TOKEN,valid,at+4500);
+                check(mode(pending)==2 && !AdninPartyQueueQuery.awaitsMode(AdninPacketLog.TOKEN,at+4500), "Boundary response is accepted once");
+                check(AdninPartyQueueQuery.pollMode()==2, "Verified response reaches the native-facing callback");
+                check(AdninPartyQueueQuery.pollMode()==0, "Repeated callback is throttled");
+                observe(); check(mc.thePlayer.calls==1, "Receipt stops retries");
+                mc.connection=new net.minecraft.client.network.NetHandlerPlayClient();
+                check(AdninPartyQueueQuery.pollMode()==0, "Old response never enters another connection");
+                observe(); check(response()==null, "Changed connection retires the response");
+            } else if (mode.equals("response-scope-cycle")) {
+                waiting(board); sendNow(mc); observe();
+                check(response()!=null, "Verified response retained while in the same waiting room");
+                lobby(board); observe();
+                check(response()==null && AdninPartyQueueQuery.pollMode()==0, "Same-world lobby retires verified mode");
+                waiting(board); observe(); due(); observe();
+                check(mc.thePlayer.calls==2, "Same-world waiting room after lobby gets a fresh query");
+                AdninPartyQueueQuery.shutdown();
+                check(response()==null && !AdninPartyQueueQuery.awaitsMode(AdninPacketLog.TOKEN), "Shutdown retires the response and observer admission");
             } else if (mode.equals("missing-sidebar")) {
                 waiting(board); observe(); due(); board.objective = null; AdninPartyQueueQuery.tick();
                 check(mc.thePlayer.calls == 0, "A removed sidebar cannot use cached pregame authorization");
@@ -238,7 +313,8 @@ def main():
         cp = str(output) + (os.pathsep + str(args.classes.resolve()) if args.classes else '')
         scenarios = [args.scenario] if args.scenario else [
             'lobby', 'relay-lobby', 'waiting', 'relay-waiting', 'lost-before-send', 'missing-player', 'sender-recovers',
-            'active', 'replay', 'replay-row', 'disabled', 'consumed-same-world', 'missing-sidebar',
+            'bmp-waiting', 'bmp-countdown', 'relay-bmp-waiting', 'bmp-visible', 'bmp-becomes-visible',
+            'active', 'replay', 'replay-row', 'disabled', 'consumed-same-world', 'response-window', 'response-scope-cycle', 'missing-sidebar',
             'long-delay', 'new-world', 'new-connection', 'foreign', 'solo', 'shutdown', 'sender']
         for scenario in scenarios:
             result = subprocess.run([str(java), '-Xverify:all', '-Dfile.encoding=UTF-8', '-cp', cp,

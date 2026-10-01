@@ -1,5 +1,5 @@
 """Build both reviewed Adnin runtimes into one verified C++ injector."""
-import argparse, hashlib, importlib.util, json, os, re, struct, subprocess, sys
+import argparse, hashlib, importlib.util, json, os, re, struct, subprocess, sys, tempfile, zipfile
 from pathlib import Path
 import runtime_build
 from classfile import read_class
@@ -41,7 +41,7 @@ def run_java_tests(jdk, out):
     test_cp=os.pathsep.join([str(out/'java-runtime'), cp, *additions])
     testout=out/'test-java'; testout.mkdir(exist_ok=True)
     names=('AdninLanguageTest','AdninMessagesTest','AdninScaffoldPortTest','AdninEaglePortTest','AdninApiTest','AdninOutputTest','AdninMetricsTest','AdninColumnOrderTest','AdninColumnSettingsTest','AdninUrchinCacheTest','AdninUrchinWorkerTest','AdninFeaturePolicyTest','AdninFeaturePresentationTest','AdninTabEligibilityTest','AdninFeatureLinkageTest','AdninBootstrapVerify',
-           'AdninAnticheatCoreTest','AdninAnticheatSettingsTest','AdninClientSoundsTest','AdninPacketLogConcurrencyTest','AdninPacketLogAccessorTest','AdninPartyQueueQueryTest','AdninPartyQueueScopeTest','AdninModuleIntegrationTest','AdninUiInteractionTest','AdninReplayTest','AdninReplayProfilesTest','AdninReplayApiTest','AdninOutputCategoriesTest','AdninBotCacheTest','AdninResourceLifecycleTest')
+           'AdninAnticheatCoreTest','AdninAnticheatSettingsTest','AdninClientSoundsTest','AdninPacketLogConcurrencyTest','AdninPacketLogAccessorTest','AdninPartyQueueQueryTest','AdninPartyQueueScopeTest','AdninModuleIntegrationTest','AdninUiInteractionTest','AdninReplayTest','AdninReplayProfilesTest','AdninReplayApiTest','AdninOutputCategoriesTest','AdninBotCacheTest','AdninResourceLifecycleTest','AdninSharedConfigTest')
     sources=[ROOT/'tests/java'/(name+'.java') for name in names]
     compiler=subprocess.run([str(jdk/'bin/javac.exe'),'-J-Duser.language=en','-J-Dfile.encoding=UTF-8','--release','8','-encoding','UTF-8','-proc:none',
                              '-cp',test_cp,'-d',str(testout),*[str(source) for source in sources]],
@@ -58,12 +58,12 @@ def run_java_tests(jdk, out):
                  ('AdninFeatureLinkageTest',[out/'java-runtime/AdninClientSounds.class']),
                  ('AdninAnticheatCoreTest',[]),('AdninAnticheatSettingsTest',[]),
                  ('AdninClientSoundsTest',[]),('AdninPacketLogConcurrencyTest',[]),('AdninPacketLogAccessorTest',[]),('AdninPartyQueueQueryTest',[]),('AdninPartyQueueScopeTest',[]),('AdninModuleIntegrationTest',[]),('AdninUiInteractionTest',[]),('AdninReplayTest',[]),('AdninReplayProfilesTest',[]),('AdninReplayApiTest',[]),('AdninOutputCategoriesTest',[]),
-                 ('AdninBotCacheTest',[]),('AdninResourceLifecycleTest',[]),('AdninBootstrapVerify',[out/'java-runtime',*report['helperOrder']])]
+                 ('AdninBotCacheTest',[]),('AdninResourceLifecycleTest',[]),('AdninSharedConfigTest',[]),('AdninBootstrapVerify',[out/'java-runtime',*report['helperOrder']])]
     transcript=['Java tests use offline fixtures and a loopback HTTP server; no game messages or real API keys.',
                 'Linkage uses locally installed log4j-api and fastutil when present.']
     for name, extra in invocations:
         heap_args=['-Xmx48m'] if name == 'AdninResourceLifecycleTest' else []
-        command=[jdk/'bin/java.exe',*heap_args,'-Duser.language=en','-Dfile.encoding=UTF-8','-Dadnin.language.shared=false','-Xverify:all','-cp',str(testout)+os.pathsep+test_cp,name,*extra]
+        command=[jdk/'bin/java.exe',*heap_args,'-Duser.language=en','-Dfile.encoding=UTF-8','-Dadnin.language.shared=false','-Dadnin.config.shared=false','-Xverify:all','-cp',str(testout)+os.pathsep+test_cp,name,*extra]
         result=subprocess.run([str(value) for value in command],capture_output=True,text=True,
                               encoding='utf8',errors='replace',timeout=60)
         diagnostic=(result.stdout+result.stderr).strip()
@@ -74,6 +74,23 @@ def run_java_tests(jdk, out):
             (ROOT/'evidence/java-tests.txt').write_text('\n'.join(transcript)+'\nFAILED: '+name+'\n',encoding='utf8')
             raise RuntimeError('Java test failed: '+name)
     transcript.append('All Java tests passed. Live Minecraft behavior is verified separately.')
+    compat_report=json.loads((out/'java-vanilla/java-build-report.json').read_text(encoding='utf8'))
+    # The test entrypoint is unsigned in Minecraft's default package. Use an
+    # owned signature-free copy solely for this no-game fixture; the separate
+    # real signed-loader bootstrap checks still use the original signed JAR.
+    with tempfile.TemporaryDirectory(prefix='adnin-config-runtime-') as directory:
+        fixture_jar=Path(directory)/'owned-runtime.jar'
+        with zipfile.ZipFile(compat_report['runtimeJar']) as original, zipfile.ZipFile(fixture_jar,'w') as fixture:
+            for item in original.infolist():
+                if not item.filename.upper().startswith('META-INF/'):
+                    fixture.writestr(item,original.read(item))
+        compat_cp=os.pathsep.join([str(testout),str(out/'java-vanilla'),str(fixture_jar),*compat_report['runtimeClasspath'],*additions])
+        result=subprocess.run([str(jdk/'bin/java.exe'),'-Duser.language=en','-Dfile.encoding=UTF-8',
+            '-Dadnin.language.shared=false','-Dadnin.config.shared=false','-Xverify:all','-cp',compat_cp,'AdninSharedConfigTest'],
+            capture_output=True,text=True,encoding='utf8',errors='replace',timeout=60)
+    transcript.append('Badlion/Vanilla shared profile: '+(result.stdout+result.stderr).strip())
+    print(transcript[-1])
+    if result.returncode: raise RuntimeError('Compatibility shared-config test failed')
     (ROOT/'evidence/java-tests.txt').write_text('\n'.join(transcript)+'\n',encoding='utf8')
 
 def main():
@@ -128,6 +145,9 @@ def main():
         raise RuntimeError('Replay must cover both render paths and model/enabled gates without changing game state')
     if not lunar_bridge.get('lunarUnloadGuard') or not compat_bridge.get('unloadGuard'):
         raise RuntimeError('Both profiles require a Java stop barrier before native unload')
+    if not all(report.get('sharedConfiguration',{}).get('originalWriterRetired')
+               and not report['sharedConfiguration']['synchronousDiskWrites'] for report in (lunar_bridge,compat_bridge)):
+        raise RuntimeError('Both profiles must use the shared background configuration writer')
     for profile_report in (lunar_bridge, compat_bridge):
         skin_policy = profile_report.get('skinDenickerPolicy', {})
         if not (skin_policy.get('originalSkinResolutionRetired')
@@ -198,6 +218,7 @@ def main():
     run([sys.executable,ROOT/'tests/test_ui_performance_equivalence.py','--jdk',args.jdk,'--classes',out/'java-runtime'])
     run([sys.executable,ROOT/'tests/test_party_queue_adapter.py','--jdk',args.jdk,'--classes',out/'java-runtime'])
     run([sys.executable,ROOT/'tests/test_urchin_scope.py','--jdk',args.jdk,'--classes',out/'java-runtime'])
+    run([sys.executable,ROOT/'tests/test_gray_output.py','--jdk',args.jdk,'--classes',out/'java-runtime'])
     run([sys.executable,ROOT/'tests/test_match_teams.py','--jdk',args.jdk,'--classes',out/'java-runtime'])
     run([sys.executable,ROOT/'tests/test_skin_denicker.py','--jdk',args.jdk,'--classes',out/'java-runtime'])
     run([sys.executable,ROOT/'tests/test_replay_roster.py','--jdk',args.jdk,'--classes',out/'java-runtime'])
@@ -223,6 +244,7 @@ def main():
     report=dict(formatVersion=2,nativeSource='Reviewed native image assembly with targeted Java bridges; not a complete C++ rewrite',nativeFunctionsPreserved=2493,
                 injectorSource='C++20',featureSource='Java 8',gameRuntimeTested=False,allFeaturesTested=False,
                 standaloneExecutable=True,embeddedPayloadVerified=True,iconEmbeddedVerified=True,
+                sharedUserConfiguration='LOCALAPPDATA/Adnin/config.properties',legacyClientWritersRetired=True,
                 automaticCrashDiagnostics=True,crashDiagnosticsMemoryDump=False,crashDiagnosticsUpload=False,
                 forgeRequired=False,forgeFreeClassesChecked=forge_free_classes,legacyAnticheatDisabled=True,
                 fixedPhaseGameTick=True,replayOverlayEnabled=True,javaStopBeforeNativeUnload=True,

@@ -288,7 +288,12 @@ public final class AdninReplay {
         }
         for (java.util.Iterator<Map.Entry<EntityPlayer, String>> it = next.entrySet().iterator(); it.hasNext();) {
             Map.Entry<EntityPlayer, String> entry = it.next();
-            if (duplicateActors.contains(AdninReplayProfiles.lower(entry.getValue()))) it.remove();
+            String recorded=entry.getValue(), key=AdninReplayProfiles.lower(recorded);
+            if (duplicateActors.contains(key)) { it.remove(); continue; }
+            // Respawn packets can gray the real actor before its Tab/team row.
+            // Reuse the admitted actor and current row already joined above;
+            // pause new profile work without losing identity/cache mappings.
+            if(AdninMatchTeams.isLightGray(entry.getKey(),infos.get(key),recorded))paused.add(key);
         }
         actors = Collections.unmodifiableMap(next);
         rosterNames=Collections.unmodifiableMap(names);

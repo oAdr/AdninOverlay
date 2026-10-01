@@ -1,6 +1,111 @@
 # Adnin v23 verification
 
-## Current v23 gray pause, teammate cache, Party recovery and Aurora Ping
+## Current shared-profile and Lunar auto-start follow-up
+
+The new candidate is `build-v23-party-shared-config`. All clients share
+`%LOCALAPPDATA%/Adnin/config.properties`; the newest valid native settings from
+Adnin's hash-specific payload cache and the current client's old feature file
+migrate only before that file exists. Empty/invalid/missing shared credential fields
+cannot restore old values. The injector reads the same file's language.
+The recurring native per-client writers are retired through guarded JNI
+callbacks; changed snapshots save on the existing daemon with atomic replace.
+
+Read-only inspection of the old running Lunar build found the visible phase
+stored as `Waiting...` plus a zero-width U+26BD row key. The previous parser
+handled only supplementary symbols. BMP symbol handling now requires current
+font proof and preserves all phase/footer and retry safeguards.
+
+The coherent build completed October 2, 2026 with stable production source
+fingerprints. All 6 CTests passed, including shared-language CRLF and precedence.
+Native Lunar 80 and compatibility 46 tests passed, including the new config
+callback's byte guards, JNI exceptions, registers and unwind. The full Java and
+production-adapter suite passed: shared settings 147 checks for each compiled
+profile, lifecycle 8,051, Output 508, Bot cache 2,379, input lifecycle 88,
+UI lifetime 4,798 and UI equivalence 146,868. Party sidebar checks passed 115,
+and the actual adapter passed 74 checks across 27 scenarios. Packaging privacy
+passed 36 tests with one host symlink case skipped. The focused settings and
+Party tests also passed on Java 8 and Java 17. Both DLLs are embedded byte-exactly
+in the single EXE; settings, private keys and custom Bot URLs are excluded.
+
+| Artifact | Bytes | SHA256 |
+| --- | ---: | --- |
+| Adnin.dll | 2,758,656 | `912e7478b045db0794c65586300c10afcad8a570afb85b634f4d7e0585db9f64` |
+| AdninVanilla.dll | 2,643,456 | `0b715da6e57b5deac7d5dba835bc0f461b6659c2d628bd9055282f318b6da7f3` |
+| Adnin.exe | 7,638,528 | `fe94b9a554aedb2470d99d03029bed2f1c9232ff5b567b96d466b89737e4d2e2` |
+
+The first direct compatibility fixture attempt encountered the signed JAR's
+default-package signer restriction. Its final configuration fixture uses an
+owned temporary signature-free copy; the separate real signed-loader tests
+still use the original JAR and passed. A missing expected unwind entry in the
+new hook's test was added; ABI/byte/pixel assertions were not weakened.
+
+See `evidence/shared-config-party-v23.md`. No live follow-up injection yet;
+existing live processes retain the previously published payload until restart.
+
+## Previous v23 respawn, decoded Party mode and independent Aurora Ping
+
+The coherent `build-v23-followup` completed on October 1, 2026 with unchanged
+production source fingerprints throughout the successful build. It supersedes
+the earlier v23 packages below. Both embedded payloads are verified byte-for-byte
+against their built DLLs; compiled helpers, defaults and source fingerprints
+are checked again by packaging.
+
+Changes:
+
+- Guard cached-stat/tag producers and recheck the current subject before local
+  chat or party delivery, closing the respawn-to-next-snapshot interval.
+- Treat reliable actor, Tab or scoreboard light-gray name evidence as a pause,
+  including conflicting old team colors and Replay actors. Preserve prior
+  same-player teammate, identity, tag and statistics state.
+- Observe packets after decoding and accept only bounded current-query server
+  mode responses. Lunar hands the verified mode to the original native parser
+  and Prequeue consumer; known modes skip JNI. Same-world lobby transitions,
+  expired windows and stale observer tokens retire the response.
+- Query public Aurora Ping independently of Hypixel's API Proxy switch/key.
+  Preserve the native background worker, parser, completed-response ten-minute
+  cache and request-failure 45-second cache.
+- Keep 250 ms bulk snapshots, lock-free worker/Netty snapshot reads, existing
+  input behavior, game/render priorities and Anticheat sampling frequency.
+
+Successful final-build verification:
+
+- 6/6 CTests; injector UI/cache 18 cases; automatic crash diagnostics 256 checks.
+- Native Lunar 79 and compatibility 45 tests; reembedding 33; Denicker 18;
+  Java compatibility 13; native tick 3.
+- Full Java suite, including Output categories 508, Bot cache 2,379, resource
+  lifecycle 8,050 and owner-loader bootstrap.
+- Actual production adapters: gray output 48; MatchTeams 138; Anticheat 653;
+  all-five-check gray admission 486; Replay roster 156 and Replay/Anticheat 30;
+  Urchin scope 64; Skin Denicker 2,290.
+- Party policy 225, sidebar scope 94, accessors 66, real registered Netty
+  pipeline 498, and production query adapter 58 across 22 scenarios.
+- UI clipping/geometry equivalence 146,868; menu lifetime 4,798; input lifecycle
+  and game-tick checks passed. These are fixture results, not live FPS claims.
+- Both profiles verify all seven cached notification call sites and five query
+  gates. Each executes seven leaf functions across 168 color/result cases,
+  21 color recoveries and 14 Windows unwind positions with unchanged row data.
+- Package privacy regression: 36 passed, one host symlink test skipped.
+- Focused changed Java paths also passed on Java 8 and Java 17.
+
+An earlier run had an intermittent private-desktop PrintWindow red-dot capture
+failure. The identical artifact passed the focused recheck and the complete final
+suite without changing UI code or weakening the pixel assertions. A compatibility
+hook-count assertion was updated from unique-function count to actual call-site
+count; all call-site/ABI/byte-preservation assertions remain.
+
+| Artifact | Bytes | SHA256 |
+| --- | ---: | --- |
+| Adnin.dll | 2,723,328 | `55b2a797c7fe69128b2bc78b5a4d35c9e972e777f646acbf9a48bfa7dcb19b87` |
+| AdninVanilla.dll | 2,606,080 | `8d9725f20f6f375a5f4d67d0efe3af828bd94e3c8b1c4a2391a59fa37e0fa39e` |
+| Adnin.exe | 7,563,776 | `4ce03043226255d7d852ca3a73dfb5a792b8652ccef16ec1a8cb58a77d597fde` |
+
+No running Lunar/Badlion game was injected or operated during this repair.
+Offline builds and fixtures do not establish live respawn behavior, real party
+membership, long-session stutter/crash absence or successful Aurora measurements.
+Public Aurora checks returned structured no-data responses; the column may be
+blank when that provider has no measurement. See `evidence/respawn-party-ping-v23.md`.
+
+## Earlier v23 gray-policy stage (superseded)
 
 The coherent `build-v23-gray-policy` completed successfully on October 1, 2026,
 with unchanged production source fingerprints throughout the build. It
@@ -522,10 +627,9 @@ to empty. Source, raw binaries, helper classes and decoded embedded payloads
 are scanned; local private comparison values pass only through memory stdin.
 Personal settings and raw crash logs are excluded.
 
-Existing Urchin/Bot settings are read from the game's adnin-features.properties;
-the other three keys are read beside the loaded payload. Opening a new EXE on
-the same PC does not erase those saved settings. A separate language.txt only
-stores the selected language code.
+Current settings are read from the shared config.properties described above.
+Legacy adnin-features.properties, toggles.json and language.txt are migration
+inputs only. Opening a new EXE on the same PC does not erase the saved profile.
 
 Current cache, Output and team details: evidence/output-cache-team-v19.md.
 The v19 build and offline test artifacts are kept under work/replay-v19 in the

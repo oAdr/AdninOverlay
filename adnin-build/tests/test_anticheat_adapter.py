@@ -408,8 +408,11 @@ public final class AdninAnticheatAdapterTest {
                     && mc.thePlayer.reports==1 && mc.thePlayer.sounds==1 && AdninFeatures.outputs==1,
                 "Own Nick does not globally suppress enemy checks or their selected Output path");
             AdninAnticheat.ignoreTeammates=false; ticks(mc,10);
+            check(mc.thePlayer.messages==1 && AdninFeatures.outputs==1,
+                "Disabling Ignore Teammates cannot bypass the independent gray respawn pause");
+            mate.display="\\u00a7cRedMate"; ticks(mc,10);
             check(mc.thePlayer.messages==2 && mc.thePlayer.lastMessage.contains("RedMate") && AdninFeatures.outputs==2,
-                "Disabling Ignore Teammates immediately restores ordinary evidence collection");
+                "Disabling Ignore Teammates restores ordinary evidence collection once actual color recovers");
         }
         Minecraft mc=scene(); Properties p=options(20);
         p.setProperty("anticheat.ignoreTeammates","true"); AdninAnticheat.loadSettings(p);

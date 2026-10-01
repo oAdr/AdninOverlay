@@ -1,9 +1,7 @@
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Locale;
@@ -38,7 +36,7 @@ public final class AdninLanguage {
         add(m,"API URL","API 地址","API 網址");
         add(m,"Not configured","未设置","未設定");
         add(m,"Vega Proxy","Vega 代理","Vega 代理");
-        add(m,"Use proxy statistics and ping without a Hypixel key","通过代理查询数据和延迟，无需 Hypixel 密钥","透過代理查詢資料和延遲，無需 Hypixel 金鑰");
+        add(m,"Use proxy statistics without a Hypixel key","通过代理查询数据，无需 Hypixel 密钥","透過代理查詢資料，無需 Hypixel 金鑰");
         add(m,"Selected source: Vega Proxy","当前来源：Vega 代理","目前來源：Vega 代理");
         add(m,"Selected source: Hypixel API","当前来源：Hypixel API","目前來源：Hypixel API");
         add(m,"New statistics disabled: Hypixel key is missing","未填写 Hypixel 密钥，无法查询新数据","未填寫 Hypixel 金鑰，無法查詢新資料");
@@ -236,7 +234,7 @@ public final class AdninLanguage {
         String local = System.getenv("LOCALAPPDATA");
         return local == null || local.length() == 0 ? null : Paths.get(local,"Adnin","language.txt");
     }
-    /** This small preference contains only a language code, shared by both clients and the launcher. */
+    /** Pre-shared-profile language migration only; new saves use AdninSharedConfig. */
     public static void loadSharedPreference() {
         try {
             Path path = sharedPath();
@@ -245,17 +243,5 @@ public final class AdninLanguage {
                 if ("en".equals(value) || "zh_CN".equals(value) || "zh_TW".equals(value)) setLanguage(value);
             }
         } catch (Exception ignored) { }
-    }
-    /** Called by the existing settings worker, never from a render/input callback. */
-    public static void saveSharedPreference(String value) throws IOException {
-        if (!("en".equals(value) || "zh_CN".equals(value) || "zh_TW".equals(value))) return;
-        Path path = sharedPath(); if (path == null) return;
-        Files.createDirectories(path.getParent());
-        Path temporary = Files.createTempFile(path.getParent(),"language-",".tmp");
-        try {
-            Files.write(temporary,value.getBytes(StandardCharsets.US_ASCII));
-            try { Files.move(temporary,path,StandardCopyOption.REPLACE_EXISTING,StandardCopyOption.ATOMIC_MOVE); }
-            catch (java.nio.file.AtomicMoveNotSupportedException ignored) { Files.move(temporary,path,StandardCopyOption.REPLACE_EXISTING); }
-        } finally { Files.deleteIfExists(temporary); }
     }
 }

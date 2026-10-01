@@ -92,8 +92,10 @@ HOOKS = (
     (0x95f58, 0x2f340, 'hypixelHttp'), (0x96840, 0x2f340, 'hypixelHttp'),
     (0xb16b4, 0x2f340, 'hypixelHttp'),
     (0xa16a5, 0xac470, 'apiRefreshFailures'),
+    (*bridge.native_shared_config.PROFILES['vanilla'], 'configSave'),
 )
 HOOKS += tuple((site,target,name) for site,target,name,_ in bridge.native_player_policy.PROFILES['vanilla'])
+HOOKS += tuple((site,target,name) for site,target,name,_ in bridge.native_player_policy.PRODUCERS['vanilla'])
 TEXT_LINEAGE_SHA256 = '2be3c91504dff27c652e0ac6cf4d024794ba8fa7522e5faa496a17ad8490ad4b'
 REGISTER_SITE = 0x1187c
 REGISTER_BEFORE = bytes.fromhex('ff90b8060000')
@@ -208,6 +210,7 @@ def build_bridge(data, nasm):
     skin_policy = bridge.native_skin_policy.reviewed_patches(pe, 'vanilla')
     chat_poll = bridge.native_chat_poll.reviewed_patch(pe, 'vanilla', code_rva, meta)
     player_policy = bridge.native_player_policy.reviewed_policy(pe, 'vanilla')
+    shared_config = bridge.native_shared_config.reviewed_hook(pe, 'vanilla', code_rva, meta)
     input_hooks = bridge.native_input_hooks.reviewed_patches(pe,'vanilla',code_rva,meta,state_rva,require)
     added = []
     for name in function_names:
@@ -312,6 +315,7 @@ def build_bridge(data, nasm):
                   nativeApiPolicy=api_policy, skinDenickerPolicy=skin_policy, grayPlayerPolicy=player_policy, headerLocalization=header_localization,
                   processTerminationGuard=process_entry, nativeGameState=game_state,
                   nativeInputHooks=input_hooks, nativeChatPolling=chat_poll,
+                  sharedConfiguration=shared_config,
                   outputRouting=bridge.output_routing(HOOKS),
                   gameRuntimeTested=False, originalDllExecutedByBuild=False,
                   denickerLayout=dict(rowSize=0x178, uuidOffset=0x148, statsSize=0x180, skinScratchSize=0x280,

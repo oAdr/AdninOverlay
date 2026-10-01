@@ -44,6 +44,7 @@
     "net/minecraft/network/Packet": "ff",
     "net/minecraft/network/play/client/C01PacketChatMessage": "ie",
     "net/minecraft/network/play/client/C08PacketPlayerBlockPlacement": "ja",
+    "net/minecraft/network/play/server/S02PacketChat": "fy",
     "net/minecraft/network/play/server/S29PacketSoundEffect": "gs",
     "net/minecraft/scoreboard/Score": "aum",
     "net/minecraft/scoreboard/ScoreObjective": "auk",
@@ -298,6 +299,42 @@
     ]
   ],
   "methods": [
+    [
+      "net/minecraft/network/play/server/S02PacketChat",
+      "getChatComponent",
+      "()Lnet/minecraft/util/IChatComponent;",
+      "a"
+    ],
+    [
+      "net/minecraft/network/play/server/S02PacketChat",
+      "getType",
+      "()B",
+      "c"
+    ],
+    [
+      "net/minecraft/util/ChatComponentText",
+      "getChatComponentText_TextValue",
+      "()Ljava/lang/String;",
+      "g"
+    ],
+    [
+      "net/minecraft/util/IChatComponent",
+      "getSiblings",
+      "()Ljava/util/List;",
+      "a"
+    ],
+    [
+      "net/minecraft/util/IChatComponent",
+      "getChatStyle",
+      "()Lnet/minecraft/util/ChatStyle;",
+      "b"
+    ],
+    [
+      "net/minecraft/util/ChatStyle",
+      "isEmpty",
+      "()Z",
+      "g"
+    ],
     [
       "net/minecraft/client/gui/GuiScreen",
       "mouseReleased",

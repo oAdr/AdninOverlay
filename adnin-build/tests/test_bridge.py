@@ -36,6 +36,8 @@ import skin_policy_checks
 import input_hooks_checks
 import chat_poll_prune_checks
 import player_policy_checks
+import party_mode_checks
+import shared_config_checks
 
 parser = argparse.ArgumentParser(add_help=False)
 parser.add_argument('--input', type=Path, default=ROOT.parent / 'lunar-full-build/build/bin/ChatReaderLunar.dll')
@@ -60,6 +62,14 @@ def fixture():
 
 
 class BridgePETests(unittest.TestCase):
+    def test_shared_settings_retire_synchronous_writer_and_preserve_jni_abi(self):
+        shared_config_checks.verify(self,self.input,self.output,self.report,'lunar')
+        shared_config_checks.execute(self,self.output,self.report,'lunar',ARGS.nasm)
+
+    def test_lunar_party_mode_handoff_preserves_parser_consumer_and_abi(self):
+        party_mode_checks.verify(self,self.input,self.output,self.report)
+        party_mode_checks.execute(self,self.output,self.report,ARGS.nasm)
+
     def test_gray_query_guards_preserve_cached_state_pending_results_and_abi(self):
         player_policy_checks.verify(self,self.input,self.output,self.report,'lunar')
         player_policy_checks.execute(self,self.output,self.report,'lunar',ARGS.nasm)
@@ -157,7 +167,8 @@ class BridgePETests(unittest.TestCase):
             bridge.rebuild(bytes(modified), ARGS.nasm)
 
     def test_all_verified_call_sites(self):
-        self.assertEqual(len(self.report['hooks']), 28 + len(bridge.native_player_policy.FUNCTIONS))
+        self.assertEqual(len(self.report['hooks']), 30 + len(bridge.native_player_policy.PROFILES['lunar'])
+                         + len(bridge.native_player_policy.PRODUCERS['lunar']))
         for item in self.report['hooks']:
             site = item['callRva']
             self.assertEqual(self.before.get_data(site, 5), bridge.call_bytes(site, item['originalTargetRva']))
@@ -286,10 +297,10 @@ class BridgePETests(unittest.TestCase):
                     'denicker': (0x370, [15, 14, 13, 12, 7, 6, 3]),
                     'metrics': (0x30, [7, 6, 3]), 'match': (0x20, [7, 6, 3]),
                     'column': (0x20, [3]), 'header': (0x40, [13, 12, 7, 6, 3]), 'lunarStop': (0x30, [3]),
-                    'lunarSchedule': (0x30,[3]), 'gameActive': (0x30,[7,6,3]),
+                    'lunarSchedule': (0x30,[3]), 'gameActive': (0x30,[7,6,3]), 'partyMode': (0x50,[7,6,3]),
                     'inputResolve':(0x20,[7,6,3]),'inputMaintain':(0x30,[7,6,3]),
                     'inputDetach':(0x50,[3]),'inputProc':(0x40,[12,5,7,6,3]),
-                    'inputInitialize':(0x28,[]),
+                    'inputInitialize':(0x28,[]), 'configSave':(0x28,[]),
                     'replayStats': (0x2d0, [15, 14, 13, 12, 7, 6, 3]),
                     'replayStatsQueue': (0x30, [3]), 'replayStatsCleanup': (0x28, []),
                     'replayStatsFrameCleanup': (0x20, [3]), 'replayNickName': (0x30, [7, 6, 3]),

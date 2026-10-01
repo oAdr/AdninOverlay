@@ -33,10 +33,10 @@ public final class AdninFeaturePolicyTest {
                     "Every API key must start blank");
         }
         providerSelection();
-        check(featureSource.contains("AdninGui4.botDenickerUrl = bounded(p.getProperty(\"botDenicker.url\", \"\"), 2048)"),
-                "Bot URL is loaded only from the user's setting with an empty fallback");
-        check(featureSource.contains("AdninGui4.api_urchin = bounded(p.getProperty(\"urchin.apiKey\", \"\"), 512)"),
-                "Urchin key is loaded only from the user's setting with an empty fallback");
+        check(featureSource.contains("settingsPath = AdninSharedConfig.path()") && featureSource.contains("AdninSharedConfig.load(settingsPath,"),
+                "All clients load the shared user profile before applying settings");
+        check(text(source.resolve("AdninSharedConfig.java")).contains("if (p == null && !sharedExists)"),
+                "Legacy settings cannot resurrect a cleared shared credential");
         check(featureSource.contains("AdninApi.errorCode(failure)"),
                 "Urchin worker preserves the classified error category");
         check(featureSource.contains("AdninApi.urchinErrorMessage("),

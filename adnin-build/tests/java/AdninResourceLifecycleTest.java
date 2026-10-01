@@ -113,6 +113,8 @@ public final class AdninResourceLifecycleTest {
         ((Map<String, String>)field(owner, "tagLabels").get(null)).put("player", "\u00a76CC\u00a7r");
         field(owner, "keySnapshot").set(null, "test-key");
         field(owner, "urlSnapshot").set(null, "fixture-key");
+        Properties settings = new Properties(); settings.setProperty("api_urchin", "test-key");
+        field(owner, "settingsSnapshot").set(null, settings);
         Thread daemon = new Thread(new AdninFeatures(), "owned-feature-worker");
         field(owner, "worker").set(null, daemon); daemon.start();
         final Method publish = owner.getDeclaredMethod("publishResult", String[].class, String[].class);
@@ -166,12 +168,15 @@ public final class AdninResourceLifecycleTest {
         check(!publication.isAlive() && publicationError.get() == null && results.isEmpty(),
             "A late completed result cannot repopulate the retired queue");
         check(!daemon.isAlive(), "API daemon exits without a game tick or network request");
+        check(field(owner, "settingsSnapshot").get(null) == null
+            && ((AtomicReference<?>)field(owner, "pendingSave").get(null)).get() == null,
+            "Shutdown releases saved credential snapshots after the daemon retires");
         check(field(owner,"world").get(null) == null, "Unload releases the last world reference");
         check("".equals(field(owner,"keySnapshot").get(null)) && "".equals(field(owner,"urlSnapshot").get(null)),
             "Unload releases worker configuration snapshots");
         for (String name : new String[]{"requests","results","nickHints","matchRequests","botCache","botProfiles",
                 "candidateTimes","requested","tags","tagLabels","announced","present","displayNames","nametagNames","outbox","sent",
-                "ignoredScratch","ignoredIdsScratch","ignoredEntitiesScratch","ignoredRosterScratch"}) {
+                "ignoredScratch","ignoredIdsScratch","ignoredEntitiesScratch","ignoredRosterScratch","outputPlayerIds","outputPlayerActors"}) {
             Object value = field(owner,name).get(null);
             check(value instanceof Map ? ((Map<?,?>)value).isEmpty() : ((Collection<?>)value).isEmpty(),
                 "Unload clears " + name);

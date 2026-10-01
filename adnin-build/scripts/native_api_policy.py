@@ -131,7 +131,7 @@ def reviewed_patches(pe, profile, code_rva, metadata):
         ping=dict(callRva=spec['pingCall'],originalTargetRva=spec['pingTarget'],
                   bridgeTargetRva=code_rva+metadata['apiPingProxy'],callback='apiPingProxy',
                   provider='aurora',endpoint=AURORA_PING_URL.decode('ascii'),requiresApiKey=False,
-                  urlOperandRva=spec['pingUrlLea'],explicitProxyOptInPreserved=True,
+                  urlOperandRva=spec['pingUrlLea'],requiresProxy=False,hypixelProviderIndependent=True,
                   backgroundWorkerAndCachePreserved=True),
         http=dict(authentication='API-Key request header',playerParameter='uuid',
                   nameResolution='original native Mojang resolver',

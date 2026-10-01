@@ -211,11 +211,16 @@ class InjectorTests(unittest.TestCase):
         return subprocess.run([str(ARGS.exe), *args], capture_output=True, timeout=10,
                               text=True, encoding='utf8', errors='replace', creationflags=subprocess.CREATE_NO_WINDOW)
 
-    def preview(self, exe, args, settle=True, locale=None):
+    def preview(self, exe, args, settle=True, locale=None, config=None):
         settings_root = ARGS.work / 'language-fixtures' / (locale if locale in ('en','zh_CN','zh_TW') else 'default')
         (settings_root / 'Adnin').mkdir(parents=True, exist_ok=True)
         if locale is not None:
             (settings_root / 'Adnin/language.txt').write_text(locale, encoding='ascii')
+        config_file = settings_root / 'Adnin/config.properties'
+        if config is not None:
+            config_file.write_bytes(config)
+        elif config_file.exists():
+            config_file.unlink()
         environment = os.environ.copy()
         environment['LOCALAPPDATA'] = str(settings_root)
         process = subprocess.Popen([str(exe), *map(str, args)], stdout=subprocess.DEVNULL,
@@ -248,6 +253,15 @@ class InjectorTests(unittest.TestCase):
         process, hwnd = self.preview(ARGS.exe, ['--preview-ui','success'], locale='zh_CN')
         self.assertEqual('2 秒后关闭', window_text(USER.GetDlgItem(hwnd, 1003)))
         self.assertEqual(process.wait(timeout=5), 0)
+
+    def test_unified_language_precedence_and_crlf(self):
+        for config, expected in ((b'ui.language=zh_TW\r\n', '匯出紀錄'),
+                                  (b'ui.language=en\r\n', 'Export log'),
+                                  (b'# Existing partial shared file\r\n', 'Export log'),
+                                  (b'x' * 65537, 'Export log')):
+            process, hwnd = self.preview(ARGS.exe, ['--preview-ui','failed'], locale='zh_CN', config=config)
+            self.assertEqual(expected, window_text(USER.GetDlgItem(hwnd, 1001)))
+            self.close(process, hwnd)
 
     def wait_opaque(self, process, hwnd):
         deadline = time.monotonic() + 3

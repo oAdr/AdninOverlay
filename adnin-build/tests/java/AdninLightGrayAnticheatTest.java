@@ -4,6 +4,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityOtherPlayerMP;
 import net.minecraft.client.network.NetworkPlayerInfo;
 import net.minecraft.scoreboard.ScorePlayerTeam;
+import net.minecraft.util.ChatComponentText;
 
 /** Real sampler/Engine with owned game objects; no target process or network. */
 public final class AdninLightGrayAnticheatTest {
@@ -33,7 +34,7 @@ public final class AdninLightGrayAnticheatTest {
     }
     private static void allChecks() throws Exception {
         for(String mode:new String[]{"autoBlock","noFall","noSlow","scaffold","legitScaffold"})
-        for(boolean replay:new boolean[]{false,true})for(boolean ignore:new boolean[]{false,true}) {
+        for(boolean replay:new boolean[]{false,true})for(boolean ignore:new boolean[]{false,true})for(int graySource=0;graySource<3;graySource++) {
             Minecraft mc=AdninAnticheatAdapterTest.scene();AdninAnticheat.loadSettings(options(mode,ignore));
             EntityOtherPlayerMP target;
             java.util.UUID id=replay?AdninAnticheatAdapterTest.SYNTHETIC:AdninAnticheatAdapterTest.LIVE;
@@ -44,18 +45,20 @@ public final class AdninLightGrayAnticheatTest {
             if("noSlow".equals(mode)) {target.sprinting=true;target.using=true;}
             if("noFall".equals(mode)) {mc.theWorld.solidFloor=true;target.posY=10;target.serverPosY=640;AdninAnticheat.packetReceived();}
             NetworkPlayerInfo info=new NetworkPlayerInfo(new GameProfile(AdninAnticheatAdapterTest.LIVE,name));
+            info.team=new ScorePlayerTeam();info.team.prefix="\u00a7c";
+            info.display=new ChatComponentText("\u00a7c"+name);
             mc.connection.roster.put(AdninAnticheatAdapterTest.LIVE,info);
             AdninReplay.replay=replay;
             if(replay) {AdninReplay.actors.put(target,name);AdninReplay.infos.put(name.toLowerCase(java.util.Locale.ROOT),info);}
             target.display="\u00a7c"+name;AdninAnticheatAdapterTest.ticks(mc,1);
             check(tracked()==1,"Ordinary actor starts actual evidence: "+mode+" replay="+replay);
-            target.display="\u00a77"+name;int reads=mc.theWorld.terrainReads;drive(mc,target,mode);
+            setGray(graySource,target,info,name);int reads=mc.theWorld.terrainReads;drive(mc,target,mode);
             check(AdninAnticheatAdapterTest.counter("anticheatAcceptedActors")==0 && tracked()==0,
-                "Gray actor is excluded and old evidence retired: "+mode+" replay="+replay+" ignore="+ignore);
+                "Gray actor is excluded and old evidence retired: "+mode+" replay="+replay+" ignore="+ignore+" source="+graySource);
             check(mc.thePlayer.messages==0 && mc.thePlayer.reports==0 && mc.thePlayer.sounds==0 && AdninFeatures.outputs==0,
                 "Gray evidence cannot reach chat/report/sound/Output: "+mode+" replay="+replay);
             check(mc.theWorld.terrainReads==reads,"Gray actor never enters NoFall terrain scanning: "+mode);
-            target.display="\u00a7c"+name;drive(mc,target,mode);
+            restore(target,info,name);drive(mc,target,mode);
             int expected=replay && "noFall".equals(mode)?0:1;
             check(AdninAnticheatAdapterTest.counter("anticheatAcceptedActors")==1 && tracked()==1,
                 "Restoring a real name color resumes unchanged sampling: "+mode+" replay="+replay);
@@ -63,13 +66,21 @@ public final class AdninLightGrayAnticheatTest {
                 && mc.thePlayer.reports==(replay?0:expected),
                 "Fresh evidence restores the existing check and delivery policy: "+mode+" replay="+replay);
             long cooldown=AdninAnticheatAdapterTest.counter("anticheatCooldownEntries");
-            target.display="\u00a77"+name;drive(mc,target,mode);
+            setGray(graySource,target,info,name);drive(mc,target,mode);
             check(tracked()==0 && AdninAnticheatAdapterTest.counter("anticheatCooldownEntries")==cooldown,
                 "Gray transition removes samples without resetting alert cooldown: "+mode);
-            target.display="\u00a7c"+name;drive(mc,target,mode);
+            restore(target,info,name);drive(mc,target,mode);
             check(mc.thePlayer.messages==expected && AdninFeatures.outputs==expected,
                 "Normal color restoration cannot bypass an existing cooldown: "+mode);
         }
+    }
+    private static void setGray(int source,EntityOtherPlayerMP player,NetworkPlayerInfo info,String name) {
+        if(source==0)player.display="\u00a77"+name;
+        else if(source==1)info.display=new ChatComponentText("\u00a77"+name);
+        else info.team.prefix="\u00a77";
+    }
+    private static void restore(EntityOtherPlayerMP player,NetworkPlayerInfo info,String name) {
+        player.display="\u00a7c"+name;info.display=new ChatComponentText("\u00a7c"+name);info.team.prefix="\u00a7c";
     }
     private static void thresholdAndTabAuthority() throws Exception {
         Minecraft mc=AdninAnticheatAdapterTest.scene();AdninAnticheat.loadSettings(options("autoBlock",false));

@@ -6,7 +6,7 @@ public final class AdninPartyQueueQueryTest {
     private static int checks;
 
     public static void main(String[] args) throws Exception {
-        addressRules(); footerRules(); boundaries(); lateToggle(); transitions(); gates(); waitingScope(); proxyScope(); failures(); referenceLifecycle(); shutdown();
+        addressRules(); footerRules(); boundaries(); lateToggle(); transitions(); gates(); waitingScope(); proxyScope(); failures(); responseRecovery(); referenceLifecycle(); shutdown();
         System.out.println("AdninPartyQueueQueryTest: " + checks
             + " checks passed; 500ms boundary, explicit enable cycles, 5s throttling, mandatory waiting/domain/footer scope, 250ms probes,"
             + " bounded failed-send recovery and weak lifecycle; no game, settings, native library or network");
@@ -231,8 +231,8 @@ public final class AdninPartyQueueQueryTest {
     private static void proxyScope() {
         Fixture official = new Fixture(); official.scope.allowed = true;
         official.tick(0); official.tick(250); official.tick(500); official.tick(60000);
-        check(official.sender.calls == 1 && official.scope.calls == 3,
-            "Official addresses also require current waiting-room sidebar evidence");
+        check(official.sender.calls == 1 && official.scope.calls == 4,
+            "Official addresses retain bounded scope checks to retire a same-world queue response");
 
         Fixture relay = new Fixture(); relay.address = "relay.example";
         relay.tick(0);
@@ -249,8 +249,8 @@ public final class AdninPartyQueueQueryTest {
         check(relay.sender.calls == 1 && relay.scope.calls == 4, "Forwarding address can query with current visible Hypixel evidence");
         for (int i = 0; i < 2000; ++i) relay.tick(751 + i);
         relay.tick(60000);
-        check(relay.sender.calls == 1 && relay.scope.calls == 4,
-            "Consumed cycle stops both repeated commands and further scoreboard probing");
+        check(relay.sender.calls == 1 && relay.scope.calls == 13,
+            "Consumed cycle stops repeated commands; 2000 ticks add only eight 250ms scope probes plus the late probe");
 
         Fixture disabled = new Fixture(); disabled.address = "relay.example"; disabled.scope.allowed = true;
         disabled.enabled = false; disabled.tick(0); disabled.tick(1000);
@@ -343,9 +343,46 @@ public final class AdninPartyQueueQueryTest {
         check(active.sender.calls == 0, "Returning from active context starts a complete unconsumed delay");
         active.tick(1500); check(active.sender.calls == 1, "Unsent context may make its one permitted attempt");
         active.active = true; active.tick(2000); active.active = false; active.tick(3000); active.tick(9000);
-        check(active.sender.calls == 1, "Active/lobby/pregame transitions never reset an already consumed attempt");
+        check(active.sender.calls == 2, "A native active-to-waiting transition restores mode discovery even when the world object is reused");
         active.scope.waiting = false; active.tick(10000); active.scope.waiting = true; active.tick(11000); active.tick(12000);
-        check(active.sender.calls == 1, "Temporarily missing sidebar cannot rearm a consumed world");
+        check(active.sender.calls == 2, "Temporarily missing sidebar cannot rearm a consumed world");
+    }
+
+    private static void responseRecovery() {
+        Fixture f = new Fixture(); ResponseSender sender = new ResponseSender();
+        long[] times={0,500,5499,5500,5999,6000,10999,11000,11499,11500,16500,60000};
+        int[] expected={0,1,1,1,1,2,2,2,2,3,3,3};
+        for(int i=0;i<times.length;i++) {
+            f.policy.tick(times[i],f.world,f.connection,true,true,f.address,true,sender,f.scope,false);
+            check(sender.calls==expected[i],"Missing decoded mode response follows bounded retries at "+times[i]);
+        }
+        Fixture accepted = new Fixture(); ResponseSender answer = new ResponseSender();
+        accepted.policy.tick(0,accepted.world,accepted.connection,true,true,accepted.address,true,answer,accepted.scope,false);
+        accepted.policy.tick(500,accepted.world,accepted.connection,true,true,accepted.address,true,answer,accepted.scope,false);
+        answer.accepted=true;
+        for(long now:new long[]{501,5500,100000})
+            accepted.policy.tick(now,accepted.world,accepted.connection,true,true,accepted.address,true,answer,accepted.scope,false);
+        check(answer.calls==1,"A decoded mode response completes the cycle without extra queries");
+        accepted.policy.tick(100001,accepted.world,accepted.connection,true,true,accepted.address,true,answer,accepted.scope,true);
+        answer.accepted=false;
+        accepted.policy.tick(100002,accepted.world,accepted.connection,true,true,accepted.address,true,answer,accepted.scope,false);
+        accepted.policy.tick(100502,accepted.world,accepted.connection,true,true,accepted.address,true,answer,accepted.scope,false);
+        check(answer.calls==2,"The next waiting phase does not inherit the previous native mode");
+        String prefix="{\"server\":\"mini123A\",\"gametype\":\"BEDWARS\",\"mode\":\"";
+        String[] modes={"eight_one","eight_two","four_three","four_four","two_four"};
+        for(int i=0;i<modes.length;i++) check(AdninPartyQueueQuery.parseModeResponse(prefix+modes[i]+"\",\"map\":\"Lighthouse\"}")==i+1,"Exact mode mapping");
+        for(String text:new String[]{"[MVP+] User: "+prefix+"eight_two\"}","{\"mode\":\"eight_two\"}",
+                prefix+"evil_eight_two\"}",prefix+"eight_two\",\"mode\":\"four_four\"}",
+                prefix+"eight_two\",\"extra\":[]}",prefix+"eight_two\",}",
+                prefix.replace("mini123A","dynamiclobby1")+"eight_two\"}",
+                prefix.replace("BEDWARS","SKYWARS")+"eight_two\"}",prefix+"eight_two\\n\"}"})
+            check(AdninPartyQueueQuery.parseModeResponse(text)==0,"Reject player text, invalid structure, foreign/lobby modes and duplicate keys");
+    }
+
+    private static final class ResponseSender implements AdninPartyQueueQuery.ResponseSender {
+        int calls; boolean accepted;
+        public boolean send(Object world,Object connection,String command){calls++;return true;}
+        public boolean hasResponse(Object world,Object connection){return accepted;}
     }
 
     private static void shutdown() throws Exception {

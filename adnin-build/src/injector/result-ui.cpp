@@ -19,15 +19,31 @@ constexpr ULONGLONG fade_duration_ms = 200;
 constexpr ULONGLONG success_hold_ms = 2000;
 enum class Phase { appearing, visible, closing };
 
-// Only a bounded public language code is shared with the in-game settings.
+// Read only the public language code from the unified user configuration.
 int configured_language() {
   wchar_t directory[32768]{};
   const DWORD size = GetEnvironmentVariableW(L"LOCALAPPDATA", directory, 32768);
   if (!size || size >= 32768) return 0;
   try {
-    const auto path = std::filesystem::path(directory) / L"Adnin" / L"language.txt";
-    if (!std::filesystem::is_regular_file(path) || std::filesystem::file_size(path) > 16) return 0;
-    std::ifstream file(path, std::ios::binary);
+    const auto root = std::filesystem::path(directory) / L"Adnin";
+    const auto config = root / L"config.properties";
+    if (std::filesystem::exists(config)) {
+      if (!std::filesystem::is_regular_file(config) || std::filesystem::file_size(config) > 65536) return 0;
+      std::ifstream file(config, std::ios::binary);
+      std::string line;
+      while (std::getline(file, line)) {
+        if (!line.empty() && line.back() == '\r') line.pop_back();
+        if (line.rfind("ui.language=", 0) == 0) {
+          const auto value = line.substr(12);
+          return value == "zh_CN" ? 1 : value == "zh_TW" ? 2 : 0;
+        }
+      }
+      return 0;
+    }
+    // Read the pre-v23 language-only file once for migration compatibility.
+    const auto legacy = root / L"language.txt";
+    if (!std::filesystem::is_regular_file(legacy) || std::filesystem::file_size(legacy) > 16) return 0;
+    std::ifstream file(legacy, std::ios::binary);
     std::string value; std::getline(file, value);
     return value == "zh_CN" ? 1 : value == "zh_TW" ? 2 : 0;
   } catch (...) { return 0; }

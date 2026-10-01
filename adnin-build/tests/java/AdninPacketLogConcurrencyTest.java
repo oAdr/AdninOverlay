@@ -59,7 +59,9 @@ public final class AdninPacketLogConcurrencyTest {
             passThrough(first);
             duplicateInstallation(first, firstHandler);
             spawnObservation(first);
+            modeResponseObservation(first);
             grayPacketForwarding(first);
+            decodedFallback();
             Fixture latest = pendingReplacement(first);
             pendingClose(latest);
             Fixture restored = fixture();
@@ -70,8 +72,8 @@ public final class AdninPacketLogConcurrencyTest {
             stopPending(restored);
             check(foreignFixture.channel.pipeline().get(KEY) == foreignHandler,
                 "Shutdown does not remove a different owner's same-name handler");
-            check(AdninPacketLog.seenSpawnPlayerCount == 3,
-                "Two normal and one gray spawn packet were observed; ordinary and stopped packets never sample");
+            check(AdninPacketLog.seenSpawnPlayerCount == 4,
+                "Three normal and one gray spawn packet were observed; ordinary and stopped packets never sample");
             for (Fixture value : fixtures) {
                 check(value.collector.added == 1, "Original packet handler was never recreated");
                 if (value.channel.isOpen()) {
@@ -379,6 +381,63 @@ public final class AdninPacketLogConcurrencyTest {
         check(fixture.collector.packet == packet && fixture.collector.reads == reads + 1,
             "Unbound native spawn callback does not swallow the original packet");
         check(fixture.collector.error == priorError, "Unbound native symbol does not escape into the game's exception pipeline");
+    }
+
+    private static void decodedFallback() throws Exception {
+        final Fixture fixture = new Fixture();
+        final Object encoded = new Object(); final FakeSpawnPacket decoded = new FakeSpawnPacket();
+        fixture.channel.pipeline().addLast("decoder", new ChannelInboundHandlerAdapter() {
+            @Override public void channelRead(ChannelHandlerContext context, Object packet) throws Exception {
+                context.fireChannelRead(packet == encoded ? decoded : packet);
+            }
+        });
+        fixture.channel.pipeline().addLast("custom_consumer", fixture.collector);
+        await(group.register(fixture.channel), "Owned decoder-only channel registers");
+        fixture.loop=fixture.channel.eventLoop(); fixtures.add(fixture);
+        AdninPacketLog.install(fixture.network); check(awaitHandler(fixture,true)!=null,"Decoder-only fallback installs");
+        check(fixture.channel.pipeline().names().indexOf(KEY)>fixture.channel.pipeline().names().indexOf("decoder"),
+            "Fallback must observe decoded packets after decoder, never raw transport buffers before it");
+        int before=AdninPacketLog.seenSpawnPlayerCount, reads=fixture.collector.reads;
+        await(fixture.loop.submit(new Runnable(){public void run(){fixture.channel.pipeline().fireChannelRead(encoded);}}),
+            "Encoded fixture passes through the real registered pipeline");
+        check(AdninPacketLog.seenSpawnPlayerCount==before+1,"Spawn observation receives the decoder's output");
+        check(fixture.collector.packet==decoded && fixture.collector.reads==reads+1,
+            "Game consumer receives the exact decoded packet once");
+    }
+
+    private static void modeResponseObservation(final Fixture fixture) throws Exception {
+        Class<?> window=Class.forName("AdninPartyQueueQuery$ResponseWindow");
+        java.lang.reflect.Constructor<?> create=window.getDeclaredConstructor(Object.class,Object.class,Object.class,long.class);
+        create.setAccessible(true);
+        Field response=AdninPartyQueueQuery.class.getDeclaredField("response"); response.setAccessible(true);
+        Field result=window.getDeclaredField("mode"); result.setAccessible(true);
+        Object world=new Object(), token=AdninPacketLog.observerToken(fixture.network);
+        check(token!=null,"Only an installed observer supplies a mode response token");
+        String valid="{\"server\":\"mini123A\",\"gametype\":\"BEDWARS\",\"mode\":\"eight_two\"}";
+        try {
+            for (int scenario=0;scenario<8;scenario++) {
+                net.minecraft.util.IChatComponent component=new net.minecraft.util.ChatComponentText(valid);
+                byte type=0;
+                if(scenario==1)type=1;
+                if(scenario==2)type=2;
+                if(scenario==3)component.getChatStyle().setColor(net.minecraft.util.EnumChatFormatting.GRAY);
+                if(scenario==4)component.appendText("extra");
+                if(scenario==5)component=new net.minecraft.util.ChatComponentText("[Player] "+valid);
+                long now=System.nanoTime()/1000000L;
+                Object pending=create.newInstance(world,fixture.network,scenario==6?new Object():token,scenario==7?now-5000L:now);
+                response.set(null,pending);
+                final Object packet=new net.minecraft.network.play.server.S02PacketChat(component,type);
+                int reads=fixture.collector.reads;
+                Throwable priorError=fixture.collector.error;
+                await(fixture.loop.submit(new Runnable(){public void run(){fixture.channel.pipeline().fireChannelRead(packet);}}),
+                    "Decoded server chat traverses the actual observer");
+                check(((AtomicInteger)result.get(pending)).get()==(scenario<=1?2:0),
+                    "Only current plain server chat response is learned, scenario="+scenario);
+                check(fixture.collector.packet==packet && fixture.collector.reads==reads+1,
+                    "Every accepted or rejected response reaches the original consumer once, scenario="+scenario);
+                check(fixture.collector.error==priorError,"Optional mode reader does not interrupt packet delivery");
+            }
+        } finally { response.set(null,null); }
     }
 
     private static Fixture fixture() throws Exception { return fixture(group); }

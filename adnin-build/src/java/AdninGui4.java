@@ -29,6 +29,10 @@ extends GuiScreen {
     public static boolean autoWho = false;
     public static boolean partyDetector = false;
     public static boolean partyQueueDetector = false;
+    /** Existing native active-queue bridge; no native declaration or ABI change. */
+    public static int pollPartyMode() { return AdninPartyQueueQuery.pollMode(); }
+    /** Replaces the original recurring native per-client disk save. */
+    public static int nativeRequestConfigSave() { AdninFeatures.requestSave(); return 1; }
     public static boolean bedDisconnectTimer = false;
     public static boolean holdRdEnabled = false;
     public static int holdRdKeyCode = 56;
@@ -1182,6 +1186,7 @@ extends GuiScreen {
 
     @Override
     public void onGuiClosed() {
+        AdninFeatures.requestSave();
         this.activeInput = 0;
         java.util.Arrays.fill(this.inputClips, null);
         this.nextInputClip = 0;
@@ -1914,7 +1919,7 @@ extends GuiScreen {
         }
         if (this.isRowVisible(n15 + 162, 40, n4, n5)) {
             this.drawChipToggle(n + 4, n15 + 172, n3 - 8, 22, "Vega Proxy", vegaProxy, true, n6, n7);
-            this.drawTextLeft("Use proxy statistics and ping without a Hypixel key", n + 8, n15 + 198, n9);
+            this.drawTextLeft("Use proxy statistics without a Hypixel key", n + 8, n15 + 198, n9);
         }
         int statusY = n2 + 252;
         if (this.isRowVisible(statusY, 44, n4, n5)) {
@@ -2627,11 +2632,13 @@ extends GuiScreen {
             if (n == 1) {
                 holdRdKeyCode = 0;
                 listeningHoldRdKey = false;
+                AdninFeatures.requestSave();
                 return;
             }
             if (n > 0) {
                 holdRdKeyCode = n;
                 listeningHoldRdKey = false;
+                AdninFeatures.requestSave();
             }
             return;
         }
@@ -2640,12 +2647,14 @@ extends GuiScreen {
                 AdninGui4.quickbuyKeys[AdninGui4.listeningQuickbuyIndex] = 0;
                 listeningQuickbuyIndex = -1;
                 AdninGui4.syncQuickbuyBinds();
+                AdninFeatures.requestSave();
                 return;
             }
             if (n > 0) {
                 AdninGui4.quickbuyKeys[AdninGui4.listeningQuickbuyIndex] = n;
                 listeningQuickbuyIndex = -1;
                 AdninGui4.syncQuickbuyBinds();
+                AdninFeatures.requestSave();
             }
             return;
         }
@@ -2729,14 +2738,12 @@ extends GuiScreen {
             chatOverlayMinSwKdr = string;
         } else if (this.activeInput == 8) {
             api_urchin = string.trim();
-            AdninFeatures.requestSave();
         } else if (this.activeInput == 9) {
             botDenickerUrl = string;
-            AdninFeatures.requestSave();
         } else if (this.activeInput == 10) {
             AdninAnticheat.ignoredPlayers = string;
-            AdninFeatures.requestSave();
         }
+        AdninFeatures.requestSave();
     }
 
     public void drawScreen(int n, int n2, float f) {
@@ -2860,5 +2867,6 @@ extends GuiScreen {
         sessionStatsPosX = AdninGui4.clampSessionPos(sessionStatsPosX);
         sessionStatsPosY = AdninGui4.clampSessionPos(sessionStatsPosY);
         AdninGui4.loadOverlayColumnsForEditMode();
+        AdninSharedConfig.rememberDefaults();
     }
 }
