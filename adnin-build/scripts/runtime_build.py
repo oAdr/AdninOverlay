@@ -29,7 +29,7 @@ def lunar_metadata(report):
 def descriptor(path, kind, resource_id, metadata):
     data = Path(path).read_bytes()
     pe = pefile.PE(data=data)
-    require(kind in ('lunar', 'vanilla'), 'Unknown built-in runtime')
+    require(kind in ('lunar', 'vanilla', 'forge'), 'Unknown built-in runtime')
     require(pe.FILE_HEADER.Machine == 0x8664 and pe.OPTIONAL_HEADER.Magic == 0x20b,
             'Built-in runtime must be x64')
     require(pe.FILE_HEADER.Characteristics & 0x2000, 'Built-in runtime must be a DLL')
@@ -57,9 +57,9 @@ def descriptor(path, kind, resource_id, metadata):
 
 
 def generated_header(entries):
-    require({item['id'] for item in entries} == {'lunar', 'vanilla'} and len(entries) == 2,
-            'Exactly the two reviewed payloads are required')
-    require(len({item['resourceId'] for item in entries}) == 2, 'Payload resource IDs must be distinct')
+    require({item['id'] for item in entries} == {'lunar', 'vanilla', 'forge'} and len(entries) == 3,
+            'Exactly the three reviewed payloads are required')
+    require(len({item['resourceId'] for item in entries}) == 3, 'Payload resource IDs must be distinct')
     lines = ['// Generated from the final verified payloads; do not edit.', '#pragma once',
              '#include "runtime-profile.h"']
     names = []
@@ -84,7 +84,7 @@ def generated_header(entries):
                 collections[category] = name
                 lines.append('inline constexpr adnin::RuntimeCheck ' + name + '[] = {' +
                              ','.join('{0x%xu,%du}' % (check['rva'],check['width']) for check in meta[category]) + '};')
-        kind = 'Lunar' if item['id'] == 'lunar' else 'Vanilla'
+        kind = {'lunar':'Lunar','vanilla':'Vanilla','forge':'Forge'}[item['id']]
         names.append('  {adnin::PayloadKind::%s, "%s", %du, "%s", %du, 0x%xu, 0x%xu, 0x%xu, 0x%xull, %s, %s, %s, %s, 0x%xu, %du}' % (
             kind, item['id'], item['resourceId'], item['sha256'], item['bytes'],
             meta['peHeaderOffset'],meta['imageSize'],meta['markerRva'],meta['marker'],

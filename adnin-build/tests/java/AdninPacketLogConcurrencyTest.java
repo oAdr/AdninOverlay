@@ -61,6 +61,7 @@ public final class AdninPacketLogConcurrencyTest {
             spawnObservation(first);
             modeResponseObservation(first);
             grayPacketForwarding(first);
+            forgeInstallation();
             decodedFallback();
             Fixture latest = pendingReplacement(first);
             pendingClose(latest);
@@ -405,6 +406,22 @@ public final class AdninPacketLogConcurrencyTest {
             "Game consumer receives the exact decoded packet once");
     }
 
+    private static void forgeInstallation() throws Exception {
+        Fixture fixture = fixture();
+        Object connection = new ModdedForgeNetworkHandler(fixture.channel);
+        AdninPacketLog.install(connection);
+        ChannelHandler handler = awaitHandler(fixture, true);
+        check(handler != null && AdninPacketLog.observerToken(connection) != null,
+            "Forge SRG private fields inherited by a modded handler and manager install the observer");
+        passThrough(fixture);
+        for (int i = 0; i < 100; ++i) AdninPacketLog.install(connection);
+        check(awaitHandler(fixture, true) == handler && countOwned(fixture) == 1,
+            "Forge repeated polling retains one observer without reinstalling");
+        check(fixture.channel.pipeline().names().indexOf(KEY)
+            < fixture.channel.pipeline().names().indexOf("packet_handler"),
+            "Forge observes decoded packets before the unchanged game consumer");
+    }
+
     private static void modeResponseObservation(final Fixture fixture) throws Exception {
         Class<?> window=Class.forName("AdninPartyQueueQuery$ResponseWindow");
         java.lang.reflect.Constructor<?> create=window.getDeclaredConstructor(Object.class,Object.class,Object.class,long.class);
@@ -531,6 +548,20 @@ public final class AdninPacketLogConcurrencyTest {
     public static final class FakeNetworkManager {
         public final LocalChannel channel;
         FakeNetworkManager(LocalChannel value) { channel = value; }
+    }
+    public static class ForgeNetworkHandler {
+        private final ForgeNetworkManager field_147302_e;
+        ForgeNetworkHandler(LocalChannel channel) { field_147302_e = new ModdedForgeNetworkManager(channel); }
+    }
+    public static final class ModdedForgeNetworkHandler extends ForgeNetworkHandler {
+        ModdedForgeNetworkHandler(LocalChannel channel) { super(channel); }
+    }
+    public static class ForgeNetworkManager {
+        private final LocalChannel field_150746_k;
+        ForgeNetworkManager(LocalChannel channel) { field_150746_k = channel; }
+    }
+    public static final class ModdedForgeNetworkManager extends ForgeNetworkManager {
+        ModdedForgeNetworkManager(LocalChannel channel) { super(channel); }
     }
     public static class FakeSpawnPacket {
         public int getEntityID() { return 41; }

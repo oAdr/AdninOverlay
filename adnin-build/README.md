@@ -1,4 +1,47 @@
-# Adnin build v23
+# Adnin build v24
+
+## Forge 1.8.9 injection support
+
+The injector now exposes an explicit `--client forge` profile and recognizes
+Forge-branded 1.8.9 windows, including the observed `TokenLogin 2.1` title.
+For every supported game-window class it also performs a bounded, read-only
+check for Forge's `FMLTweaker` launch marker, so generic or custom titles are
+classified automatically. Standard Forge commonly keeps the generic
+`Minecraft 1.8.9` title; use `--client forge` only when command-line access is
+restricted or more than one compatible window is open. Forge uses a distinct
+named-class/SRG payload and resolves the actual LaunchClassLoader game classes.
+Its JNI lookup facade uses the Forge runtime's own deobfuscation mapping; it
+does not modify the JVM's JNI table or another native module. No sidecar mod is
+required. Coremods or transformers that change Minecraft's private ABI can
+still require live validation; offline tests cannot establish compatibility
+with every Forge mod pack.
+
+The Forge-only HUD wrapper inherits the game's transformed
+`net.minecraftforge.client.GuiIngameForge`. It preserves inherited mod
+interfaces, copies the original Forge/base instance fields once, and runs
+Forge's own update/render methods before Adnin draws its content. This avoids
+the Chatting accessor ClassCastException seen when entering a world. An owned
+signature stub is used only at build time and is never embedded. Lunar and
+Badlion/Vanilla remain independent of Forge.
+All three payloads are embedded in the single EXE. A successful result still
+requires the installed hooks and a progressing client-thread heartbeat.
+
+The Forge follow-up also preserves JNI class-initialization semantics, defines
+the mapper in the actual game loader, and keeps mutable state in a separate
+non-executable PE section. Final DLL tests execute its relocated facade on
+Java 8 and Java 17 and validate every moved call's Windows unwind state. Forge
+helpers use their default-package owner as the Java 9+ definition anchor.
+The final PE reserves the entire code extent up to its state section, avoiding
+Windows loader error 193. Three guarded JavaVM::GetEnv calls retain their
+original instructions and arguments: their table offset overlaps
+JNIEnv::FindClass but their receiver is a different interface. Native
+regressions execute these original transfers against a fixture JavaVM table.
+The corrected v24 EXE was tested in a fresh Forge 1.8.9/Java 8 process with
+OptiFine and the supplied mods: injection, world entry, `/config`, menu close,
+world re-entry and normal game exit passed. Required class/hook state and the
+heartbeat were checked against the exact payload hash. Multiplayer feature
+behavior and other mod packs are not covered by that test. Restart before
+loading a corrected payload into a process that contains an older Adnin DLL.
 
 ## Shared configuration and Lunar queue auto-start follow-up
 
@@ -25,8 +68,8 @@ including the current waiting-room key, as well as supplementary symbols.
 Only keys the current font proves invisible are omitted. Visible symbols,
 malformed keys and unrelated sidebar text still refuse auto-query.
 
-Build with `Build.ps1 -BuildDirectory build-v23-party-shared-config` and package
-with `python scripts/package.py --build build-v23-party-shared-config --version v23`.
+Build with `Build.ps1 -BuildDirectory build-v24` and package
+with `python scripts/package.py --build build-v24 --version v24`.
 See `evidence/shared-config-party-v23.md` and `验证状态.md` for verification.
 
 ## v23 teammate cache and Lunar Party Detector recovery
@@ -65,7 +108,7 @@ statistics and tags. An explicit light-gray player-name token from the current
 actor, Tab or scoreboard pauses work even when another source still shows the
 old team color. Previously known identity and teammate state is preserved.
 
-The settings header displays `v23`. Build with
+The settings header displays `v24`. Build with
 `Build.ps1 -BuildDirectory build-v23-followup`; package with
 `python scripts/package.py --build build-v23-followup --version v23`.
 See `evidence/team-cache-v23.md`, `evidence/party-query-recovery-v23.md`,
@@ -522,12 +565,13 @@ The old eight-fragment cutoff has been removed. The existing `cleanText` budget 
 
 The reported Badlion failure stopped at target discovery with exit code `3` and `No recognized visible Lunar, Badlion or Vanilla game window was found`. No DLL had been loaded in that attempt. The visible `LWJGL` title used `Badlion Minecraft Client`, which was absent from the earlier brand rules. v10 accepts that longer brand as well as the existing `Badlion Client` spelling, including the Badlion label after a `Minecraft` title. In the observed title, `v4.4.4` identifies the client build and `(1.8.9)` identifies the supported game version. Explicit `(1.20)` and `(1.8.8)` game versions remain unsupported. The final v10 EXE completed both `--client auto --dry-run` and `--client badlion --pid ... --dry-run` checks against that open process with exit code `0`; neither test loaded a DLL. These checks establish target discovery and preflight only. Game initialization, the `/config` menu and multiplayer features remain unverified. `验证状态.md` and `evidence/badlion-window-v10.json` record the results and their limits.
 
-Client selection is `auto` by default. Explicitly different game versions, unknown windows and ambiguous targets are rejected. If several clients or game instances are open, use `--client auto|lunar|badlion|vanilla` and, when needed, `--pid` to select the intended process. An explicit PID does not bypass client/version checks. These PowerShell examples use `12345` as a placeholder PID to replace with the actual game PID:
+Client selection is `auto` by default. Explicitly different game versions, unknown windows and ambiguous targets are rejected. If several clients or game instances are open, use `--client auto|lunar|badlion|vanilla|forge` and, when needed, `--pid` to select the intended process. An explicit PID does not bypass client/version checks. These PowerShell examples use `12345` as a placeholder PID to replace with the actual game PID:
 
 ```powershell
 .\Adnin.exe --client lunar --dry-run
 .\Adnin.exe --client badlion --pid 12345 --inject
 .\Adnin.exe --client vanilla --inject
+.\Adnin.exe --client forge --pid 12345 --inject
 ```
 
 When selecting a target with command-line arguments, the injector performs a dry run unless `--inject` is present. `--help` lists the remaining options. Double-clicking with no arguments performs injection and shows the result window. The 1.8.9 profiles do not provide compatibility with other Minecraft versions or arbitrary client modifications.

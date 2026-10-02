@@ -38,6 +38,21 @@ extends GuiScreen {
     public static int holdRdKeyCode = 56;
     public static boolean quickbuyEnabled = false;
     public static int quickbuyDelayMs = 100;
+    /** Independent Bed Wars Quick Buy profile copier. This is deliberately
+     * separate from quickbuyEnabled/quickbuyBinds, which control hotkeys. */
+    public static boolean quickbuyProfileCopier = false;
+    public static String quickbuyProfilePlayer = "";
+    private static volatile boolean quickbuyProfileLoadRequested = false;
+    public static void requestQuickbuyProfileLoad() {
+        String player = quickbuyProfilePlayer == null ? "" : quickbuyProfilePlayer.trim();
+        if (quickbuyProfileCopier && player.length() > 0) quickbuyProfileLoadRequested = true;
+    }
+    /** Consumed by the profile-copy state machine from its client-thread pump. */
+    public static boolean consumeQuickbuyProfileLoadRequest() {
+        if (!quickbuyProfileLoadRequested) return false;
+        quickbuyProfileLoadRequested = false;
+        return true;
+    }
     public static final String[] QUICKBUY_IDS = new String[]{"wool", "stone_sword", "iron_sword", "golden_apple", "fire_charge", "tnt", "ender_pearl", "pickaxe", "axe", "shears", "chainmail_boots", "iron_boots", "upg iron_sword", "upg iron_chestplate", "upg iron_pickaxe", "upg golden_pickaxe", "upg diamond_boots", "diamond_sword", "stick", "arrow", "diamond_boots"};
     public static final String[] QUICKBUY_LABELS = new String[]{"Wool", "Stone Sword", "Iron Sword", "Golden Apple", "Fireball", "TNT", "Ender Pearl", "Pickaxe", "Axe", "Shears", "Chainmail Armor", "Iron Armor", "Sharpness", "Protection", "Mining Fatigue", "Haste", "Feather Falling", "Diamond Sword", "Knockback Stick", "Arrows", "Diamond Armor"};
     public static int[] quickbuyKeys = new int[QUICKBUY_IDS.length];
@@ -313,14 +328,22 @@ extends GuiScreen {
     private static final int RESOURCE_TIMER_CARD_H = 96;
     private static final int UTILS_GL_TITLE_Y = 326;
     private static final int UTILS_GL_FIELD_Y = 342;
-    private static final int UTILS_BOT_TITLE_Y = 386;
-    private static final int UTILS_BOT_CARD_Y = 402;
+    // Keep the profile copier in the middle of Utils so the existing
+    // Nickname Lookup and Sounds controls remain reachable at the bottom of
+    // a compact window after scrolling.
+    private static final int UTILS_PROFILE_TITLE_Y = 386;
+    private static final int UTILS_PROFILE_CARD_Y = 402;
+    private static final int UTILS_PROFILE_CARD_H = 86;
+    private static final int UTILS_PROFILE_TOGGLE_Y = 410;
+    private static final int UTILS_PROFILE_FIELD_Y = 448;
+    private static final int UTILS_BOT_TITLE_Y = 506;
+    private static final int UTILS_BOT_CARD_Y = 522;
     private static final int UTILS_BOT_CARD_H = 80;
-    private static final int UTILS_BOT_TOGGLE_Y = 410;
-    private static final int UTILS_BOT_URL_Y = 454;
-    private static final int UTILS_SOUND_TITLE_Y = 494;
-    private static final int UTILS_SOUND_CARD_Y = 510;
-    private static final int UTILS_SOUND_TOGGLE_Y = 518;
+    private static final int UTILS_BOT_TOGGLE_Y = 530;
+    private static final int UTILS_BOT_URL_Y = 574;
+    private static final int UTILS_SOUND_TITLE_Y = 626;
+    private static final int UTILS_SOUND_CARD_Y = 642;
+    private static final int UTILS_SOUND_TOGGLE_Y = 650;
     private static final int AC_IGNORED_INPUT_Y = 362;
     private static final int AC_CONTENT_H = AC_IGNORED_INPUT_Y + 28;
     private static final int AC_INTERVAL_Y = 300;
@@ -1068,6 +1091,10 @@ extends GuiScreen {
     }
 
     private static int gameplayPanelContentHeight() {
+        // Include every Utils section, including the Sounds card below the
+        // independent Quick Buy Profile copier.  Omitting the lower cards
+        // capped scrolling too early and made Bot Denicker/Sounds unreachable
+        // in compact windows.
         return UTILS_SOUND_CARD_Y + 38 + 8;
     }
 
@@ -1692,6 +1719,36 @@ extends GuiScreen {
         if (this.isRowVisible(n2 + UTILS_SOUND_TOGGLE_Y, 22, n4, n5)) {
             this.drawChipToggle(n + 4, n2 + UTILS_SOUND_TOGGLE_Y, n3 - 8, 22, "Client Side Sounds", clientSideSounds, true, n6, n7);
         }
+        this.drawPanelSectionTitle(n, n2 + UTILS_PROFILE_TITLE_Y, AdninLanguage.text("Bed Wars Shop Layout"), n8, n4, n5);
+        this.drawSectionCardClipped(n, n2 + UTILS_PROFILE_CARD_Y, n3, UTILS_PROFILE_CARD_H, n4, n5);
+        if (this.isRowVisible(n2 + UTILS_PROFILE_TOGGLE_Y, 22, n4, n5)) {
+            this.drawChipToggle(n + 4, n2 + UTILS_PROFILE_TOGGLE_Y, n3 - 8, 22,
+                "Shop Layout Copier", quickbuyProfileCopier, true, n6, n7);
+        }
+        if (this.isRowVisible(n2 + UTILS_PROFILE_FIELD_Y - 10, 34, n4, n5)) {
+            int fieldWidth = Math.max(80, n3 - 106);
+            this.drawInputField(n + 4, n2 + UTILS_PROFILE_FIELD_Y, fieldWidth,
+                "Target player", quickbuyProfilePlayer, true, this.activeInput == 11, n6, n7);
+            boolean enabled = quickbuyProfileCopier && quickbuyProfilePlayer != null
+                && quickbuyProfilePlayer.trim().length() > 0;
+            this.drawActionChip(n + fieldWidth + 12, n2 + UTILS_PROFILE_FIELD_Y, n3 - fieldWidth - 16, 20,
+                "Load Layout", n6, n7);
+            if (!enabled) {
+                // Keep the action visibly muted while the copier is disabled or
+                // no player name has been entered. The click handler also gates
+                // the request, so this never sends a command accidentally.
+                AdninUi.rect(n + fieldWidth + 12, n2 + UTILS_PROFILE_FIELD_Y,
+                    n + n3 - 4, n2 + UTILS_PROFILE_FIELD_Y + 20, 0x33151A22);
+            }
+            String profileMessage = AdninQuickBuyProfile.message();
+            if (profileMessage != null && profileMessage.length() > 0
+                    && !AdninQuickBuyProfile.IDLE.equals(AdninQuickBuyProfile.state())) {
+                this.drawTextLeft(AdninUi.fit(AdninLanguage.text(profileMessage), n3 - 8, 0),
+                    n + 4, n2 + UTILS_PROFILE_FIELD_Y + 24,
+                    AdninQuickBuyProfile.FAILED.equals(AdninQuickBuyProfile.state())
+                        ? 0xFFFF7777 : AdninUi.MUTED);
+            }
+        }
     }
 
     private boolean handleUtilsPanelClicks(int n, int n2, int n3, int n4, int n5, int n6, int n7) {
@@ -1784,6 +1841,21 @@ extends GuiScreen {
         }
         if (this.hitChip(n + 4, n2 + UTILS_SOUND_TOGGLE_Y, n3 - 8, 22, n4, n5, n6, n7)) {
             clientSideSounds = !clientSideSounds;
+            return true;
+        }
+        if (this.hitChip(n + 4, n2 + UTILS_PROFILE_TOGGLE_Y, n3 - 8, 22, n4, n5, n6, n7)) {
+            quickbuyProfileCopier = !quickbuyProfileCopier;
+            if (!quickbuyProfileCopier) quickbuyProfileLoadRequested = false;
+            return true;
+        }
+        int profileFieldWidth = Math.max(80, n3 - 106);
+        if (this.isHoveredRect(n + 4, n2 + UTILS_PROFILE_FIELD_Y, profileFieldWidth, 20, n6, n7)) {
+            this.activeInput = 11;
+            return true;
+        }
+        if (this.hitChip(n + profileFieldWidth + 12, n2 + UTILS_PROFILE_FIELD_Y,
+                n3 - profileFieldWidth - 16, 20, n4, n5, n6, n7)) {
+            requestQuickbuyProfileLoad();
             return true;
         }
         return this.handleResourceTimerPanelClicks(n, n2, n3, n4, n5, n6, n7);
@@ -2664,7 +2736,7 @@ extends GuiScreen {
             return;
         }
         boolean bl2 = this.selectedTheme == 0 && (this.activeInput >= 1 && this.activeInput <= 3 || this.activeInput == 8);
-        boolean bl3 = this.selectedTheme == 2 && (this.activeInput == 4 || this.activeInput == 9);
+        boolean bl3 = this.selectedTheme == 2 && (this.activeInput == 4 || this.activeInput == 9 || this.activeInput == 11);
         boolean bl4 = bl = this.selectedTheme == 4 && this.activeInput >= 5 && this.activeInput <= 7;
         boolean acInput = this.selectedTheme == 1 && this.activeInput == 10;
         if (!bl2 && !bl3 && !bl && !acInput || this.activeInput == 0) {
@@ -2693,6 +2765,8 @@ extends GuiScreen {
             string = api_urchin;
         } else if (this.activeInput == 9) {
             string = botDenickerUrl;
+        } else if (this.activeInput == 11) {
+            string = quickbuyProfilePlayer;
         } else if (this.activeInput == 10) {
             string = AdninAnticheat.ignoredPlayers;
         }
@@ -2718,7 +2792,7 @@ extends GuiScreen {
                 string = string + c;
             }
         }
-        int inputLimit = this.activeInput == 9 ? 2048 : this.activeInput == 8 || this.activeInput == 10 ? 512 : 128;
+        int inputLimit = this.activeInput == 9 ? 2048 : this.activeInput == 8 || this.activeInput == 10 ? 512 : this.activeInput == 11 ? 16 : 128;
         if (string.length() > inputLimit) {
             string = string.substring(0, inputLimit > 0 && Character.isHighSurrogate(string.charAt(inputLimit - 1)) ? inputLimit - 1 : inputLimit);
         }
@@ -2740,6 +2814,10 @@ extends GuiScreen {
             api_urchin = string.trim();
         } else if (this.activeInput == 9) {
             botDenickerUrl = string;
+        } else if (this.activeInput == 11) {
+            // Minecraft names are ASCII and at most 16 characters. Keep this
+            // field independent from the existing hotkey quick-buy settings.
+            quickbuyProfilePlayer = string.trim();
         } else if (this.activeInput == 10) {
             AdninAnticheat.ignoredPlayers = string;
         }
@@ -2784,7 +2862,7 @@ extends GuiScreen {
             AdninUi.round(winX,winY,winW,winH,15,0xFF424752);
             AdninUi.round(winX+0.7f,winY+0.7f,winW-1.4f,winH-1.4f,14.5f,0xFF1C1F26);
             AdninUi.text("Adnin",winX+24,winY+17,0xFFFF656A,2);
-            AdninUi.text("v23",winX+32+AdninUi.width("Adnin",2),winY+24,AdninUi.MUTED,0);
+            AdninUi.text("v24",winX+32+AdninUi.width("Adnin",2),winY+24,AdninUi.MUTED,0);
             int left = winX + PANEL_INSET, top = winY + HEADER_H + PANEL_INSET;
             int contentX = left + SIDEBAR_W + CONTENT_GAP;
             AdninUi.text(AdninLanguage.text(THEMES[selectedTheme]),contentX,winY+12,AdninUi.TEXT,2);

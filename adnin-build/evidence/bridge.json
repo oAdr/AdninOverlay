@@ -1,13 +1,13 @@
 {
-  "inputSha256": "14f763bec843716f4ed8fd604a123f72679631537fdf4c27a7f31ef49e5bf832",
-  "outputSha256": "912e7478b045db0794c65586300c10afcad8a570afb85b634f4d7e0585db9f64",
+  "inputSha256": "175311758d05af09d2cf38850862e7138b2ef2f6c444d0c21bf560ec74c694b9",
+  "outputSha256": "db29ec9aaca58a002169cff161c222a50050fb5e9bde35906fd24332a30b5179",
   "fixedNativeSha256": "c1ad1b6978c381c21b8a519ef852ac71f3c70195712eda83ef8eb4d973702cca",
   "normalizedNativeTextSha256": "c35696823c7004ce7567dbc704b4e8adf60e259f57d8f3694fe6ec230cd803cd",
-  "imageSize": 2797568,
+  "imageSize": 2834432,
   "section": {
     "name": ".adncode",
-    "rva": 2732032,
-    "offset": 2699264,
+    "rva": 2768896,
+    "offset": 2736640,
     "size": 58476,
     "rawSize": 58880,
     "executable": true,
@@ -214,260 +214,260 @@
     {
       "callRva": 102531,
       "originalTargetRva": 229984,
-      "bridgeTargetRva": 2732269,
+      "bridgeTargetRva": 2769133,
       "callback": "plainLocal"
     },
     {
       "callRva": 102780,
       "originalTargetRva": 229984,
-      "bridgeTargetRva": 2732269,
+      "bridgeTargetRva": 2769133,
       "callback": "plainLocal"
     },
     {
       "callRva": 449085,
       "originalTargetRva": 229984,
-      "bridgeTargetRva": 2732224,
+      "bridgeTargetRva": 2769088,
       "callback": "plain"
     },
     {
       "callRva": 453440,
       "originalTargetRva": 229984,
-      "bridgeTargetRva": 2732253,
+      "bridgeTargetRva": 2769117,
       "callback": "plainDenick"
     },
     {
       "callRva": 437943,
       "originalTargetRva": 229216,
-      "bridgeTargetRva": 2732245,
+      "bridgeTargetRva": 2769109,
       "callback": "jsonTags"
     },
     {
       "callRva": 439858,
       "originalTargetRva": 229984,
-      "bridgeTargetRva": 2732237,
+      "bridgeTargetRva": 2769101,
       "callback": "plainTags"
     },
     {
       "callRva": 557128,
       "originalTargetRva": 229216,
-      "bridgeTargetRva": 2732261,
+      "bridgeTargetRva": 2769125,
       "callback": "jsonDenick"
     },
     {
       "callRva": 557135,
       "originalTargetRva": 229984,
-      "bridgeTargetRva": 2732253,
+      "bridgeTargetRva": 2769117,
       "callback": "plainDenick"
     },
     {
       "callRva": 556829,
       "originalTargetRva": 229984,
-      "bridgeTargetRva": 2732253,
+      "bridgeTargetRva": 2769117,
       "callback": "plainDenick"
     },
     {
       "callRva": 581857,
       "originalTargetRva": 566112,
-      "bridgeTargetRva": 2732866,
+      "bridgeTargetRva": 2769730,
       "callback": "prelayout"
     },
     {
       "callRva": 582495,
       "originalTargetRva": 575600,
-      "bridgeTargetRva": 2732894,
+      "bridgeTargetRva": 2769758,
       "callback": "render"
     },
     {
       "callRva": 436861,
       "originalTargetRva": 426240,
-      "bridgeTargetRva": 2732192,
+      "bridgeTargetRva": 2769056,
       "callback": "seraphPrefix"
     },
     {
       "callRva": 438493,
       "originalTargetRva": 426240,
-      "bridgeTargetRva": 2732192,
+      "bridgeTargetRva": 2769056,
       "callback": "seraphPrefix"
     },
     {
       "callRva": 552191,
       "originalTargetRva": 763184,
-      "bridgeTargetRva": 2734056,
+      "bridgeTargetRva": 2770920,
       "callback": "denicker"
     },
     {
       "callRva": 81677,
       "originalTargetRva": 565824,
-      "bridgeTargetRva": 2735628,
+      "bridgeTargetRva": 2772492,
       "callback": "matchStart"
     },
     {
       "callRva": 99839,
       "originalTargetRva": 76320,
-      "bridgeTargetRva": 2735720,
+      "bridgeTargetRva": 2772584,
       "callback": "gameActive"
     },
     {
       "callRva": 391757,
       "originalTargetRva": 387152,
-      "bridgeTargetRva": 2735920,
+      "bridgeTargetRva": 2772784,
       "callback": "columnCatalog"
     },
     {
       "callRva": 554035,
       "originalTargetRva": 484160,
-      "bridgeTargetRva": 2737533,
+      "bridgeTargetRva": 2774397,
       "callback": "replayStats"
     },
     {
       "callRva": 553461,
       "originalTargetRva": 29376,
-      "bridgeTargetRva": 2739624,
+      "bridgeTargetRva": 2776488,
       "callback": "replayUuidCopy"
     },
     {
       "callRva": 764618,
       "originalTargetRva": 1190775,
-      "bridgeTargetRva": 2740000,
+      "bridgeTargetRva": 2776864,
       "callback": "numberGetLock"
     },
     {
       "callRva": 767383,
       "originalTargetRva": 1190775,
-      "bridgeTargetRva": 2740000,
+      "bridgeTargetRva": 2776864,
       "callback": "numberRegisterLock"
     },
     {
       "callRva": 769271,
       "originalTargetRva": 1190775,
-      "bridgeTargetRva": 2740005,
+      "bridgeTargetRva": 2776869,
       "callback": "numberPopLock"
     },
     {
       "callRva": 656380,
       "originalTargetRva": 621312,
-      "bridgeTargetRva": 2740356,
+      "bridgeTargetRva": 2777220,
       "callback": "apiPingProxy"
     },
     {
       "callRva": 605656,
       "originalTargetRva": 187824,
-      "bridgeTargetRva": 2740412,
+      "bridgeTargetRva": 2777276,
       "callback": "hypixelHttp"
     },
     {
       "callRva": 607936,
       "originalTargetRva": 187824,
-      "bridgeTargetRva": 2740412,
+      "bridgeTargetRva": 2777276,
       "callback": "hypixelHttp"
     },
     {
       "callRva": 716276,
       "originalTargetRva": 187824,
-      "bridgeTargetRva": 2740412,
+      "bridgeTargetRva": 2777276,
       "callback": "hypixelHttp"
     },
     {
       "callRva": 651733,
       "originalTargetRva": 695952,
-      "bridgeTargetRva": 2741492,
+      "bridgeTargetRva": 2778356,
       "callback": "apiRefreshFailures"
     },
     {
       "callRva": 875834,
       "originalTargetRva": 49776,
-      "bridgeTargetRva": 2743788,
+      "bridgeTargetRva": 2780652,
       "callback": "lunarSchedule"
     },
     {
       "callRva": 107360,
       "originalTargetRva": 843824,
-      "bridgeTargetRva": 2743960,
+      "bridgeTargetRva": 2780824,
       "callback": "partyMode"
     },
     {
       "callRva": 106493,
       "originalTargetRva": 235936,
-      "bridgeTargetRva": 2743680,
+      "bridgeTargetRva": 2780544,
       "callback": "configSave"
     },
     {
       "callRva": 551856,
       "originalTargetRva": 767216,
-      "bridgeTargetRva": 2739789,
+      "bridgeTargetRva": 2776653,
       "callback": "grayNumberRegister"
     },
     {
       "callRva": 554108,
       "originalTargetRva": 628224,
-      "bridgeTargetRva": 2739816,
+      "bridgeTargetRva": 2776680,
       "callback": "grayStatsAllowed"
     },
     {
       "callRva": 556884,
       "originalTargetRva": 698544,
-      "bridgeTargetRva": 2739840,
+      "bridgeTargetRva": 2776704,
       "callback": "grayLegacyLookup"
     },
     {
       "callRva": 556028,
       "originalTargetRva": 697888,
-      "bridgeTargetRva": 2739864,
+      "bridgeTargetRva": 2776728,
       "callback": "grayLegacySuccess"
     },
     {
       "callRva": 551918,
       "originalTargetRva": 685904,
-      "bridgeTargetRva": 2739888,
+      "bridgeTargetRva": 2776752,
       "callback": "graySkinRegister"
     },
     {
       "callRva": 552333,
       "originalTargetRva": 440400,
-      "bridgeTargetRva": 2739912,
+      "bridgeTargetRva": 2776776,
       "callback": "grayStatsProduce"
     },
     {
       "callRva": 553558,
       "originalTargetRva": 440400,
-      "bridgeTargetRva": 2739912,
+      "bridgeTargetRva": 2776776,
       "callback": "grayStatsProduce"
     },
     {
       "callRva": 554569,
       "originalTargetRva": 440400,
-      "bridgeTargetRva": 2739912,
+      "bridgeTargetRva": 2776776,
       "callback": "grayStatsProduce"
     },
     {
       "callRva": 563762,
       "originalTargetRva": 440400,
-      "bridgeTargetRva": 2739912,
+      "bridgeTargetRva": 2776776,
       "callback": "grayStatsProduce"
     },
     {
       "callRva": 553654,
       "originalTargetRva": 433104,
-      "bridgeTargetRva": 2739940,
+      "bridgeTargetRva": 2776804,
       "callback": "grayTagsProduce"
     },
     {
       "callRva": 555073,
       "originalTargetRva": 433104,
-      "bridgeTargetRva": 2739940,
+      "bridgeTargetRva": 2776804,
       "callback": "grayTagsProduce"
     },
     {
       "callRva": 563926,
       "originalTargetRva": 433104,
-      "bridgeTargetRva": 2739940,
+      "bridgeTargetRva": 2776804,
       "callback": "grayTagsProduce"
     }
   ],
   "stateSection": {
     "name": ".adnstat",
-    "rva": 2793472,
-    "offset": 2758144,
+    "rva": 2830336,
+    "offset": 2795520,
     "size": 256,
     "rawSize": 512,
     "executable": false,
@@ -479,22 +479,22 @@
       {
         "siteRva": 59344,
         "before": "4883ec28ff15160a1200",
-        "after": "e98aee28009090909090",
+        "after": "e98a7e29009090909090",
         "reason": "Bind input subclass once per verified window lifetime; never reacquire an external chain"
       },
       {
         "siteRva": 71472,
         "before": "4883ec28e857f8ffff",
-        "after": "e98fbe280090909090",
+        "after": "e98f4e290090909090",
         "reason": "Bind input subclass once per verified window lifetime; never reacquire an external chain"
       }
     ],
     "hwndRva": 1730920,
     "predecessorRva": 1729488,
     "originalWndProcRva": 125968,
-    "wrapperRva": 2742888,
-    "stateRva": 2793536,
-    "activeCounterRva": 2793536,
+    "wrapperRva": 2779752,
+    "stateRva": 2830400,
+    "activeCounterRva": 2830400,
     "privateMessage": "registered, HWND identity and token validated",
     "destroyMessage": 130,
     "detachTimeoutMs": 50,
@@ -508,283 +508,283 @@
   "bridgeRuntimeFunctions": [
     {
       "name": "output",
-      "begin": 2732277,
-      "end": 2732537,
-      "unwind": 2733976
+      "begin": 2769141,
+      "end": 2769401,
+      "unwind": 2770840
     },
     {
       "name": "invoke",
-      "begin": 2732550,
-      "end": 2732749,
-      "unwind": 2733992
+      "begin": 2769414,
+      "end": 2769613,
+      "unwind": 2770856
     },
     {
       "name": "string",
-      "begin": 2732749,
-      "end": 2732866,
-      "unwind": 2734008
+      "begin": 2769613,
+      "end": 2769730,
+      "unwind": 2770872
     },
     {
       "name": "layout",
-      "begin": 2732866,
-      "end": 2732894,
-      "unwind": 2734020
+      "begin": 2769730,
+      "end": 2769758,
+      "unwind": 2770884
     },
     {
       "name": "render",
-      "begin": 2732894,
-      "end": 2733793,
-      "unwind": 2734036
+      "begin": 2769758,
+      "end": 2770657,
+      "unwind": 2770900
     },
     {
       "name": "denicker",
-      "begin": 2734056,
-      "end": 2735229,
-      "unwind": 2735356
+      "begin": 2770920,
+      "end": 2772093,
+      "unwind": 2772220
     },
     {
       "name": "metrics",
-      "begin": 2735380,
-      "end": 2735552,
-      "unwind": 2735616
+      "begin": 2772244,
+      "end": 2772416,
+      "unwind": 2772480
     },
     {
       "name": "match",
-      "begin": 2735628,
-      "end": 2735682,
-      "unwind": 2735708
+      "begin": 2772492,
+      "end": 2772546,
+      "unwind": 2772572
     },
     {
       "name": "column",
-      "begin": 2735920,
-      "end": 2735980,
-      "unwind": 2735980
+      "begin": 2772784,
+      "end": 2772844,
+      "unwind": 2772844
     },
     {
       "name": "header",
-      "begin": 2736188,
-      "end": 2736544,
-      "unwind": 2736624
+      "begin": 2773052,
+      "end": 2773408,
+      "unwind": 2773488
     },
     {
       "name": "replayRdi",
-      "begin": 2736684,
-      "end": 2736926,
-      "unwind": 2736928
+      "begin": 2773548,
+      "end": 2773790,
+      "unwind": 2773792
     },
     {
       "name": "replayRbx",
-      "begin": 2736940,
-      "end": 2737182,
-      "unwind": 2737184
+      "begin": 2773804,
+      "end": 2774046,
+      "unwind": 2774048
     },
     {
       "name": "replayFrame",
-      "begin": 2737196,
-      "end": 2737443,
-      "unwind": 2737444
+      "begin": 2774060,
+      "end": 2774307,
+      "unwind": 2774308
     },
     {
       "name": "replayStats",
-      "begin": 2737533,
-      "end": 2738688,
-      "unwind": 2738688
+      "begin": 2774397,
+      "end": 2775552,
+      "unwind": 2775552
     },
     {
       "name": "replayStatsQueue",
-      "begin": 2738716,
-      "end": 2738792,
-      "unwind": 2738792
+      "begin": 2775580,
+      "end": 2775656,
+      "unwind": 2775656
     },
     {
       "name": "replayStatsCleanup",
-      "begin": 2738804,
-      "end": 2738853,
-      "unwind": 2738856
+      "begin": 2775668,
+      "end": 2775717,
+      "unwind": 2775720
     },
     {
       "name": "replayStatsFrameCleanup",
-      "begin": 2738864,
-      "end": 2738982,
-      "unwind": 2738984
+      "begin": 2775728,
+      "end": 2775846,
+      "unwind": 2775848
     },
     {
       "name": "replayDenickGate",
-      "begin": 2739132,
-      "end": 2739363,
-      "unwind": 2739364
+      "begin": 2775996,
+      "end": 2776227,
+      "unwind": 2776228
     },
     {
       "name": "replayNickName",
-      "begin": 2739376,
-      "end": 2739612,
-      "unwind": 2739612
+      "begin": 2776240,
+      "end": 2776476,
+      "unwind": 2776476
     },
     {
       "name": "replayUuidCopy",
-      "begin": 2739624,
-      "end": 2739642,
-      "unwind": 2739644
+      "begin": 2776488,
+      "end": 2776506,
+      "unwind": 2776508
     },
     {
       "name": "numberLock",
-      "begin": 2740013,
-      "end": 2740126,
-      "unwind": 2740128
+      "begin": 2776877,
+      "end": 2776990,
+      "unwind": 2776992
     },
     {
       "name": "apiKeyReady",
-      "begin": 2740269,
-      "end": 2740321,
-      "unwind": 2740324
+      "begin": 2777133,
+      "end": 2777185,
+      "unwind": 2777188
     },
     {
       "name": "apiUuidReady",
-      "begin": 2740328,
-      "end": 2740349,
-      "unwind": 2740352
+      "begin": 2777192,
+      "end": 2777213,
+      "unwind": 2777216
     },
     {
       "name": "apiPingProxy",
-      "begin": 2740356,
-      "end": 2740361,
-      "unwind": 2740364
+      "begin": 2777220,
+      "end": 2777225,
+      "unwind": 2777228
     },
     {
       "name": "hypixelHttp",
-      "begin": 2740412,
-      "end": 2741213,
-      "unwind": 2741216
+      "begin": 2777276,
+      "end": 2778077,
+      "unwind": 2778080
     },
     {
       "name": "apiDecodeComponent",
-      "begin": 2741352,
-      "end": 2741485,
-      "unwind": 2741488
+      "begin": 2778216,
+      "end": 2778349,
+      "unwind": 2778352
     },
     {
       "name": "apiRefreshFailures",
-      "begin": 2741492,
-      "end": 2741577,
-      "unwind": 2741580
+      "begin": 2778356,
+      "end": 2778441,
+      "unwind": 2778444
     },
     {
       "name": "processEntry",
-      "begin": 2741604,
-      "end": 2741624,
-      "unwind": 2741624
+      "begin": 2778468,
+      "end": 2778488,
+      "unwind": 2778488
     },
     {
       "name": "gameActive",
-      "begin": 2735720,
-      "end": 2735866,
-      "unwind": 2735888
+      "begin": 2772584,
+      "end": 2772730,
+      "unwind": 2772752
     },
     {
       "name": "inputResolve",
-      "begin": 2741714,
-      "end": 2741855,
-      "unwind": 2743508
+      "begin": 2778578,
+      "end": 2778719,
+      "unwind": 2780372
     },
     {
       "name": "inputMaintain",
-      "begin": 2741855,
-      "end": 2742390,
-      "unwind": 2743520
+      "begin": 2778719,
+      "end": 2779254,
+      "unwind": 2780384
     },
     {
       "name": "inputDetach",
-      "begin": 2742390,
-      "end": 2742888,
-      "unwind": 2743532
+      "begin": 2779254,
+      "end": 2779752,
+      "unwind": 2780396
     },
     {
       "name": "inputProc",
-      "begin": 2742888,
-      "end": 2743320,
-      "unwind": 2743540
+      "begin": 2779752,
+      "end": 2780184,
+      "unwind": 2780404
     },
     {
       "name": "inputInitialize",
-      "begin": 2741700,
-      "end": 2741714,
-      "unwind": 2743556
+      "begin": 2778564,
+      "end": 2778578,
+      "unwind": 2780420
     },
     {
       "name": "chatPollTail",
-      "begin": 2743584,
-      "end": 2743662,
-      "unwind": 2743664
+      "begin": 2780448,
+      "end": 2780526,
+      "unwind": 2780528
     },
     {
       "name": "configSave",
-      "begin": 2743680,
-      "end": 2743711,
-      "unwind": 2743740
+      "begin": 2780544,
+      "end": 2780575,
+      "unwind": 2780604
     },
     {
       "name": "grayNumberRegister",
-      "begin": 2739789,
-      "end": 2739809,
-      "unwind": 2739812
+      "begin": 2776653,
+      "end": 2776673,
+      "unwind": 2776676
     },
     {
       "name": "grayStatsAllowed",
-      "begin": 2739816,
-      "end": 2739836,
-      "unwind": 2739836
+      "begin": 2776680,
+      "end": 2776700,
+      "unwind": 2776700
     },
     {
       "name": "grayLegacyLookup",
-      "begin": 2739840,
-      "end": 2739860,
-      "unwind": 2739860
+      "begin": 2776704,
+      "end": 2776724,
+      "unwind": 2776724
     },
     {
       "name": "grayLegacySuccess",
-      "begin": 2739864,
-      "end": 2739884,
-      "unwind": 2739884
+      "begin": 2776728,
+      "end": 2776748,
+      "unwind": 2776748
     },
     {
       "name": "graySkinRegister",
-      "begin": 2739888,
-      "end": 2739908,
-      "unwind": 2739908
+      "begin": 2776752,
+      "end": 2776772,
+      "unwind": 2776772
     },
     {
       "name": "grayStatsProduce",
-      "begin": 2739912,
-      "end": 2739933,
-      "unwind": 2739936
+      "begin": 2776776,
+      "end": 2776797,
+      "unwind": 2776800
     },
     {
       "name": "grayTagsProduce",
-      "begin": 2739940,
-      "end": 2739961,
-      "unwind": 2739964
+      "begin": 2776804,
+      "end": 2776825,
+      "unwind": 2776828
     },
     {
       "name": "lunarSchedule",
-      "begin": 2743788,
-      "end": 2743837,
-      "unwind": 2743840
+      "begin": 2780652,
+      "end": 2780701,
+      "unwind": 2780704
     },
     {
       "name": "lunarStop",
-      "begin": 2743868,
-      "end": 2743923,
-      "unwind": 2743952
+      "begin": 2780732,
+      "end": 2780787,
+      "unwind": 2780816
     },
     {
       "name": "partyMode",
-      "begin": 2743960,
-      "end": 2744104,
-      "unwind": 2744288
+      "begin": 2780824,
+      "end": 2780968,
+      "unwind": 2781152
     }
   ],
   "runtimeFunctionTable": {
-    "rva": 2744320,
+    "rva": 2781184,
     "size": 46188,
     "count": 3849
   },
@@ -792,259 +792,259 @@
     {
       "offset": 312,
       "before": "103d1200",
-      "after": "64d52900",
+      "after": "64652a00",
       "reason": "Skip CRT worker destructors only while the entire process is terminating"
     },
     {
       "offset": 99459,
       "before": "e8d8f10100",
-      "after": "e865202800",
+      "after": "e865b02800",
       "reason": "Optional JNI plainLocal bridge"
     },
     {
       "offset": 99708,
       "before": "e8dff00100",
-      "after": "e86c1f2800",
+      "after": "e86caf2800",
       "reason": "Optional JNI plainLocal bridge"
     },
     {
       "offset": 446013,
       "before": "e81ea8fcff",
-      "after": "e87ed62200",
+      "after": "e87e662300",
       "reason": "Optional JNI plain bridge"
     },
     {
       "offset": 450368,
       "before": "e81b97fcff",
-      "after": "e898c52200",
+      "after": "e898552300",
       "reason": "Optional JNI plainDenick bridge"
     },
     {
       "offset": 434871,
       "before": "e8a4d0fcff",
-      "after": "e819022300",
+      "after": "e819922300",
       "reason": "Optional JNI jsonTags bridge"
     },
     {
       "offset": 436786,
       "before": "e829ccfcff",
-      "after": "e896fa2200",
+      "after": "e8968a2300",
       "reason": "Optional JNI plainTags bridge"
     },
     {
       "offset": 554056,
       "before": "e813fffaff",
-      "after": "e898302100",
+      "after": "e898c02100",
       "reason": "Optional JNI jsonDenick bridge"
     },
     {
       "offset": 554063,
       "before": "e80c02fbff",
-      "after": "e889302100",
+      "after": "e889c02100",
       "reason": "Optional JNI plainDenick bridge"
     },
     {
       "offset": 553757,
       "before": "e83e03fbff",
-      "after": "e8bb312100",
+      "after": "e8bbc12100",
       "reason": "Optional JNI plainDenick bridge"
     },
     {
       "offset": 578785,
       "before": "e87ac2ffff",
-      "after": "e85cd22000",
+      "after": "e85c622100",
       "reason": "Optional JNI prelayout bridge"
     },
     {
       "offset": 579423,
       "before": "e80ce5ffff",
-      "after": "e8facf2000",
+      "after": "e8fa5f2100",
       "reason": "Optional JNI render bridge"
     },
     {
       "offset": 433789,
       "before": "e87ed6ffff",
-      "after": "e81e062300",
+      "after": "e81e962300",
       "reason": "Optional JNI seraphPrefix bridge"
     },
     {
       "offset": 435421,
       "before": "e81ed0ffff",
-      "after": "e8beff2200",
+      "after": "e8be8f2300",
       "reason": "Optional JNI seraphPrefix bridge"
     },
     {
       "offset": 549119,
       "before": "e82c380300",
-      "after": "e8e44a2100",
+      "after": "e8e4da2100",
       "reason": "Optional JNI denicker bridge"
     },
     {
       "offset": 78605,
       "before": "e82e630700",
-      "after": "e8fa7e2800",
+      "after": "e8fa0e2900",
       "reason": "Optional JNI matchStart bridge"
     },
     {
       "offset": 96767,
       "before": "e81ca4ffff",
-      "after": "e864382800",
+      "after": "e864c82800",
       "reason": "Optional JNI gameActive bridge"
     },
     {
       "offset": 388685,
       "before": "e8feedffff",
-      "after": "e8dec42300",
+      "after": "e8de542400",
       "reason": "Optional JNI columnCatalog bridge"
     },
     {
       "offset": 550963,
       "before": "e808effeff",
-      "after": "e845512100",
+      "after": "e845e12100",
       "reason": "Optional JNI replayStats bridge"
     },
     {
       "offset": 550389,
       "before": "e8c600f8ff",
-      "after": "e8ae5b2100",
+      "after": "e8aeeb2100",
       "reason": "Optional JNI replayUuidCopy bridge"
     },
     {
       "offset": 761546,
       "before": "e8a8800600",
-      "after": "e851241e00",
+      "after": "e851b41e00",
       "reason": "Optional JNI numberGetLock bridge"
     },
     {
       "offset": 764311,
       "before": "e8db750600",
-      "after": "e884191e00",
+      "after": "e884a91e00",
       "reason": "Optional JNI numberRegisterLock bridge"
     },
     {
       "offset": 766199,
       "before": "e87b6e0600",
-      "after": "e829121e00",
+      "after": "e829a21e00",
       "reason": "Optional JNI numberPopLock bridge"
     },
     {
       "offset": 653308,
       "before": "e8ff76ffff",
-      "after": "e883cc1f00",
+      "after": "e8835c2000",
       "reason": "Optional JNI apiPingProxy bridge"
     },
     {
       "offset": 602584,
       "before": "e8d39ff9ff",
-      "after": "e8df922000",
+      "after": "e8df222100",
       "reason": "Optional JNI hypixelHttp bridge"
     },
     {
       "offset": 604864,
       "before": "e8eb96f9ff",
-      "after": "e8f7892000",
+      "after": "e8f7192100",
       "reason": "Optional JNI hypixelHttp bridge"
     },
     {
       "offset": 713204,
       "before": "e8b7eff7ff",
-      "after": "e8c3e21e00",
+      "after": "e8c3721f00",
       "reason": "Optional JNI hypixelHttp bridge"
     },
     {
       "offset": 648661,
       "before": "e8b6ac0000",
-      "after": "e81ae31f00",
+      "after": "e81a732000",
       "reason": "Optional JNI apiRefreshFailures bridge"
     },
     {
       "offset": 872762,
       "before": "e83165f3ff",
-      "after": "e8ad801c00",
+      "after": "e8ad101d00",
       "reason": "Optional JNI lunarSchedule bridge"
     },
     {
       "offset": 104288,
       "before": "e8cb3c0b00",
-      "after": "e8333b2800",
+      "after": "e833cb2800",
       "reason": "Optional JNI partyMode bridge"
     },
     {
       "offset": 103421,
       "before": "e89ef90100",
-      "after": "e87e3d2800",
+      "after": "e87ecd2800",
       "reason": "Optional JNI configSave bridge"
     },
     {
       "offset": 548784,
       "before": "e83b490300",
-      "after": "e898622100",
+      "after": "e898f22100",
       "reason": "Optional JNI grayNumberRegister bridge"
     },
     {
       "offset": 551036,
       "before": "e87f210100",
-      "after": "e8e7592100",
+      "after": "e8e7e92100",
       "reason": "Optional JNI grayStatsAllowed bridge"
     },
     {
       "offset": 553812,
       "before": "e857290200",
-      "after": "e8274f2100",
+      "after": "e827df2100",
       "reason": "Optional JNI grayLegacyLookup bridge"
     },
     {
       "offset": 552956,
       "before": "e81f2a0200",
-      "after": "e897522100",
+      "after": "e897e22100",
       "reason": "Optional JNI grayLegacySuccess bridge"
     },
     {
       "offset": 548846,
       "before": "e85d0b0200",
-      "after": "e8bd622100",
+      "after": "e8bdf22100",
       "reason": "Optional JNI graySkinRegister bridge"
     },
     {
       "offset": 549261,
       "before": "e8be4afeff",
-      "after": "e836612100",
+      "after": "e836f12100",
       "reason": "Optional JNI grayStatsProduce bridge"
     },
     {
       "offset": 550486,
       "before": "e8f545feff",
-      "after": "e86d5c2100",
+      "after": "e86dec2100",
       "reason": "Optional JNI grayStatsProduce bridge"
     },
     {
       "offset": 551497,
       "before": "e80242feff",
-      "after": "e87a582100",
+      "after": "e87ae82100",
       "reason": "Optional JNI grayStatsProduce bridge"
     },
     {
       "offset": 560690,
       "before": "e8191efeff",
-      "after": "e891342100",
+      "after": "e891c42100",
       "reason": "Optional JNI grayStatsProduce bridge"
     },
     {
       "offset": 550582,
       "before": "e81529feff",
-      "after": "e8295c2100",
+      "after": "e829ec2100",
       "reason": "Optional JNI grayTagsProduce bridge"
     },
     {
       "offset": 552001,
       "before": "e88a23feff",
-      "after": "e89e562100",
+      "after": "e89ee62100",
       "reason": "Optional JNI grayTagsProduce bridge"
     },
     {
       "offset": 560854,
       "before": "e8f500feff",
-      "after": "e809342100",
+      "after": "e809c42100",
       "reason": "Optional JNI grayTagsProduce bridge"
     },
     {
@@ -1062,31 +1062,31 @@
     {
       "offset": 103241,
       "before": "38056ec41800",
-      "after": "e8de22280090",
+      "after": "e8deb2280090",
       "reason": "Allow observed Replay sidebar only at overlay enabled predicate"
     },
     {
       "offset": 104936,
       "before": "803dcebd180000",
-      "after": "e83f1c28009090",
+      "after": "e83fac28009090",
       "reason": "Allow observed Replay sidebar only at overlay modelCache predicate"
     },
     {
       "offset": 128446,
       "before": "803df861180000",
-      "after": "e869c127009090",
+      "after": "e8695128009090",
       "reason": "Allow observed Replay sidebar only at overlay render predicate"
     },
     {
       "offset": 116488,
       "before": "803dae90180000",
-      "after": "e81ff127009090",
+      "after": "e81f8128009090",
       "reason": "Allow observed Replay sidebar only at overlay fallbackRender predicate"
     },
     {
       "offset": 548108,
       "before": "4584e40f85e30a000083fb010f85da0a0000",
-      "after": "e8ab6221000f84e10a000090909090909090",
+      "after": "e8abf221000f84e10a000090909090909090",
       "reason": "Admit cached verified Replay Nicks to existing Denicker branch without changing actor identity"
     },
     {
@@ -1146,19 +1146,19 @@
     {
       "offset": 618408,
       "before": "488d15d9850d00",
-      "after": "488d154f542000",
+      "after": "488d154fe42000",
       "reason": "Use the public Aurora Ping endpoint; retain UUID encoding, background worker, parser and cache"
     },
     {
       "offset": 601999,
       "before": "483971100f84dd050000",
-      "after": "e89994200084c074e390",
+      "after": "e89924210084c074e390",
       "reason": "Require current nonempty direct key and reject blank copied key; never implicitly choose proxy"
     },
     {
       "offset": 603856,
       "before": "803dfd30110000750c48837b100074054532f6eb0341b601",
-      "after": "e8938d200084c00f84010900009090909090909090909090",
+      "after": "e8931d210084c00f84010900009090909090909090909090",
       "reason": "Require explicit proxy or current nonblank direct key before UUID stats retrieval"
     },
     {
@@ -1188,37 +1188,37 @@
     {
       "offset": 579079,
       "before": "ff9038050000",
-      "after": "e830de200090",
+      "after": "e8306e210090",
       "reason": "Localize allowlisted Overlay header before measurement"
     },
     {
       "offset": 579227,
       "before": "ff9038050000",
-      "after": "e89cdd200090",
+      "after": "e89c6d210090",
       "reason": "Localize allowlisted Overlay header before drawing"
     },
     {
       "offset": 56272,
       "before": "4883ec28ff15160a1200",
-      "after": "e98aee28009090909090",
+      "after": "e98a7e29009090909090",
       "reason": "Bind input subclass once per verified window lifetime; never reacquire an external chain"
     },
     {
       "offset": 68400,
       "before": "4883ec28e857f8ffff",
-      "after": "e98fbe280090909090",
+      "after": "e98f4e290090909090",
       "reason": "Bind input subclass once per verified window lifetime; never reacquire an external chain"
     },
     {
       "offset": 50558,
       "before": "8b442440ffc0",
-      "after": "e99d0b290090",
+      "after": "e99d9b290090",
       "reason": "Stop only after the unchanged consumer would ignore every remaining history row"
     },
     {
       "offset": 83162,
       "before": "ff1548a51100",
-      "after": "e85d8d280090",
+      "after": "e85d1d290090",
       "reason": "Require a client-authorized unload request and Java stop acknowledgement; never read system-wide End state"
     },
     {
@@ -1229,8 +1229,8 @@
     },
     {
       "offset": 352,
-      "before": "00b02900",
-      "after": "00b02a00",
+      "before": "00402a00",
+      "after": "00402b00",
       "reason": "Bridge image size"
     },
     {
@@ -1241,32 +1241,32 @@
     },
     {
       "offset": 304,
-      "before": "00761600",
-      "after": "00781600",
+      "before": "00081700",
+      "after": "000a1700",
       "reason": "Input lifecycle state size"
     },
     {
       "offset": 432,
       "before": "00901a0044b20000",
-      "after": "00e029006cb40000",
+      "after": "00702a006cb40000",
       "reason": "Merged x64 exception table"
     },
     {
       "offset": 816,
       "before": "00000000000000000000000000000000000000000000000000000000000000000000000000000000",
-      "after": "2e61646e636f64656ce4000000b0290000e600000030290000000000000000000000000020000060",
+      "after": "2e61646e636f64656ce4000000402a0000e6000000c2290000000000000000000000000020000060",
       "reason": "Read-execute bridge section header"
     },
     {
       "offset": 856,
       "before": "00000000000000000000000000000000000000000000000000000000000000000000000000000000",
-      "after": "2e61646e737461740001000000a02a000002000000162a00000000000000000000000000400000c0",
+      "after": "2e61646e737461740001000000302b000002000000a82a00000000000000000000000000400000c0",
       "reason": "Read-write non-executable input lifecycle state header"
     },
     {
       "offset": 360,
-      "before": "d8162a00",
-      "after": "cd852a00",
+      "before": "69942a00",
+      "after": "4a272b00",
       "reason": "PE checksum"
     }
   ],
@@ -1303,9 +1303,9 @@
     {
       "profile": "lunar",
       "predicateRva": 106313,
-      "bridgeTargetRva": 2736684,
+      "bridgeTargetRva": 2773548,
       "before": "38056ec41800",
-      "after": "e8de22280090",
+      "after": "e8deb2280090",
       "callback": "replayRdi",
       "purpose": "enabled",
       "nativeEligibilityRva": 1729469,
@@ -1315,9 +1315,9 @@
     {
       "profile": "lunar",
       "predicateRva": 108008,
-      "bridgeTargetRva": 2736684,
+      "bridgeTargetRva": 2773548,
       "before": "803dcebd180000",
-      "after": "e83f1c28009090",
+      "after": "e83fac28009090",
       "callback": "replayRdi",
       "purpose": "modelCache",
       "nativeEligibilityRva": 1729469,
@@ -1327,9 +1327,9 @@
     {
       "profile": "lunar",
       "predicateRva": 131518,
-      "bridgeTargetRva": 2736940,
+      "bridgeTargetRva": 2773804,
       "before": "803df861180000",
-      "after": "e869c127009090",
+      "after": "e8695128009090",
       "callback": "replayRbx",
       "purpose": "render",
       "nativeEligibilityRva": 1729469,
@@ -1339,9 +1339,9 @@
     {
       "profile": "lunar",
       "predicateRva": 119560,
-      "bridgeTargetRva": 2737196,
+      "bridgeTargetRva": 2774060,
       "before": "803dae90180000",
-      "after": "e81ff127009090",
+      "after": "e81f8128009090",
       "callback": "replayFrame",
       "purpose": "fallbackRender",
       "nativeEligibilityRva": 1729469,
@@ -1353,7 +1353,7 @@
     "profile": "lunar",
     "callRva": 554035,
     "originalTargetRva": 484160,
-    "bridgeTargetRva": 2737533,
+    "bridgeTargetRva": 2774397,
     "guardedBlockRva": 553976,
     "guardedBlockSize": 82,
     "guardedBlockSha256": "e1baf09e1d9cee700c487c4ed94c1054b6ef68b33a738f203fd46a7184cbf797",
@@ -1384,12 +1384,12 @@
     "profile": "lunar",
     "gateRva": 551180,
     "before": "4584e40f85e30a000083fb010f85da0a0000",
-    "after": "e8ab6221000f84e10a000090909090909090",
-    "bridgeTargetRva": 2739132,
+    "after": "e8abf221000f84e10a000090909090909090",
+    "bridgeTargetRva": 2775996,
     "skipRva": 553976,
     "fallthroughRva": 551198,
     "uuidCopyCallRva": 553461,
-    "uuidCopyTargetRva": 2739624,
+    "uuidCopyTargetRva": 2776488,
     "callbackOwner": "AdninGui4",
     "callback": "nativeReplayIsNick",
     "descriptor": "(Ljava/lang/String;)I",
@@ -1406,7 +1406,7 @@
       "callRva": 764618,
       "originalTargetRva": 1190775,
       "callback": "numberGetLock",
-      "bridgeTargetRva": 2740000,
+      "bridgeTargetRva": 2776864,
       "branchRva": 764625,
       "before": "0f8505030000",
       "after": "0f85ddffffff",
@@ -1426,7 +1426,7 @@
       "callRva": 767383,
       "originalTargetRva": 1190775,
       "callback": "numberRegisterLock",
-      "bridgeTargetRva": 2740000,
+      "bridgeTargetRva": 2776864,
       "branchRva": 767390,
       "before": "0f851f020000",
       "after": "0f85ae010000",
@@ -1446,7 +1446,7 @@
       "callRva": 769271,
       "originalTargetRva": 1190775,
       "callback": "numberPopLock",
-      "bridgeTargetRva": 2740005,
+      "bridgeTargetRva": 2776869,
       "branchRva": 769278,
       "before": "0f85f6000000",
       "after": "0f85ce000000",
@@ -1468,16 +1468,16 @@
       {
         "siteRva": 621480,
         "before": "488d15d9850d00",
-        "after": "488d154f542000",
+        "after": "488d154fe42000",
         "reason": "Use the public Aurora Ping endpoint; retain UUID encoding, background worker, parser and cache",
         "oldTargetRva": 1507720,
-        "newTargetRva": 2740222,
+        "newTargetRva": 2777086,
         "displacementOffset": 3
       },
       {
         "siteRva": 605071,
         "before": "483971100f84dd050000",
-        "after": "e89994200084c074e390",
+        "after": "e89924210084c074e390",
         "reason": "Require current nonempty direct key and reject blank copied key; never implicitly choose proxy",
         "failureRva": 605051,
         "continuationRva": 605081
@@ -1485,7 +1485,7 @@
       {
         "siteRva": 606928,
         "before": "803dfd30110000750c48837b100074054532f6eb0341b601",
-        "after": "e8938d200084c00f84010900009090909090909090909090",
+        "after": "e8931d210084c00f84010900009090909090909090909090",
         "reason": "Require explicit proxy or current nonblank direct key before UUID stats retrieval",
         "failureRva": 609246,
         "continuationRva": 606952
@@ -1536,7 +1536,7 @@
     "ping": {
       "callRva": 656380,
       "originalTargetRva": 621312,
-      "bridgeTargetRva": 2740356,
+      "bridgeTargetRva": 2777220,
       "callback": "apiPingProxy",
       "provider": "aurora",
       "endpoint": "https://bordic.xyz/api/v2/resources/ping?uuid=",
@@ -1556,19 +1556,19 @@
         {
           "callRva": 605656,
           "originalTargetRva": 187824,
-          "bridgeTargetRva": 2740412,
+          "bridgeTargetRva": 2777276,
           "callback": "hypixelHttp"
         },
         {
           "callRva": 607936,
           "originalTargetRva": 187824,
-          "bridgeTargetRva": 2740412,
+          "bridgeTargetRva": 2777276,
           "callback": "hypixelHttp"
         },
         {
           "callRva": 716276,
           "originalTargetRva": 187824,
-          "bridgeTargetRva": 2740412,
+          "bridgeTargetRva": 2777276,
           "callback": "hypixelHttp"
         }
       ]
@@ -1576,7 +1576,7 @@
     "failedCacheRefresh": {
       "callRva": 651733,
       "originalTargetRva": 695952,
-      "bridgeTargetRva": 2741492,
+      "bridgeTargetRva": 2778356,
       "callback": "apiRefreshFailures",
       "underOriginalStatsMutex": true,
       "onlyFailedEntriesExpired": true,
@@ -1723,16 +1723,16 @@
       {
         "siteRva": 582151,
         "before": "ff9038050000",
-        "after": "e830de200090",
-        "bridgeTargetRva": 2736188,
+        "after": "e8306e210090",
+        "bridgeTargetRva": 2773052,
         "purpose": "measurement",
         "reason": "Localize allowlisted Overlay header before measurement"
       },
       {
         "siteRva": 582299,
         "before": "ff9038050000",
-        "after": "e89cdd200090",
-        "bridgeTargetRva": 2736188,
+        "after": "e89c6d210090",
+        "bridgeTargetRva": 2773052,
         "purpose": "drawing",
         "reason": "Localize allowlisted Overlay header before drawing"
       }
@@ -1741,7 +1741,7 @@
   "schedulerLocalReference": {
     "callRva": 875834,
     "originalTargetRva": 49776,
-    "bridgeTargetRva": 2743788,
+    "bridgeTargetRva": 2780652,
     "callback": "lunarSchedule",
     "returnedLocalFutureReleased": true,
     "pendingExceptionPreserved": true,
@@ -1751,9 +1751,9 @@
   "processTerminationGuard": {
     "offset": 312,
     "before": "103d1200",
-    "after": "64d52900",
+    "after": "64652a00",
     "originalEntryRva": 1195280,
-    "bridgeEntryRva": 2741604,
+    "bridgeEntryRva": 2778468,
     "condition": "DLL_PROCESS_DETACH and lpReserved != NULL",
     "explicitFreeLibraryPreserved": true,
     "noJniLocksOrJoinsDuringProcessExit": true,
@@ -1762,7 +1762,7 @@
   "nativeGameState": {
     "callRva": 99839,
     "originalTargetRva": 76320,
-    "bridgeTargetRva": 2735720,
+    "bridgeTargetRva": 2772584,
     "callback": "setGameActive",
     "owner": "AdninGui4",
     "descriptor": "(Z)V",
@@ -1779,7 +1779,7 @@
     "width": 6,
     "before": "8b442440ffc0",
     "callback": "chatPollTail",
-    "bridgeTargetRva": 2743584,
+    "bridgeTargetRva": 2780448,
     "consumerRva": 92288,
     "consumerEndRva": 94156,
     "periodicReturnRva": 92453,
@@ -1797,7 +1797,7 @@
   "lunarPartyModeHandoff": {
     "callRva": 107360,
     "originalTargetRva": 843824,
-    "bridgeTargetRva": 2743960,
+    "bridgeTargetRva": 2780824,
     "callback": "partyMode",
     "owner": "AdninGui4",
     "method": "pollPartyMode",
@@ -1819,7 +1819,7 @@
   "sharedConfiguration": {
     "callRva": 106493,
     "originalTargetRva": 235936,
-    "bridgeTargetRva": 2743680,
+    "bridgeTargetRva": 2780544,
     "callback": "nativeRequestConfigSave",
     "descriptor": "()I",
     "originalWriterRetired": true,
@@ -1889,7 +1889,7 @@
   },
   "lunarUnloadGuard": {
     "callRva": 86234,
-    "bridgeTargetRva": 2743868,
+    "bridgeTargetRva": 2780732,
     "originalIatRva": 1242664,
     "stopOwner": "AdninGui4",
     "stopMethod": "nativeStopGameModules",

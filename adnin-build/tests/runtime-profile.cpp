@@ -15,8 +15,9 @@ using adnin::ClientKind;
 using adnin::TargetError;
 using adnin::TitleVersion;
 constexpr wchar_t observed_badlion_title[] = L"Badlion Minecraft Client v4.4.4-f8775e4-PRODUCTION4 (1.8.9)";
-adnin::WindowCandidate window(DWORD pid, const wchar_t* title, const wchar_t* cls = L"LWJGL", bool visible = true) {
-  return {pid, title, cls, visible};
+adnin::WindowCandidate window(DWORD pid, const wchar_t* title, const wchar_t* cls = L"LWJGL",
+                              bool visible = true, bool forge_process = false) {
+  return {pid, title, cls, visible, forge_process};
 }
 void identity_tests() {
   for (const wchar_t* title : {L"Lunar Client (1.8.9)", L"Lunar Client 1.8.9", L"lunar client (1.8.9-master)"}) {
@@ -59,18 +60,35 @@ void identity_tests() {
         "Observed Badlion title still requires a recognized game-window class");
   const auto vanilla = adnin::classify_window(L"Minecraft 1.8.9", L"LWJGL");
   check(vanilla.client == ClientKind::Vanilla && vanilla.version == TitleVersion::Supported, "Vanilla 1.8.9 title");
+  for (const wchar_t* title : {L"Forge 1.8.9", L"Minecraft 1.8.9 Forge", L"Minecraft 1.8.9 | Forge 11.15.1.2318"}) {
+    const auto id = adnin::classify_window(title, L"LWJGL");
+    check(id.client == ClientKind::Forge && id.version == TitleVersion::Supported,
+          "Forge 1.8.9 titles use the compatible Forge profile");
+  }
+  const auto token_login = adnin::classify_window(L"TokenLogin 2.1", L"LWJGL");
+  check(token_login.client == ClientKind::Forge && token_login.version == TitleVersion::Unspecified,
+        "Known Forge distribution with a custom TokenLogin title is accepted for runtime handshake");
+  for (const wchar_t* title : {L"Forge 1.20", L"Minecraft 1.8.8 Forge", L"Forge 1.8.90"}) {
+    const auto id = adnin::classify_window(title, L"LWJGL");
+    check(id.client == ClientKind::Forge && id.version == TitleVersion::Unsupported,
+          "Forge titles cannot bypass the supported-version check");
+  }
   for (const wchar_t* title : {L"Minecraft 1.8", L"Minecraft 1.8.8", L"Minecraft 1.8.90", L"Minecraft 1.21.1", L"Minecraft 26.1", L"Minecraft 2.0", L"Lunar Client (1.7.10)", L"Badlion Client 1.20", L"Minecraft 1.8.9x"})
     check(adnin::classify_window(title, L"LWJGL").version == TitleVersion::Unsupported, "Other explicit versions rejected");
   for (const wchar_t* title : {L"Java", L"LWJGL", L"MinecraftLauncher", L"Minecraft Launcher", L"Lunar Client Launcher", L"Other game 1.8.9", L"Badlion ClientFake 1.8.9"})
     check(adnin::classify_window(title, L"LWJGL").client == ClientKind::Unknown, "Unknown apps and launchers rejected");
   check(adnin::classify_window(L"Minecraft 1.8.9", L"Other").client == ClientKind::Unknown, "Title alone does not identify a game window");
+  check(adnin::classify_window(L"TokenLogin Launcher", L"LWJGL").client == ClientKind::Unknown,
+        "TokenLogin launchers remain excluded");
   for (const wchar_t* cls : {L"LWJGL", L"GLFW30", L"GLFW32"})
     check(adnin::classify_window(L"Lunar Client", cls).version == TitleVersion::Unspecified, "Missing version still requires DLL handshake");
   check(adnin::client_payload(ClientKind::Badlion) == adnin::PayloadKind::Vanilla, "Badlion uses verified Vanilla payload");
+  check(adnin::client_payload(ClientKind::Forge) == adnin::PayloadKind::Forge,
+        "Forge uses its own named-class/SRG payload");
   check(adnin::client_payload(ClientKind::Lunar) == adnin::PayloadKind::Lunar, "Lunar keeps its own payload");
   check(!adnin::client_payload(ClientKind::Unknown) && !adnin::client_payload(ClientKind::Auto), "Unknown client cannot choose a payload");
-  for (const wchar_t* name : {L"auto", L"lunar", L"badlion", L"vanilla"}) check(adnin::parse_client(name).has_value(), "Supported CLI client");
-  for (const wchar_t* name : {L"", L"forge", L"java", L"../vanilla"}) check(!adnin::parse_client(name), "Unknown CLI client rejected");
+  for (const wchar_t* name : {L"auto", L"lunar", L"badlion", L"vanilla", L"forge"}) check(adnin::parse_client(name).has_value(), "Supported CLI client");
+  for (const wchar_t* name : {L"", L"java", L"../vanilla"}) check(!adnin::parse_client(name), "Unknown CLI client rejected");
 }
 void selection_tests() {
   std::vector<adnin::WindowCandidate> candidates{window(10, L"Minecraft 1.8.9")};
@@ -83,6 +101,22 @@ void selection_tests() {
   check(adnin::choose_target(candidates, ClientKind::Badlion).pid == 20, "Explicit client resolves different-client ambiguity");
   check(adnin::choose_target(candidates, ClientKind::Auto, 20).client == ClientKind::Badlion, "Explicit PID is still classified");
   check(adnin::choose_target(candidates, ClientKind::Lunar, 20).error == TargetError::ClientMismatch, "PID cannot bypass client mismatch");
+  check(adnin::choose_target(candidates, ClientKind::Forge, 10).pid == 10 &&
+        adnin::choose_target(candidates, ClientKind::Forge, 10).client == ClientKind::Forge,
+        "Explicit Forge profile can select a generic Minecraft 1.8.9 title");
+  candidates = {window(11, L"TokenLogin 2.1")};
+  check(adnin::choose_target(candidates, ClientKind::Auto).pid == 11 &&
+        adnin::choose_target(candidates, ClientKind::Auto).client == ClientKind::Forge,
+        "Auto mode selects the known custom-title Forge window");
+  candidates = {window(12, L"Minecraft 1.8.9", L"LWJGL", true, true)};
+  check(adnin::choose_target(candidates, ClientKind::Auto).pid == 12 &&
+        adnin::choose_target(candidates, ClientKind::Auto).client == ClientKind::Forge,
+        "Forge process marker upgrades a generic Minecraft title in auto mode");
+  candidates = {window(13, L"Custom Forge HUD", L"LWJGL", true, true)};
+  check(adnin::choose_target(candidates, ClientKind::Auto).pid == 13 &&
+        adnin::choose_target(candidates, ClientKind::Auto).client == ClientKind::Forge &&
+        adnin::choose_target(candidates, ClientKind::Auto).version == TitleVersion::Unspecified,
+        "Forge process marker accepts a custom title and defers version to runtime handshake");
   check(adnin::choose_target(candidates, ClientKind::Auto, 99).error == TargetError::NotFound, "Unknown PID rejected");
   check(adnin::choose_target(candidates, ClientKind::Auto, {}, L"Unknown").error == TargetError::NotFound, "Custom class does not bypass game classification");
   candidates = {window(1, L"Minecraft 1.8.9", L"LWJGL", false), window(2, L"Java")};

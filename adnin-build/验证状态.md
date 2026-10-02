@@ -1,8 +1,77 @@
-# Adnin v23 verification
+# Adnin v24 verification
+
+## Forge 1.8.9 profile
+
+The injector now has an explicit `forge` client profile. Forge-branded
+1.8.9 titles are classified directly. The injector also probes the target command
+line for Forge's `FMLTweaker` marker, allowing generic and custom titles; the
+observed `TokenLogin 2.1` custom title is recognized automatically. The profile
+now uses a distinct named-class/SRG payload after the vanilla-obfuscated attempt
+failed with hooks=0 and heartbeat=0. The owned JNI facade resolves actual game
+classes through LaunchClassLoader and the live Forge remapper. Offline tests
+cover classification, version rejection, payload selection and explicit
+generic-title selection. The corrected candidate's live test with the
+supplied coremods is recorded below; other transformers can change private
+members and still require separate validation.
+
+The Forge follow-up fixes four additional initialization hazards:
+
+- Linker-symbol object assumptions no longer allow the compiler to eliminate
+  writes to the mapper's two JNI method references.
+- The mapper is defined in the actual Forge LaunchClassLoader.
+- JNI class and member lookup initializes the owner, while descriptor types
+  remain uninitialized. Cached member references avoid repeat initialization
+  work.
+- Moved calls preserve partial-prologue unwind state; a continuation NOP
+  prevents Windows from mistaking the transfer for a leaf epilogue.
+
+Final-image JNI fixtures pass on Java 8 and Java 17, including class
+initialization, arrays, constructors, inherited/private/static members,
+exception recovery and repeated calls. Windows RtlVirtualUnwind agrees with
+the original code at the real return addresses of all 105 moved calls.
+Read-only checks on the running Forge 1.8.9 instance resolve the Minecraft
+singleton, HUD field, chat getter and chat insertion method through the live
+Forge remapper. Its HUD is GuiIngameForge. No render or chat method was invoked.
+These checks do not establish injection success, /config readiness, or a
+progressing heartbeat in a new process.
+
+The October 2 crash follow-up found three distinct failures:
+
+- A virtual section gap caused Windows loader error 193. The `.adnf` code
+  reservation now reaches the state section, and the Windows loader accepts
+  the final image without invoking DllMain.
+- Three JavaVM::GetEnv calls share offset 0x30 with JNIEnv::FindClass. They
+  are excluded from the lookup patcher with exact argument-byte guards and
+  executable ABI regressions. The facade now covers 738 actual JNI lookups.
+- With the first two fixes, a fresh Forge process initialized all five class
+  refs, all three hook states and an advancing heartbeat at the main menu.
+  Entering a world then produced a Java ClassCastException because Chatting
+  expects GuiIngameForge's transformed accessor interface. The Forge-only
+  HUD now extends the real transformed GuiIngameForge, copies compatible
+  Forge/base state and calls its superclass exactly once. Final HUD bytecode
+  passes the accessor cast, state-copy and callback-count fixture on Java 8/17.
+
+The main-menu-only candidate is superseded. The corrected v24 package was
+loaded into a fresh Forge 1.8.9 process with the supplied coremods and OptiFine:
+the main menu rendered, a singleplayer world entered without the prior
+ClassCastException, `/config` opened, Escape closed it, and the world remained
+responsive with an advancing heartbeat. Returning to title, re-entering the
+same world and normal Quit Game also passed; no new Java crash report or
+native hs_err file was produced for the final test process. Read-only runtime checks reported all
+five classes, all three hooks and a stable payload identity. This is a focused
+Forge validation, not a guarantee for every Forge coremod combination or a
+multiplayer feature test. The supplied launch/crash archive and account
+metadata are not source or release inputs.
+
+Final tested EXE SHA-256:
+`1f4b66b8de9e1d8d7dcb20adebcc0dd6aeaebf00fc58dd65d308e00b0a44417a`.
+Final tested Forge payload SHA-256:
+`61d43b312faf2b8e20e806875e02f13c44a87aaedcc6fc607c503a74a3847ddb`.
+The Lunar and Badlion/Vanilla DLL hashes are unchanged by this Forge HUD fix.
 
 ## Current shared-profile and Lunar auto-start follow-up
 
-The new candidate is `build-v23-party-shared-config`. All clients share
+The coherent Forge-enabled candidate is `build-v24`. All clients share
 `%LOCALAPPDATA%/Adnin/config.properties`; the newest valid native settings from
 Adnin's hash-specific payload cache and the current client's old feature file
 migrate only before that file exists. Empty/invalid/missing shared credential fields
@@ -15,23 +84,21 @@ stored as `Waiting...` plus a zero-width U+26BD row key. The previous parser
 handled only supplementary symbols. BMP symbol handling now requires current
 font proof and preserves all phase/footer and retry safeguards.
 
-The coherent build completed October 2, 2026 with stable production source
+The coherent Forge-enabled build completed October 2, 2026 with stable production source
 fingerprints. All 6 CTests passed, including shared-language CRLF and precedence.
 Native Lunar 80 and compatibility 46 tests passed, including the new config
 callback's byte guards, JNI exceptions, registers and unwind. The full Java and
-production-adapter suite passed: shared settings 147 checks for each compiled
+production-adapter suite passed: shared settings 149 checks for each compiled
 profile, lifecycle 8,051, Output 508, Bot cache 2,379, input lifecycle 88,
 UI lifetime 4,798 and UI equivalence 146,868. Party sidebar checks passed 115,
 and the actual adapter passed 74 checks across 27 scenarios. Packaging privacy
 passed 36 tests with one host symlink case skipped. The focused settings and
-Party tests also passed on Java 8 and Java 17. Both DLLs are embedded byte-exactly
+Party tests also passed on Java 8 and Java 17. All three DLLs are embedded byte-exactly
 in the single EXE; settings, private keys and custom Bot URLs are excluded.
 
-| Artifact | Bytes | SHA256 |
-| --- | ---: | --- |
-| Adnin.dll | 2,758,656 | `912e7478b045db0794c65586300c10afcad8a570afb85b634f4d7e0585db9f64` |
-| AdninVanilla.dll | 2,643,456 | `0b715da6e57b5deac7d5dba835bc0f461b6659c2d628bd9055282f318b6da7f3` |
-| Adnin.exe | 7,638,528 | `fe94b9a554aedb2470d99d03029bed2f1c9232ff5b567b96d466b89737e4d2e2` |
+Exact current artifact sizes and hashes are recorded in
+`build-v24/build-report.json` and `../adnin-release-manifest-v24.json`.
+Earlier v24 binaries lacked the dedicated Forge SRG payload and are superseded.
 
 The first direct compatibility fixture attempt encountered the signed JAR's
 default-package signer restriction. Its final configuration fixture uses an
@@ -39,8 +106,9 @@ owned temporary signature-free copy; the separate real signed-loader tests
 still use the original JAR and passed. A missing expected unwind entry in the
 new hook's test was added; ABI/byte/pixel assertions were not weakened.
 
-See `evidence/shared-config-party-v23.md`. No live follow-up injection yet;
-existing live processes retain the previously published payload until restart.
+See `evidence/shared-config-party-v23.md`. The latest Forge live validation is
+recorded above. Lunar/Badlion have not been re-injected for this Forge fix;
+existing processes retain the previously published payload until restart.
 
 ## Previous v23 respawn, decoded Party mode and independent Aurora Ping
 
@@ -543,8 +611,9 @@ they are not screenshots or timings from a running Lunar/Badlion client. This
 pass did not perform live injection, API requests, party messages or report
 commands. Final artifact sizes and hashes belong to the v19 release manifest.
 
-The release targets Lunar, Badlion and Vanilla Minecraft 1.8.9 x64 without
-Forge. The injector is C++20, helpers use Java 8 bytecode, and the original
+The v24 release targets Lunar, Badlion, Forge and Vanilla Minecraft 1.8.9 x64.
+Forge uses the compatibility payload and does not add a Forge dependency. The
+injector is C++20, helpers use Java 8 bytecode, and the original
 2,493 Lunar native functions remain recovered NASM, not fully rewritten C++.
 
 ## Historical v18 repairs retained by v19
@@ -636,3 +705,6 @@ The v19 build and offline test artifacts are kept under work/replay-v19 in the
 parent workspace. Historical v18 crash/resource details are in
 evidence/stability-v18.md, with its test artifacts under work/replay-v18.
 Earlier reports remain historical evidence and are not new live verification.
+
+
+

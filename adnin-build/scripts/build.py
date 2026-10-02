@@ -135,6 +135,45 @@ def main():
     compat_binary, compat_bridge = native_compat.build_bridge(compat_intermediate,args.nasm)
     compat_final.write_bytes(compat_binary)
     (out/'vanilla-bridge.json').write_text(json.dumps(compat_bridge,indent=2),encoding='utf8')
+    forge_command=[sys.executable,ROOT/'scripts/build-java-forge.py','--jdk',args.jdk,'--output',out/'java-forge']
+    if args.classpath: forge_command+=['--classpath',args.classpath]
+    if args.vanilla_jar: forge_command+=['--runtime-jar',args.vanilla_jar]
+    run(forge_command)
+    import native_forge
+    from java_compat import ClassPath, Mapping, remap_class
+    import importlib.util
+    forge_spec=importlib.util.spec_from_file_location('adnin_forge_build',ROOT/'scripts/build-java-forge.py')
+    forge_java=importlib.util.module_from_spec(forge_spec);forge_spec.loader.exec_module(forge_java)
+    forge_resource=json.loads((ROOT/'resources/java-forge-1.8.9.json').read_text(encoding='utf8'))
+    forge_java_report=json.loads((out/'java-forge/java-build-report.json').read_text(encoding='utf8'))
+    forge_cp=ClassPath([forge_java_report['runtimeJar']])
+    def forge_abi(data):
+        name=read_class(data)['name']
+        forge_cp.classes[name]=data
+        forge_cp.cache.pop(name,None)
+        mapping=forge_java.obfuscated_mapping(forge_resource)
+        if name == 'FrenchifyIngameGui':
+            if read_class(data)['parent'] != 'avo': raise ValueError('Original HUD superclass changed')
+            mapping['classes']=dict(mapping['classes'],avo=forge_java.FORGE_GUI)
+        return remap_class(data,Mapping(mapping,forge_cp))
+    forge_profile=native_compat.profile()
+    forge_profile['abi_transform']=forge_abi
+    forge_profile['allowed_gui_widenings']=(('func_73864_a','(III)V'),('func_73869_a','(CI)V'))
+    forge_classes={reembed.renamed(name):(out/'java-forge'/(reembed.renamed(name)+'.class')).read_bytes()
+                   for name in forge_profile['sites']}
+    try:
+        forge_intermediate,forge_reembedding=reembed.rebuild(compat_fixed.read_bytes(),forge_classes,compat_records,forge_profile)
+    finally: forge_cp.close()
+    (out/'forge-reembedding.json').write_text(json.dumps(forge_reembedding,indent=2),encoding='utf8')
+    forge_base,forge_bridge=native_compat.build_bridge(forge_intermediate,args.nasm)
+    run([args.jdk/'bin/javac.exe','--release','8','-d',out/'forge-mapper',ROOT/'src/java-forge/RuntimeMappings.java'])
+    forge_binary,forge_jni=native_forge.build(forge_base,out/'forge-native',args.toolchain,args.jdk,
+                                           out/'forge-mapper/adnin/forge/RuntimeMappings.class')
+    forge_final=out/'bin/AdninForge.dll';forge_final.write_bytes(forge_binary)
+    forge_bridge['forgeJni']=forge_jni
+    forge_bridge['imageSize']=forge_jni['imageSize']
+    forge_bridge['runtime_metadata']['imageSize']=forge_jni['imageSize']
+    (out/'forge-bridge.json').write_text(json.dumps(forge_bridge,indent=2),encoding='utf8')
     if not all(report.get('legacyAnticheat', {}).get('disabled') for report in (lunar_bridge, compat_bridge)):
         raise RuntimeError('The old AntiCheat must be disabled in both native profiles')
     if not all(report.get('gameTickHook', {}).get('independentOfSessionStats') for report in (lunar_bridge, compat_bridge)):
@@ -159,7 +198,8 @@ def main():
     forge_free_classes = {kind:verify_forge_free(out/directory)
                           for kind,directory in (('lunar','java-runtime'),('vanilla','java-vanilla'))}
     runtimes = [runtime_build.descriptor(final,'lunar',101,runtime_build.lunar_metadata(lunar_bridge)),
-                runtime_build.descriptor(compat_final,'vanilla',102,compat_bridge['runtime_metadata'])]
+                runtime_build.descriptor(compat_final,'vanilla',102,compat_bridge['runtime_metadata']),
+                runtime_build.descriptor(forge_final,'forge',103,forge_bridge['runtime_metadata'])]
     (out/'generated/adnin-runtimes.h').write_text(runtime_build.generated_header(runtimes),encoding='ascii')
     icon_path = ROOT/'src/injector/assets/adnin.ico'
     icon_data = icon_path.read_bytes()
@@ -167,7 +207,7 @@ def main():
     if icon_header != (0, 1, 7):
         raise RuntimeError('The application icon must contain the seven reviewed sizes')
     (out/'generated/adnin-payload.rc').write_text(
-        '101 RCDATA "'+final.as_posix()+'"\n102 RCDATA "'+compat_final.as_posix()+'"\n201 ICON "'+icon_path.as_posix()+'"\n'
+        '101 RCDATA "'+final.as_posix()+'"\n102 RCDATA "'+compat_final.as_posix()+'"\n103 RCDATA "'+forge_final.as_posix()+'"\n201 ICON "'+icon_path.as_posix()+'"\n'
         '202 RCDATA "'+(ROOT/'resources/THIRD_PARTY_NOTICES.txt').as_posix()+'"\n', encoding='utf8')
     run([args.cmake,'-S',ROOT,'-B',out,'-G','Ninja','-DCMAKE_MAKE_PROGRAM='+args.ninja.as_posix(),
          '-DCMAKE_CXX_COMPILER='+(args.toolchain/'bin/clang++.exe').as_posix(),
@@ -236,8 +276,13 @@ def main():
          '--classes',out/'java-vanilla','--nasm',args.nasm])
     run([sys.executable,ROOT/'tests/test_native_tick_hook.py','--build',out])
     run([sys.executable,ROOT/'tests/test_package.py'])
+    run([sys.executable,ROOT/'tests/test_forge_mapping.py'])
+    run([sys.executable,ROOT/'tests/test_forge_bootstrap.py','--jdk',args.jdk])
+    run([sys.executable,ROOT/'tests/test_forge_hud.py','--jdk',args.jdk,'--classes',out/'java-forge'])
+    run([sys.executable,ROOT/'tests/test_forge_facade.py','--jdk',args.jdk,'--toolchain',args.toolchain,'--build',out])
+    run([sys.executable,ROOT/'tests/test_native_forge.py','--build',out])
     artifacts=[]
-    for file in (final,compat_final,executable):
+    for file in (final,compat_final,forge_final,executable):
         artifacts.append(dict(file=file.name,bytes=file.stat().st_size,sha256=hashlib.sha256(file.read_bytes()).hexdigest()))
     if source_inputs != runtime_build.source_hashes(ROOT):
         raise RuntimeError('Production sources changed during the build; rerun for a coherent release')
@@ -246,7 +291,9 @@ def main():
                 standaloneExecutable=True,embeddedPayloadVerified=True,iconEmbeddedVerified=True,
                 sharedUserConfiguration='LOCALAPPDATA/Adnin/config.properties',legacyClientWritersRetired=True,
                 automaticCrashDiagnostics=True,crashDiagnosticsMemoryDump=False,crashDiagnosticsUpload=False,
-                forgeRequired=False,forgeFreeClassesChecked=forge_free_classes,legacyAnticheatDisabled=True,
+                forgeRequired=False,forgeUsesVanillaPayload=False,forgeSrgPayload=True,forgeProcessMarker='FMLTweaker',
+                forgeLiveRuntimeTested=False,
+                forgeFreeClassesChecked=forge_free_classes,legacyAnticheatDisabled=True,
                 fixedPhaseGameTick=True,replayOverlayEnabled=True,javaStopBeforeNativeUnload=True,
                 ravenSourceCommit='14b0a03e8b3af4f109d7c05bc5d0b98d42470179',thirdPartyNoticesEmbedded=True,
                 mellowScaffoldSourceCommit='17ef9b7466754a33ee8c8ed87fa7ea717573d775',
@@ -256,9 +303,9 @@ def main():
                 interfaceLanguages=['en','zh_CN','zh_TW'],interfaceScalePercent=[70,140],
                 iconSizes=icon_sizes,iconSha256=hashlib.sha256(icon_data).hexdigest(),artifacts=artifacts,
                 runtimePayloads=runtimes,sourceInputsSha256=source_inputs,
-                supportedClients=['Lunar 1.8.9','Badlion 1.8.9','Vanilla 1.8.9'])
+                supportedClients=['Lunar 1.8.9','Badlion 1.8.9','Forge 1.8.9','Vanilla 1.8.9'])
     (out/'build-report.json').write_text(json.dumps(report,indent=2),encoding='utf8')
-    print('Built standalone Adnin.exe with both verified runtime payloads; see '+str(out/'build-report.json'))
+    print('Built standalone Adnin.exe with three verified runtime payloads; see '+str(out/'build-report.json'))
 
 if __name__=='__main__':
     # Do not let a localized Windows pipe codec hide a test's actual result.

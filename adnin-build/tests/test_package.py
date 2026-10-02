@@ -46,6 +46,7 @@ class PackagePrivacyTest(unittest.TestCase):
         (self.root / 'src/java/AdninGui4.java').write_text(source, encoding='utf8')
         (self.root / 'resources').mkdir()
         (self.root / 'resources/java-compat-1.8.9.json').write_text('{"fixture":true}', encoding='utf8')
+        (self.root / 'resources/java-forge-1.8.9.json').write_text('{"fixture":true}', encoding='utf8')
         (self.root / 'resources/THIRD_PARTY_NOTICES.txt').write_text('Owned third-party notice fixture\n', encoding='utf8')
 
     def test_private_names_are_rejected_in_every_directory_and_case(self):
@@ -229,6 +230,7 @@ class PackagePrivacyTest(unittest.TestCase):
         (build / 'bin').mkdir(parents=True)
         (build / 'java-runtime').mkdir()
         (build / 'java-vanilla').mkdir()
+        (build / 'java-forge').mkdir()
         helper = self.synthetic_class('AdninApi')
         owner = self.synthetic_class('AdninGui4', [base64.b64encode(helper)])
         class_report = {'classSha256': {'AdninGui4': hashlib.sha256(owner).hexdigest(),
@@ -236,7 +238,7 @@ class PackagePrivacyTest(unittest.TestCase):
                         'helperSha256': {'AdninApi': hashlib.sha256(helper).hexdigest()},
                         'compiledActiveClasses': ['AdninGui4'], 'bootstrapOwners': ['AdninGui4'],
                         'base64ChunkLimit': 30000}
-        for folder in ('java-runtime', 'java-vanilla'):
+        for folder in ('java-runtime', 'java-vanilla', 'java-forge'):
             (build / folder / 'AdninGui4.class').write_bytes(owner)
             (build / folder / 'AdninApi.class').write_bytes(helper)
         prefix = b'MZ synthetic fixture'
@@ -246,16 +248,17 @@ class PackagePrivacyTest(unittest.TestCase):
             path.write_bytes(prefix + owner if name.endswith('.dll') else prefix)
             artifacts.append({'file': name, 'bytes': path.stat().st_size,
                               'sha256': hashlib.sha256(path.read_bytes()).hexdigest()})
-        payloads = [{**item, 'id':'lunar' if item['file'] == 'Adnin.dll' else 'vanilla',
-                     'resourceId':101 if item['file'] == 'Adnin.dll' else 102}
+        identities={'Adnin.dll':('lunar',101),'AdninVanilla.dll':('vanilla',102),'AdninForge.dll':('forge',103)}
+        payloads = [{**item, 'id':identities[item['file']][0],
+                     'resourceId':identities[item['file']][1]}
                     for item in artifacts if item['file'].endswith('.dll')]
         (build / 'build-report.json').write_text(json.dumps({'formatVersion':2,'artifacts': artifacts,
             'runtimePayloads':payloads,'sourceInputsSha256':package.production_source_hashes(self.root)}), encoding='utf8')
-        for name in ('bridge.json', 'vanilla-bridge.json'):
+        for name in ('bridge.json', 'vanilla-bridge.json', 'forge-bridge.json'):
             (build / name).write_text('{}', encoding='utf8')
         embedding = {'classes': [{'name': 'AdninGui4', 'offset': len(prefix), 'size': len(owner),
                                  'sha256': hashlib.sha256(owner).hexdigest()}]}
-        for name in ('reembedding.json', 'vanilla-reembedding.json'):
+        for name in ('reembedding.json', 'vanilla-reembedding.json', 'forge-reembedding.json'):
             (build / name).write_text(json.dumps(embedding), encoding='utf8')
         source = self.root / 'src/java/AdninGui4.java'
         hashes = {source.name: hashlib.sha256(source.read_bytes()).hexdigest()}
@@ -265,6 +268,10 @@ class PackagePrivacyTest(unittest.TestCase):
             'sourceSha256':hashes, 'mode':'vanilla-obfuscated-1.8.9-shared-source',
             'sourcePaths':{source.name:'src/java/' + source.name},
             'mappingSha256':hashlib.sha256((self.root / 'resources/java-compat-1.8.9.json').read_bytes()).hexdigest()}), encoding='utf8')
+        (build/'java-forge/java-build-report.json').write_text(json.dumps({**class_report,
+            'sourceSha256':hashes,'mode':'forge-named-srg-1.8.9-shared-source',
+            'sourcePaths':{source.name:'src/java/'+source.name},
+            'mappingSha256':hashlib.sha256((self.root/'resources/java-forge-1.8.9.json').read_bytes()).hexdigest()}),encoding='utf8')
         return build
 
     @staticmethod
@@ -426,6 +433,11 @@ class PackagePrivacyTest(unittest.TestCase):
         compatibility['sourceSha256'][dormant.name] = hashlib.sha256(dormant.read_bytes()).hexdigest()
         compatibility['sourcePaths'][dormant.name] = 'src/java/' + dormant.name
         compatibility_path.write_text(json.dumps(compatibility), encoding='utf8')
+        forge_path=build/'java-forge/java-build-report.json'
+        forge=json.loads(forge_path.read_text(encoding='utf8'))
+        forge['sourceSha256'][dormant.name]=hashlib.sha256(dormant.read_bytes()).hexdigest()
+        forge['sourcePaths'][dormant.name]='src/java/'+dormant.name
+        forge_path.write_text(json.dumps(forge),encoding='utf8')
         build_report_path = build / 'build-report.json'
         build_report = json.loads(build_report_path.read_text(encoding='utf8'))
         dormant_bytes = self.synthetic_class('AdninGuiNewChat')

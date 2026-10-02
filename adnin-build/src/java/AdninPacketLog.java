@@ -75,12 +75,13 @@ public class AdninPacketLog {
 
     private static Object readFieldByNames(Object object, String ... stringArray) throws Exception {
         for (String string : stringArray) {
-            try {
-                Field field = object.getClass().getDeclaredField(string);
-                field.setAccessible(true);
-                return field.get(object);
-            }
-            catch (NoSuchFieldException noSuchFieldException) {
+            for (Class<?> type = object.getClass(); type != null && type != Object.class; type = type.getSuperclass()) {
+                try {
+                    Field field = type.getDeclaredField(string);
+                    field.setAccessible(true);
+                    return field.get(object);
+                }
+                catch (NoSuchFieldException unavailable) { }
             }
         }
         throw new NoSuchFieldException(Arrays.toString(stringArray));
@@ -328,12 +329,12 @@ public class AdninPacketLog {
                 installState = "install:no_spawn_class";
                 return;
             }
-            Object manager = AdninPacketLog.readFieldByNames(netHandler, "c", "netManager", "networkManager");
+            Object manager = AdninPacketLog.readFieldByNames(netHandler, "c", "netManager", "networkManager", "field_147302_e");
             if (manager == null) {
                 installState = "install:no_network_manager";
                 return;
             }
-            Object value = AdninPacketLog.readFieldByNames(manager, "k", "channel");
+            Object value = AdninPacketLog.readFieldByNames(manager, "k", "channel", "field_150746_k");
             if (!(value instanceof Channel)) {
                 installState = "install:no_channel";
                 return;
@@ -519,6 +520,10 @@ public class AdninPacketLog {
                             if (owner.observes()) {
                                 observeModeIfNeeded(owner, objectArray[1]);
                                 AdninPacketLog.logSpawnPlayerIfNeeded(objectArray[1]);
+                                // Quick Buy profile capture is dormant unless
+                                // explicitly requested, and only inspects the
+                                // four bounded inventory packet types it needs.
+                                AdninQuickBuyProfile.onInboundPacket(objectArray[1]);
                             }
                             if (channelContext != null) {
                                 if (methodArray[0] == null) {

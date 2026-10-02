@@ -181,7 +181,9 @@ def remap_class(data, mapping):
             tr.u2(); at = tr.p; name, desc = utf(tr.u2()), utf(tr.u2())
             # Declared fields are never inherited; method declarations may be
             # overrides of mapped methods on a game superclass/interface.
-            new_name = name if is_field else mapping.member(original['name'], name, desc)
+            new_name = (mapping.member(original['name'], name, desc, True)
+                        if is_field and mapping.data.get('remapDeclaredFields') else
+                        name if is_field else mapping.member(original['name'], name, desc))
             replace_index(at, new_utf(new_name)); replace_index(at+2, new_utf(mapping.descriptor(desc)))
             attributes(tr)
     attributes(tr)
@@ -215,7 +217,7 @@ def constant_utf8(data):
         index += 1
     return result
 
-def validate_runtime(classes, runtime_jar, mapping):
+def validate_runtime(classes, runtime_jar, mapping, allow_named=False):
     """Resolve actual emitted game member references without executing the game."""
     target = ClassPath([runtime_jar], classes)
     game_names = set(mapping.classes.values())
@@ -228,7 +230,7 @@ def validate_runtime(classes, runtime_jar, mapping):
             for member in info['fields'] + info['methods'] + info['references']:
                 types.update(re.findall(r'L([^;<]+)', member['descriptor']))
             for cls in types:
-                if cls.startswith('net/minecraft/'):
+                if cls.startswith('net/minecraft/') and not allow_named:
                     errors.append(name + ': unremapped class ' + cls)
                 elif cls in game_names:
                     if target.get(cls) is None: errors.append(name + ': runtime class absent ' + cls)

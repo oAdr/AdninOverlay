@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <array>
 #include <cstdint>
+#include <cstring>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -108,7 +109,7 @@ Options parse(int argc, wchar_t** argv) {
       options.dll = value();
     else if (arg == L"--client") {
       const auto client = adnin::parse_client(value());
-      if (!client) throw Failure(2, "Client must be auto, lunar, badlion or vanilla");
+      if (!client) throw Failure(2, "Client must be auto, lunar, badlion, vanilla or forge");
       options.client = *client;
     }
     else if (arg == L"--timeout-ms")
@@ -170,6 +171,49 @@ DWORD discover_development_target(const Options& options) {
   if (result.pids.size() != 1) throw Failure(3, "Multiple matching processes; use --pid");
   return result.pids.front();
 }
+// Forge commonly leaves the generic Minecraft title unchanged, and some
+// distributions replace it entirely. Inspect only the bounded command-line
+// marker needed for classification; the command line is never logged or
+// retained. FMLTweaker is the Forge-specific launch assertion.
+bool forge_process_hint(DWORD pid) noexcept {
+  if (!pid) return false;
+  Handle process(OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, pid));
+  if (!process.valid()) return false;
+  using NtQueryInformationProcess = LONG (NTAPI*)(HANDLE, ULONG, PVOID, ULONG, PULONG);
+  auto* exported = GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "NtQueryInformationProcess");
+  if (!exported) return false;
+  NtQueryInformationProcess query = nullptr;
+  static_assert(sizeof(query) == sizeof(exported));
+  std::memcpy(&query, &exported, sizeof(query));
+  struct BasicInfo {
+    PVOID reserved1;
+    PVOID peb;
+    PVOID reserved2[2];
+    ULONG_PTR unique_process;
+    PVOID reserved3;
+  } basic{};
+  if (!query || query(process.get(), 0, &basic, sizeof(basic), nullptr) < 0 || !basic.peb) return false;
+  PVOID parameters = nullptr;
+  SIZE_T read = 0;
+  const auto* peb = reinterpret_cast<const unsigned char*>(basic.peb);
+  if (!ReadProcessMemory(process.get(), peb + 0x20, &parameters, sizeof(parameters), &read)
+      || read != sizeof(parameters) || !parameters) return false;
+  struct RemoteString { USHORT length, maximum; PWSTR buffer; } command{};
+  const auto* params = reinterpret_cast<const unsigned char*>(parameters);
+  if (!ReadProcessMemory(process.get(), params + 0x70, &command, sizeof(command), &read)
+      || read != sizeof(command) || !command.buffer || command.length % sizeof(wchar_t)
+      || command.length > command.maximum || command.length > 65532) return false;
+  std::wstring text(command.length / sizeof(wchar_t), L'\0');
+  if (!ReadProcessMemory(process.get(), command.buffer, text.data(), command.length, &read)
+      || read != command.length) return false;
+  std::transform(text.begin(), text.end(), text.begin(), [](wchar_t c) {
+    return c >= L'A' && c <= L'Z' ? static_cast<wchar_t>(c + (L'a' - L'A')) : c;
+  });
+  const bool forge = text.find(L"fmltweaker") != std::wstring::npos
+      || text.find(L"net.minecraftforge") != std::wstring::npos;
+  SecureZeroMemory(text.data(), text.size() * sizeof(wchar_t));
+  return forge;
+}
 BOOL CALLBACK visit_candidates(HWND window, LPARAM context) {
   if (!IsWindowVisible(window)) return TRUE;
   std::array<wchar_t, 256> cls{};
@@ -181,7 +225,10 @@ BOOL CALLBACK visit_candidates(HWND window, LPARAM context) {
   DWORD pid = 0;
   GetWindowThreadProcessId(window, &pid);
   auto& candidates = *reinterpret_cast<std::vector<adnin::WindowCandidate>*>(context);
-  candidates.push_back({pid, title.data(), cls.data(), true});
+  const bool game_class = std::wstring_view(cls.data()) == L"LWJGL"
+      || std::wstring_view(cls.data()) == L"GLFW30"
+      || std::wstring_view(cls.data()) == L"GLFW32";
+  candidates.push_back({pid, title.data(), cls.data(), true, game_class && forge_process_hint(pid)});
   return TRUE;
 }
 adnin::TargetChoice discover(const Options& options) {
@@ -196,7 +243,7 @@ adnin::TargetChoice discover(const Options& options) {
     case adnin::TargetError::Ambiguous: throw Failure(3, "Multiple matching game processes; use --pid and --client");
     case adnin::TargetError::ClientMismatch: throw Failure(3, "The selected process does not match --client");
     case adnin::TargetError::UnsupportedVersion: throw Failure(3, "The selected game version is unsupported; Minecraft 1.8.9 is required");
-    default: throw Failure(3, "No recognized visible Lunar, Badlion or Vanilla game window was found");
+    default: throw Failure(3, "No recognized visible Lunar, Badlion, Forge or Vanilla game window was found");
   }
 }
 const adnin::RuntimeProfile& runtime_profile(adnin::ClientKind client) {
@@ -460,10 +507,10 @@ int execute(const Options& options, adnin::ResultReport& report) {
 int application_main(int argc, wchar_t** argv) {
   const bool interactive = argc == 1;
   if (argc == 2 && std::wstring(argv[1]) == L"--help") {
-    std::cout << "Adnin [--client auto|lunar|badlion|vanilla] [--pid N | --window-class NAME] [--dll PATH]\n"
+    std::cout << "Adnin [--client auto|lunar|badlion|vanilla|forge] [--pid N | --window-class NAME] [--dll PATH]\n"
                  "  [--dry-run | --inject] [--timeout-ms 1..300000]\n"
                  "Adnin --preview-ui success|failed\n"
-                 "No arguments / double-click: select one recognized Lunar, Badlion or Vanilla 1.8.9 game window.\n"
+                 "No arguments / double-click: select one recognized Lunar, Badlion, Forge or Vanilla 1.8.9 game window.\n"
                  "With arguments: dry-run unless --inject is specified.\n"
                  "The matching embedded runtime is verified and extracted to a content-addressed local cache.\n"
                  "Explicit different game versions, unknown windows and ambiguous targets are rejected.\n"

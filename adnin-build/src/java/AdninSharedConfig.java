@@ -28,6 +28,7 @@ public final class AdninSharedConfig {
         "autoWho", "partyDetector", "partyQueueDetector", "bedDisconnectTimer", "holdRdEnabled",
         "holdRdKeyCode", "quickbuyEnabled", "quickbuyDelayMs", "quickbuyBinds", "quickbuyKeys",
         "quickbuySlots", "quickbuyTurbo", "numberDenicker", "botDenicker", "botDenickerUrl",
+        "quickbuyProfileCopier", "quickbuyProfilePlayer",
         "clientSideSounds", "autoGL", "fastBuy", "coloredHitboxes", "dragonHitboxes", "hitboxThickness",
         "arrowDistance", "tradeIndicator", "tabOverlay", "overlayResourceHeader", "overlayResourceDiamonds",
         "overlayResourceEmeralds", "overlayResourceLocation", "overlayOpacity", "overlayThemeColor",
@@ -266,6 +267,10 @@ public final class AdninSharedConfig {
         AdninGui4.api_aurora = AdninGui4.api_aurora.trim();
         AdninGui4.api_urchin = AdninGui4.api_urchin.trim();
         AdninGui4.botDenickerUrl = AdninGui4.botDenickerUrl.trim();
+        AdninGui4.quickbuyProfilePlayer = AdninGui4.quickbuyProfilePlayer == null ? ""
+            : AdninGui4.quickbuyProfilePlayer.trim();
+        if (AdninGui4.quickbuyProfilePlayer.length() > 16)
+            AdninGui4.quickbuyProfilePlayer = AdninGui4.quickbuyProfilePlayer.substring(0, 16);
         AdninGui4.overlayGamemodeEdit = AdninColumnOrder.mode(AdninGui4.overlayGamemodeEdit);
         if (!"tab".equals(AdninGui4.overlayResourceLocation) && !"scoreboard".equals(AdninGui4.overlayResourceLocation))
             AdninGui4.overlayResourceLocation = "tab";

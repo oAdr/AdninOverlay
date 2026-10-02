@@ -483,6 +483,7 @@ public final class AdninFeatures implements Runnable {
     public static synchronized void shutdown() {
         if (stopped) return;
         stopped = true;
+        AdninQuickBuyProfile.shutdown();
         AdninSkinDenicker.shutdown();
         nativeGameActive = outputReplayContext = false;
         generation++; botGeneration++;
@@ -537,6 +538,12 @@ public final class AdninFeatures implements Runnable {
         ticks++;
         Minecraft mc = Minecraft.getMinecraft();
         if (mc == null || !mc.isCallingFromMinecraftThread()) return;
+        // Independent Quick Buy profile copier bridge.  The existing
+        // quickbuyEnabled/quickbuyKeys hotkeys are intentionally untouched.
+        // The bridge uses reflection so legacy compatibility fixtures without
+        // the optional fields retain binary linkage.
+        AdninQuickBuyProfile.syncGuiBridge();
+        AdninQuickBuyProfile.tick(mc);
         AdninGameModules.tick(mc);
         if (stopped) return;
         refreshIgnoredPlayers(mc);

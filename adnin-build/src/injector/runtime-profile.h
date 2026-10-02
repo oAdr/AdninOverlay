@@ -7,8 +7,10 @@
 #include <string_view>
 
 namespace adnin {
-enum class PayloadKind { Lunar, Vanilla };
-enum class ClientKind { Auto, Lunar, Badlion, Vanilla, Unknown };
+enum class PayloadKind { Lunar, Vanilla, Forge };
+// Keep Unknown's historical numeric value stable for crash-monitor records;
+// Forge has its own named-class/SRG payload.
+enum class ClientKind { Auto, Lunar, Badlion, Vanilla, Unknown, Forge };
 enum class TitleVersion { Unspecified, Supported, Unsupported };
 
 struct RuntimeCheck { std::uint32_t rva; std::uint8_t width; };
@@ -51,6 +53,9 @@ struct WindowCandidate {
   std::wstring title;
   std::wstring window_class;
   bool visible;
+  // Set by the injector after a bounded, read-only process command-line
+  // probe. Tests and library callers may leave this false.
+  bool forge_process = false;
 };
 struct WindowIdentity { ClientKind client; TitleVersion version; };
 WindowIdentity classify_window(std::wstring_view title, std::wstring_view window_class);

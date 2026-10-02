@@ -352,7 +352,8 @@ bool export_report(const std::string& contents, const crash_detail::Context& con
 }
 bool valid_identity(const crash_detail::Context& context) {
   if (!context.pid || !context.created || context.observed < context.created
-      || (context.client != ClientKind::Lunar && context.client != ClientKind::Badlion && context.client != ClientKind::Vanilla)
+      || (context.client != ClientKind::Lunar && context.client != ClientKind::Badlion
+          && context.client != ClientKind::Vanilla && context.client != ClientKind::Forge)
       || (context.runtime != "lunar" && context.runtime != "vanilla") || context.payload_hash.size() != 64) return false;
   for (char c : context.payload_hash) if (!std::isxdigit(static_cast<unsigned char>(c))) return false;
   return true;

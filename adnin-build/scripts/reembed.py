@@ -242,7 +242,8 @@ def rebuild(original, classes, records, profile=None):
         original_branded = branded_class(old)
         classes.setdefault(name, original_branded)
         data = classes[name]
-        compatible(read_class(old), read_class(data), profile['allowed_gui_widenings'],
+        abi_old = profile['abi_transform'](old) if profile.get('abi_transform') else old
+        compatible(read_class(abi_old), read_class(data), profile['allowed_gui_widenings'],
                    profile.get('additional_interfaces', {}).get(old_name, ()))
         require(not re.search(b'frenchify', data, re.I), f'Old branding remains in class: {name}')
         if old_name == dormant:

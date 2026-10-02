@@ -1,6 +1,6 @@
 # AdninOverlay
 
-A Windows x64 companion for Minecraft 1.8.9, focused on Hypixel player statistics, overlays, and client utilities. Adnin targets Lunar Client, Badlion Client, and Vanilla through a standalone executable with embedded runtime DLLs. No Forge installation is required.
+A Windows x64 companion for Minecraft 1.8.9, focused on Hypixel player statistics, overlays, and client utilities. Adnin targets Lunar Client, Badlion Client, Vanilla, and Forge 1.8.9 through a standalone executable with embedded runtime DLLs. No sidecar mod is required.
 
 Download the latest standalone [AdOverlay.exe](https://github.com/oAdr/AdninOverlay/releases/latest/download/AdOverlay.exe) from [Releases](https://github.com/oAdr/AdninOverlay/releases).
 
@@ -19,7 +19,13 @@ Adnin is based on the original **Frenchify v1.6** releases:
 - **Client-side anticheat:** Autoblock, NoFall, NoSlow, Scaffold, and Legit Scaffold alerts, with optional reporting and party output.
 - **Utilities and interface:** local block-placement sounds, quick-buy bindings, hitbox options, adjustable UI scale, and English, Simplified Chinese, and Traditional Chinese.
 
-## What's New in v23
+## What's New in v24
+
+- Forge 1.8.9 support with an explicit `--client forge` profile and automatic FMLTweaker/title detection.
+- A dedicated Forge payload uses the game loader and runtime mappings; its HUD extends the transformed GuiIngameForge to preserve mod interfaces.
+- One standalone EXE embeds Lunar, Badlion/Vanilla, and Forge payloads. Restart Minecraft before updating; compatibility with other coremods requires separate validation.
+
+### Retained v23 improvements
 
 - Confirmed teammate identities remain cached through respawn, spectator changes, and temporary Tab disappearance within the current match.
 - Light-gray (`§7`) players pause new statistics, Ping, denicker, anticheat, tag, and Output processing while preserving existing cached information. Light gray is no longer treated as a team color.
@@ -47,9 +53,9 @@ For multiple game instances, specify the target process:
 .\AdOverlay.exe --help
 ```
 
-Replace `1234` with the game process ID and use `lunar`, `badlion`, or `vanilla` as appropriate. Command-line runs default to a dry run unless `--inject` is supplied.
+Replace `1234` with the game process ID and use `lunar`, `badlion`, `vanilla`, or `forge` as appropriate. Command-line runs default to a dry run unless `--inject` is supplied.
 
-Keep `%LOCALAPPDATA%/Adnin/config.properties` and API keys private. Once the shared file exists, it takes precedence over legacy client settings; running clients do not live-reload external edits. Restart Minecraft before loading a different Adnin version. Compatibility is limited to the targeted runtimes; see the [v23 verification notes](adnin-build/verification.md) for testing coverage and remaining limitations.
+Keep `%LOCALAPPDATA%/Adnin/config.properties` and API keys private. Once the shared file exists, it takes precedence over legacy client settings; running clients do not live-reload external edits. Restart Minecraft before loading a different Adnin version. Compatibility is limited to the targeted runtimes; see the [v24 verification notes](adnin-build/verification.md) for testing coverage and remaining limitations.
 
 ## Build from Source
 
@@ -92,3 +98,4 @@ Output: `adnin-build/build/bin/Adnin.exe`. The build runs its verification suite
 | [Mellow](https://github.com/Roxiun/Mellow) | Scaffold / Eagle detection and Skin Denicker adaptations; reference commit `17ef9b7` | [GPLv3](https://github.com/Roxiun/Mellow/blob/17ef9b7466754a33ee8c8ed87fa7ea717573d775/LICENSE) |
 | [ClientSideSounds](https://github.com/letsgoawaydev/ClientSideSounds) by LetsGoAway, with original credit to ASDFCube | Behavior reference for independently implemented placement sounds | [MIT in the upstream repository](https://github.com/letsgoawaydev/ClientSideSounds/blob/main/LICENSE) |
 | [pefile](https://github.com/erocarrera/pefile) | PE inspection and validation during builds | [MIT](https://github.com/erocarrera/pefile/blob/v2024.8.26/LICENSE) |
+

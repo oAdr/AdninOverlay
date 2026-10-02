@@ -20,7 +20,7 @@ import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUTS = ROOT.parent
-ARTIFACTS = ('Adnin.exe', 'Adnin.dll', 'AdninVanilla.dll')
+ARTIFACTS = ('Adnin.exe', 'Adnin.dll', 'AdninVanilla.dll', 'AdninForge.dll')
 RELEASE_FILES = ('Adnin.exe',)
 ROOT_FILES = ('README.md', '使用说明.txt', '验证状态.md', 'Build.ps1',
               'CMakeLists.txt', 'requirements.txt')
@@ -31,7 +31,7 @@ SOURCE_TYPES = {
     'cmake': {'.cmake', '.txt'},
 }
 SOURCE_ASSETS = ('src/injector/assets/adnin.ico', 'src/injector/assets/adnin.png',
-                 'resources/java-compat-1.8.9.json', 'resources/THIRD_PARTY_NOTICES.txt')
+                 'resources/java-compat-1.8.9.json', 'resources/java-forge-1.8.9.json', 'resources/THIRD_PARTY_NOTICES.txt')
 # Historical build/load logs and arbitrary future evidence are not release inputs.
 EVIDENCE_FILES = ('bridge-tests.txt', 'denicker-tests.txt', 'java-tests.txt',
                   'pe-tests.txt', 'original-class-index.json', 'package-tests.txt',
@@ -297,18 +297,18 @@ def production_source_hashes(root):
     return result
 
 
-def validate_java_sources(java_report, source_names, *, compatibility=False):
+def validate_java_sources(java_report, source_names, *, compatibility=False, forge=False):
     hashes = java_report.get('sourceSha256', {})
     source_paths = {name:'src/java/' + name for name in source_names}
     if compatibility:
-        require(java_report.get('mode') == 'vanilla-obfuscated-1.8.9-shared-source',
+        require(java_report.get('mode') == ('forge-named-srg-1.8.9-shared-source' if forge else 'vanilla-obfuscated-1.8.9-shared-source'),
                 'Compatibility Java report has the wrong target')
         allowed_uncompiled = {'AdninClientPump.java'}
         for path in (ROOT / 'src/java-compat').glob('*.java'):
             require(path.name not in source_paths, 'Duplicate compatibility source basename')
             source_paths[path.name] = path.relative_to(ROOT).as_posix()
         source_names = set(source_paths)
-        mapping = checked_file(ROOT / 'resources/java-compat-1.8.9.json', ROOT)
+        mapping = checked_file(ROOT / ('resources/java-forge-1.8.9.json' if forge else 'resources/java-compat-1.8.9.json'), ROOT)
         require(hashlib.sha256(mapping.read_bytes()).hexdigest() == java_report.get('mappingSha256'),
                 'Compatibility mappings differ from build')
     else:
@@ -441,7 +441,7 @@ def main():
     require(isinstance(report.get('artifacts'), list), 'Build artifact report is missing')
     require(len(report['artifacts']) == len(ARTIFACTS)
             and {item.get('file') for item in report['artifacts']} == set(ARTIFACTS),
-            'Build report must contain exactly the approved two DLLs and injector')
+            'Build report must contain exactly the approved three DLLs and injector')
     for artifact in report['artifacts']:
         data = checked_file(build / 'bin' / artifact['file'], build).read_bytes()
         require(hashlib.sha256(data).hexdigest() == artifact.get('sha256'),
@@ -457,9 +457,13 @@ def main():
     compat_java_path = checked_file(build / 'java-vanilla/java-build-report.json', build)
     compat_java_report = json.loads(compat_java_path.read_text(encoding='utf8'))
     validate_java_sources(compat_java_report, source_names, compatibility=True)
+    forge_java_path=checked_file(build/'java-forge/java-build-report.json',build)
+    forge_java_report=json.loads(forge_java_path.read_text(encoding='utf8'))
+    validate_java_sources(forge_java_report,source_names,compatibility=True,forge=True)
     for directory, java_manifest, embedding_name, dll_name in (
             ('java-runtime', java_report, 'reembedding.json', 'Adnin.dll'),
-            ('java-vanilla', compat_java_report, 'vanilla-reembedding.json', 'AdninVanilla.dll')):
+            ('java-vanilla', compat_java_report, 'vanilla-reembedding.json', 'AdninVanilla.dll'),
+            ('java-forge', forge_java_report, 'forge-reembedding.json', 'AdninForge.dll')):
         classes = validate_compiled_java(build / directory, java_manifest, secrets)
         embedding = json.loads(checked_file(build / embedding_name, build).read_text(encoding='utf8'))
         validate_embedded_java(checked_file(build / 'bin' / dll_name, build).read_bytes(),
@@ -467,13 +471,12 @@ def main():
     require(report.get('sourceInputsSha256') == production_source_hashes(ROOT),
             'Production build inputs differ from the verified build')
     payloads = report.get('runtimePayloads', [])
-    require(isinstance(payloads, list) and len(payloads) == 2
-            and {item.get('id') for item in payloads} == {'lunar', 'vanilla'},
+    require(isinstance(payloads, list) and len(payloads) == 3
+            and {item.get('id') for item in payloads} == {'lunar', 'vanilla', 'forge'},
             'Runtime payload manifest is incomplete')
     artifact_lookup = {item['file']:item for item in report['artifacts']}
     for payload in payloads:
-        expected_file = 'Adnin.dll' if payload['id'] == 'lunar' else 'AdninVanilla.dll'
-        expected_resource = 101 if payload['id'] == 'lunar' else 102
+        expected_file,expected_resource={'lunar':('Adnin.dll',101),'vanilla':('AdninVanilla.dll',102),'forge':('AdninForge.dll',103)}[payload['id']]
         require(payload.get('file') == expected_file and payload.get('resourceId') == expected_resource,
                 'Runtime payload identity differs')
         require(all(payload.get(key) == artifact_lookup[expected_file][key] for key in ('bytes','sha256')),
@@ -485,10 +488,11 @@ def main():
 
     release_entries = [(build / 'bin' / name, name, build) for name in RELEASE_FILES]
     sources = source_entries()
-    for name in ('build-report.json', 'bridge.json', 'reembedding.json', 'vanilla-bridge.json', 'vanilla-reembedding.json'):
+    for name in ('build-report.json', 'bridge.json', 'reembedding.json', 'vanilla-bridge.json', 'vanilla-reembedding.json', 'forge-bridge.json', 'forge-reembedding.json'):
         sources.append((build / name, 'adnin-build/evidence/' + name, build))
     sources.append((java_path, 'adnin-build/evidence/java-build-report.json', build))
     sources.append((compat_java_path, 'adnin-build/evidence/java-compat-build-report.json', build))
+    sources.append((forge_java_path, 'adnin-build/evidence/java-forge-build-report.json', build))
     release_name = 'adnin-test-build-' + args.version + '.zip'
     source_name = 'adnin-source-project-' + args.version + '.zip'
     manifest_name = 'adnin-release-manifest-' + args.version + '.json'

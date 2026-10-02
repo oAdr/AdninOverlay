@@ -1,54 +1,54 @@
 Java tests use offline fixtures and a loopback HTTP server; no game messages or real API keys.
 Linkage uses locally installed log4j-api and fastutil when present.
-AdninLanguageTest: 1348 checks passed; no settings or network accessed
+AdninLanguageTest: 1453 checks passed; no settings or network accessed
 AdninMessagesTest: 146 checks passed; template/JSON/session fixtures only
 AdninScaffoldPortTest: 375 checks passed; Mellow boundaries/weighted VL, five-point math, isolated state, discontinuities, Replay/Nick admission and existing output cooldowns; entirely offline
 AdninEaglePortTest: 232 checks passed; Mellow Eagle 1/2-tick release timing, fresh unique events, 15-tick window, exact weighted VL/variance, resets and existing admission/output policy; offline
 AdninApiTest: 409 checks passed
 AdninOutputTest: 364 checks passed; no network or game messages sent
-2026-10-01T21:52:57.100809500Z main ERROR Log4j API could not find a logging provider.
+2026-10-02T10:49:36.469033900Z main ERROR Log4j API could not find a logging provider.
 AdninMetricsTest: 398 checks passed; native prestige-cell parsing, FK/level rules and Urchin labels, aliases, per-tag colors, full reasons and safe resets
 AdninUrchinCacheTest: 65 checks passed; Seraph 10min/45sec policy, stale-readable content, identity/in-flight dedup, cross-world/key reuse and bounded LRU
 AdninUrchinWorkerTest: 213 checks passed; real worker preserves HTTP/TLS/parse failures and recovers with empty and populated tags, without network or game initialization
 AdninColumnOrderTest: 28 checks passed; exact mixed-column order, mode filters, legacy aliases, duplicate IDs and independent parse results
 AdninColumnSettingsTest: 48 checks passed; actual Gui4 live arrows, active/edit modes, visibility, persistence round trip and duplicate config recovery
-2026-10-01T21:53:03.340564800Z main ERROR Log4j API could not find a logging provider.
+2026-10-02T10:49:42.749195500Z main ERROR Log4j API could not find a logging provider.
 AdninFeaturePolicyTest: 189 checks passed; Bot-only scheduler, independent epochs, Urchin match gates and serial-only native callbacks verified without network or game initialization
-2026-10-01T21:53:03.696717500Z main ERROR Log4j API could not find a logging provider.
+2026-10-02T10:49:43.116071500Z main ERROR Log4j API could not find a logging provider.
 AdninFeaturePresentationTest: 256 checks passed; real-name colors, team priority, per-tag presentation and verified-only Bot party queue; no game, network, settings or sends
-2026-10-01T21:53:04.068567300Z main ERROR Log4j API could not find a logging provider.
+2026-10-02T10:49:43.505987900Z main ERROR Log4j API could not find a logging provider.
 AdninTabEligibilityTest: 92 checks passed; v1/v4 and name boundaries, shared live-Tab source guards and filtered cached announcements; no game initialization or network
-AdninFeatureLinkageTest: 243 JVM member references resolved (35 Minecraft/Mojang), no class initialization or game actions
+AdninFeatureLinkageTest: 246 JVM member references resolved (35 Minecraft/Mojang), no class initialization or game actions
 AdninFeatureLinkageTest: 197 JVM member references resolved (64 Minecraft/Mojang), no class initialization or game actions
 AdninFeatureLinkageTest: 32 JVM member references resolved (7 Minecraft/Mojang), no class initialization or game actions
 AdninAnticheatCoreTest: 3464 checks passed
 AdninAnticheatSettingsTest: 114 checks passed
 AdninClientSoundsTest: 1529 checks passed; placement rules, packet pass-through, bounded blocked-EventLoop lifecycle and channel reuse; no game, audio, settings or network
-Oct 02, 2026 5:53:05 AM io.netty.util.internal.PlatformDependent <clinit>
+Oct 02, 2026 6:49:45 PM io.netty.util.internal.PlatformDependent <clinit>
 INFO: Your platform does not provide complete low-level API for accessing direct buffers reliably. Unless explicitly requested, heap buffer will always be preferred to avoid potential system unstability.
-2026-10-01T21:53:06.112697Z main ERROR Log4j API could not find a logging provider.
-AdninPacketLogConcurrencyTest: 498 checks passed; actual registered Netty LocalChannels, blocked event loop, duplicate and stale work, shutdown, spawn decoding and packet pass-through; no game, native library, settings or network
-Oct 02, 2026 5:53:08 AM io.netty.util.internal.PlatformDependent <clinit>
+2026-10-02T10:49:45.723778Z main ERROR Log4j API could not find a logging provider.
+AdninPacketLogConcurrencyTest: 520 checks passed; actual registered Netty LocalChannels, blocked event loop, duplicate and stale work, shutdown, spawn decoding and packet pass-through; no game, native library, settings or network
+Oct 02, 2026 6:49:47 PM io.netty.util.internal.PlatformDependent <clinit>
 INFO: Your platform does not provide complete low-level API for accessing direct buffers reliably. Unless explicitly requested, heap buffer will always be preferred to avoid potential system unstability.
 AdninPacketLogAccessorTest: 66 checks passed; bounded current-Class cache, cached misses, aliases, invocation fallback, concurrent publication and shutdown; no game, settings, native library or network
 AdninPartyQueueQueryTest: 225 checks passed; 500ms boundary, explicit enable cycles, 5s throttling, mandatory waiting/domain/footer scope, 250ms probes, bounded failed-send recovery and weak lifecycle; no game, settings, native library or network
 AdninPartyQueueScopeTest: 115 checks passed; real sidebar selection, complete footer, team formatting, last-15 visibility and bounded input; no game instance, private settings, native library or network
 AdninModuleIntegrationTest: 209 checks passed; actual Gui4 AC options, disabled controls, interval limits, actual +/- drawing/hover, scroll/clipping, sounds, settings and legacy ABI; no game, OpenGL, native code or IO
-2026-10-01T21:53:10.320600800Z main ERROR Log4j API could not find a logging provider.
+2026-10-02T10:49:49.994633400Z main ERROR Log4j API could not find a logging provider.
 AdninUiInteractionTest: 960 checks passed; real layout and transformed click handlers, clipping, scroll reach, API clearing, close hitbox and closing input freeze; no settings, network, game, GL or native payload
-2026-10-01T21:53:10.670141800Z main ERROR Log4j API could not find a logging provider.
+2026-10-02T10:49:50.336880400Z main ERROR Log4j API could not find a logging provider.
 AdninReplayTest: 2100 checks passed; real offline scoreboard title, selected team slot, last-15 visibility, formatting, hidden rows and state clearing; no game or network
 AdninReplayProfilesTest: 203 checks passed; synthetic identities, no network
 AdninReplayApiTest: 759 checks passed; actual API/cache behind fake HTTP, no network, game or settings
 AdninOutputCategoriesTest: 508 checks passed; independent categories, owned queues/GUI/Replay fixtures, no network, settings or sends
-2026-10-01T21:53:11.631087600Z main ERROR Log4j API could not find a logging provider.
+2026-10-02T10:49:51.310181600Z main ERROR Log4j API could not find a logging provider.
 AdninBotCacheTest: 2379 checks passed; real result/cache/scheduler paths, precise TTL boundaries, cross-match presentation, provider isolation and bounded unload; no IO or sends
-2026-10-01T21:53:12.045886600Z main ERROR Log4j API could not find a logging provider.
+2026-10-02T10:49:51.724711Z main ERROR Log4j API could not find a logging provider.
 AdninResourceLifecycleTest: 8051 checks; 2000 match transitions, bounded complete tag content, in-flight cancellation and daemon retirement; no IO or messages
-2026-10-01T21:53:12.492873300Z main ERROR Log4j API could not find a logging provider.
-AdninSharedConfigTest: 147 checks passed; shared migration, credential authority, full client options, columns, validation and atomic persistence; owned files only
-2026-10-01T21:53:12.832030200Z main ERROR Log4j API could not find a logging provider.
-Bootstrap verified on Java 17.0.20.1: 79 helpers defined in owner loader, no helper files, duplicate calls passed
+2026-10-02T10:49:52.211903600Z main ERROR Log4j API could not find a logging provider.
+AdninSharedConfigTest: 149 checks passed; shared migration, credential authority, full client options, columns, validation and atomic persistence; owned files only
+2026-10-02T10:49:52.530140800Z main ERROR Log4j API could not find a logging provider.
+Bootstrap verified on Java 17.0.20.1: 81 helpers defined in owner loader, no helper files, duplicate calls passed
 All Java tests passed. Live Minecraft behavior is verified separately.
-Badlion/Vanilla shared profile: AdninSharedConfigTest: 147 checks passed; shared migration, credential authority, full client options, columns, validation and atomic persistence; owned files only
-2026-10-01T21:53:13.951083200Z main ERROR Log4j API could not find a logging provider.
+Badlion/Vanilla shared profile: AdninSharedConfigTest: 149 checks passed; shared migration, credential authority, full client options, columns, validation and atomic persistence; owned files only
+2026-10-02T10:49:53.665098200Z main ERROR Log4j API could not find a logging provider.

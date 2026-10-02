@@ -15,9 +15,13 @@
   "crashDiagnosticsMemoryDump": false,
   "crashDiagnosticsUpload": false,
   "forgeRequired": false,
+  "forgeUsesVanillaPayload": false,
+  "forgeSrgPayload": true,
+  "forgeProcessMarker": "FMLTweaker",
+  "forgeLiveRuntimeTested": false,
   "forgeFreeClassesChecked": {
-    "lunar": 88,
-    "vanilla": 89
+    "lunar": 90,
+    "vanilla": 91
   },
   "legacyAnticheatDisabled": true,
   "fixedPhaseGameTick": true,
@@ -73,18 +77,23 @@
   "artifacts": [
     {
       "file": "Adnin.dll",
-      "bytes": 2758656,
-      "sha256": "912e7478b045db0794c65586300c10afcad8a570afb85b634f4d7e0585db9f64"
+      "bytes": 2796032,
+      "sha256": "db29ec9aaca58a002169cff161c222a50050fb5e9bde35906fd24332a30b5179"
     },
     {
       "file": "AdninVanilla.dll",
-      "bytes": 2643456,
-      "sha256": "0b715da6e57b5deac7d5dba835bc0f461b6659c2d628bd9055282f318b6da7f3"
+      "bytes": 2681856,
+      "sha256": "ec81358a70c65ad42442832e1b5d69be0a98ec40da05e69445694fa5c4ea4b2d"
+    },
+    {
+      "file": "AdninForge.dll",
+      "bytes": 2755584,
+      "sha256": "df4d3ce4270d6229a91316b962c5d898663902eaa7448befeead608e410b7873"
     },
     {
       "file": "Adnin.exe",
-      "bytes": 7638528,
-      "sha256": "fe94b9a554aedb2470d99d03029bed2f1c9232ff5b567b96d466b89737e4d2e2"
+      "bytes": 10474496,
+      "sha256": "4165e7130835b0679a464dcd107148400f7e75bc9026d6f646334856dad83c3d"
     }
   ],
   "runtimePayloads": [
@@ -92,12 +101,12 @@
       "id": "lunar",
       "file": "Adnin.dll",
       "resourceId": 101,
-      "bytes": 2758656,
-      "sha256": "912e7478b045db0794c65586300c10afcad8a570afb85b634f4d7e0585db9f64",
+      "bytes": 2796032,
+      "sha256": "db29ec9aaca58a002169cff161c222a50050fb5e9bde35906fd24332a30b5179",
       "initialization": {
         "peHeaderOffset": 272,
-        "imageSize": 2797568,
-        "markerRva": 2732032,
+        "imageSize": 2834432,
+        "markerRva": 2768896,
         "marker": 3544405810745328705,
         "signatures": [
           {
@@ -159,20 +168,20 @@
       "id": "vanilla",
       "file": "AdninVanilla.dll",
       "resourceId": 102,
-      "bytes": 2643456,
-      "sha256": "0b715da6e57b5deac7d5dba835bc0f461b6659c2d628bd9055282f318b6da7f3",
+      "bytes": 2681856,
+      "sha256": "ec81358a70c65ad42442832e1b5d69be0a98ec40da05e69445694fa5c4ea4b2d",
       "initialization": {
         "peHeaderOffset": 272,
-        "imageSize": 2682880,
-        "markerRva": 2617344,
+        "imageSize": 2719744,
+        "markerRva": 2654208,
         "marker": 3544405810745328705,
         "signatures": [
           {
             "rva": 71804,
-            "bytes": "e8b705270090"
+            "bytes": "e8b795270090"
           },
           {
-            "rva": 2678784,
+            "rva": 2715648,
             "bytes": "41444e5354303031"
           }
         ],
@@ -209,57 +218,121 @@
             "width": 1
           },
           {
-            "rva": 2678792,
+            "rva": 2715656,
             "width": 4
           }
         ],
-        "heartbeatRva": 2678800,
+        "heartbeatRva": 2715664,
+        "heartbeatWidth": 8
+      }
+    },
+    {
+      "id": "forge",
+      "file": "AdninForge.dll",
+      "resourceId": 103,
+      "bytes": 2755584,
+      "sha256": "df4d3ce4270d6229a91316b962c5d898663902eaa7448befeead608e410b7873",
+      "initialization": {
+        "peHeaderOffset": 272,
+        "imageSize": 2846720,
+        "markerRva": 2650112,
+        "marker": 3544405810745328705,
+        "signatures": [
+          {
+            "rva": 71804,
+            "bytes": "e8b785270090"
+          },
+          {
+            "rva": 2711552,
+            "bytes": "41444e5354303031"
+          }
+        ],
+        "classes": [
+          {
+            "rva": 1565712,
+            "width": 8
+          },
+          {
+            "rva": 1565720,
+            "width": 8
+          },
+          {
+            "rva": 1565728,
+            "width": 8
+          },
+          {
+            "rva": 1565736,
+            "width": 8
+          },
+          {
+            "rva": 1565744,
+            "width": 8
+          }
+        ],
+        "pump": [],
+        "hooks": [
+          {
+            "rva": 1567045,
+            "width": 1
+          },
+          {
+            "rva": 1567046,
+            "width": 1
+          },
+          {
+            "rva": 2711560,
+            "width": 4
+          }
+        ],
+        "heartbeatRva": 2711568,
         "heartbeatWidth": 8
       }
     }
   ],
   "sourceInputsSha256": {
-    "src/injector/crash-monitor.cpp": "052417e8a2f8dc72459bec8ff596644a1c0077f974de4e9cba7db56a4ec6a334",
+    "src/injector/crash-monitor.cpp": "4aa20cb9d534049ef04da3b2c8b38d60cb6e01fc8c13c86f41fdb2b0d6a02751",
     "src/injector/crash-monitor.h": "65cbbfab9f27ae43a412ca4445d7e4215bf9c860fad5b8a25aef4f4273a4960e",
-    "src/injector/main.cpp": "fa097d5e33434c700d5a40d376935790fda17ffefea9a6eb8dab5e2c511736f5",
+    "src/injector/main.cpp": "f3a73671953743bda15a341edfeeafbcfea1cdf104296e039cb77fb2ff976f3b",
     "src/injector/payload.cpp": "bd73a9397390d985cc07025812322bfc47ea2787561c61dc81c91368e935f93f",
     "src/injector/payload.h": "06b4d1672fbb0c558aa3729069b769f397de84dd114dd31bb388874177d8c57a",
     "src/injector/remote-lease.h": "8ad3a1fb9b0440d8d85628c0df6574d687612dba0c35d1f9aeea5dcad626bcd3",
     "src/injector/result-ui.cpp": "7738277f49e07b6eaea45daa771deadc850fddc2ed72f12a3ee618f61f0e28d5",
     "src/injector/result-ui.h": "89dba78a60525b00f3b109681733ccfacff1fc3392ef1570e8f9adb4b8b082ae",
-    "src/injector/runtime-profile.cpp": "acfd2e7cb898ec47a9d63bda8e99e04d109fbfa4d90f4875e09a97642b2f7490",
-    "src/injector/runtime-profile.h": "4753b857a884135c8b8053f8187723224e189d5dc463fa64bc46f3f64fa48013",
+    "src/injector/runtime-profile.cpp": "a14c4bab560bc72f22a809c752c6bc044f4521d62e17dbdfa64013a44d951590",
+    "src/injector/runtime-profile.h": "763c71c89f931a796016f9615ad5f12cb495ca0202d74cee9d0bb104d1a4758d",
     "src/java/AdninAnticheat.java": "42b7b6a275c5f165a4a7e160bf9e628f684e8cfacc0c8bf879fa7464ee89f4f3",
     "src/java/AdninAnticheatCore.java": "d5770d9bf9d019f37e21e7499957f01352299a2ea956864ce0e7c1d630168f81",
     "src/java/AdninApi.java": "bd207283990da8734a66d52d261d64bf71358e120140a638dbe8c9354796f2f2",
     "src/java/AdninClientPump.java": "f77441aa9816003e07850fd634755cd0dd3c5ebf29f49f7162f8c8776953927b",
     "src/java/AdninClientSounds.java": "cd9d75867d7f2a9cd666b2146b845fe8f2d62472874857c69fa131992d6b0006",
     "src/java/AdninColumnOrder.java": "eeec9c10fd9ee412c1b1da143427ef27161dfc4949eaee0fed4fecfdad2410e0",
-    "src/java/AdninFeatures.java": "96cab0dfd587b6424e209cda5a41d771b4004fc3831f4484e374d8ff53d70440",
+    "src/java/AdninFeatures.java": "244689a86e4cacf3007db0d839fc953de0595182a8599c9a208e2074c77a7cde",
     "src/java/AdninGameModules.java": "f3cca2012f16912cd82d14d54eaf0834867be2d2ac767b2eaf3c769f8e16f3a7",
-    "src/java/AdninGui4.java": "ef401c95cda3b08cd1983a3232d4cfc84946ef545d52930522e13197bcef8289",
+    "src/java/AdninGui4.java": "dd21f4a2d0d6e2871d4a5513cbb0c89e3ae74a8fe5145d0a23daa8c919b4b46e",
     "src/java/AdninGuiNewChat.java": "52af2748d3961fc40234fae97c73caa4711395c4c77560ed420204f2100b34da",
     "src/java/AdninHeaders.java": "94fd4ef9cec352aa3a8753af00258b0919fb18cdc9e2209f8b1635720f1f464c",
     "src/java/AdninHitboxInstaller.java": "c7a1da0de157152eed93673af7f29c5d493545c2811d24ea2da96545e4dab5b9",
-    "src/java/AdninIngameGui.java": "8c41a0d3a3989b228e79dfba21ccf585c5da3b9ed9842a7adc833aaf7ec58131",
-    "src/java/AdninLanguage.java": "10f995f3c1efec5d145871e7c1b1af8a45cc8b4f4caa8a2bb2eb833e309bfb0c",
+    "src/java/AdninIngameGui.java": "581506f815a06992a8344f8a0efee4ae6b30c70fcd2c7b8184af60458af3886a",
+    "src/java/AdninLanguage.java": "a3c58721b0a601a72c37771e06c1702264c7e65d630bf70526397325065a6404",
     "src/java/AdninMatchTeams.java": "7e8f1e5f680eb97978fe992bc84bb99baa4c62fcaa37957e04b51e31e1ba7fb5",
     "src/java/AdninMessages.java": "f438d83bf588192695571083b0a3f5caad7530944aef88787e863a028443cd65",
     "src/java/AdninMetrics.java": "13008698bd5cb13078a19c8bf4099e98bfda51054b3bc41b7915c7774fcce5c8",
     "src/java/AdninNickSkins.java": "3e3e923da8a8d901f2e12bc4ca9d4bfe083623105759449d3562876486ec706c",
-    "src/java/AdninPacketLog.java": "017c9e5b9e549619acc233d592d740bc42bbf3a464771b63482d19bdc703e45e",
+    "src/java/AdninPacketLog.java": "540e7a7b2f4f76671780ec35be4abede53dd9f7789dc20eb6c28cfd234b43de6",
     "src/java/AdninPartyQueueQuery.java": "64e02f4198e2fac7fef6993cefe9dc3f8d4b735c6a3b91c4854647d7e85000bf",
+    "src/java/AdninQuickBuyProfile.java": "d0dba493e246032a8e4f7238384288966b11235dc8000075e799bdc2f3c86177",
     "src/java/AdninRenderGlobal.java": "6da715ae3ae80fcb8fb18ce0a8d43a931d6ac30940353d72473a0ab8b6f54a18",
     "src/java/AdninReplay.java": "c55a212dbf2d1e3c9bb5248a4147a43df68ce53c74a561ad021860e98fc602ab",
     "src/java/AdninReplayProfiles.java": "e6a9eb0acc1ee91d18b20c1a203bd39e770ec578d5bc58223568846561e3fde7",
     "src/java/AdninSessionHud.java": "8c2ff3ac08eb397578d3ccf6d2fa579cd76e0df6ed6b8c67bd6d9d234a74709e",
     "src/java/AdninSessionHudInstaller.java": "fdbb71f39e0a496971a429cd2fa90a88bed0b95ea8eea73e5fe9071e275f0f33",
-    "src/java/AdninSharedConfig.java": "9bf92c5b3a845314259b631a980f9ffba59c96440293104349a399adf08565ef",
+    "src/java/AdninSharedConfig.java": "4eb2284a5afed7aeb32d9a7c60aebecee6308e5b508b2de0b5bfb46244bbffb6",
     "src/java/AdninSkinDenicker.java": "ca2e1156a1e4a55615cf58e48635ce79f8805fd32aceb10833a25502719d360c",
     "src/java/AdninTabOverlayNative.java": "10b1e295c6cbb1ab436cd466063aa2b60dd117921341666d9db4a2b10bb57864",
     "src/java/AdninUi.java": "c918ac3d727b6bd407140766135a69cffd0487d61d2b22cc2562b02405ce04d5",
     "src/java/AdninUrchinCache.java": "1159acc99ba23c56f613c5e364558f5968de16745707515b76e828fff82c6413",
     "src/java-compat/AdninCompatPump.java": "3ba1d1b01a238dad734e6064744b5186a06b31ab67e33800d574eb3ab3c9b4c1",
+    "src/java-forge/RuntimeMappings.java": "c14b19170a27cb47394b4d56f8a8c6702a6ea87a4c2a54379a9baec9c45e85f0",
     "src/native/adnin-api-policy.asm": "726f513071531c02f2ae003f257d745d1477298102b13c5fddf7de2c568a428b",
     "src/native/adnin-bridge.asm": "57949179413a58bcc0bb6c7eff374571d9d90cefac71115ed7959b0ab7c8dc45",
     "src/native/adnin-chat-poll.asm": "5cffe09fa9a4a578bb7f1ba2ba53709d1cdf5fac22fac265d978808597ed4055",
@@ -285,18 +358,22 @@
     "src/native/adnin-scheduler.asm": "5b4c69347ad436dfee3443f5e9007d934627f75ab7e47c4c2b99c982900c93fe",
     "src/native/ChatReaderLunar.asm": "6d1bc0ee32e00a0fc0336f6b1033ff69414e359514095f7685fb9eaf3fc7aad4",
     "src/native/ChatReaderVanilla.asm": "ca794760d623c86b9323709e089b57bafcf1914c507efd840cd970df31b3c03a",
+    "src/native/forge-jni.cpp": "20670fc629ea98291911069f7b5b28d873f2d130c838e167cb47ed5fd094ac87",
     "scripts/bridge.py": "8fa2723372bbf2a4a5445db5a885e7e7f7d1642ca664f2cb5258e2fb8d38cf6e",
     "scripts/build-icon.py": "32280d199175ac89fc246b2137c8086f3eaaceacb5e60b1f3a3e04c747706040",
     "scripts/build-java-compat.py": "2913796926e5185efc7afab7d53c19525538cd746b60013f715f149430760f2a",
+    "scripts/build-java-forge.py": "0f6a642d7e845c7094ef4e24c5ea441bed9c548b03e0d77d16ef7d8ff7b4f1ba",
     "scripts/build-java.py": "e877d72ca285ac18e016646f354cb7b3f9e1988d879e17d10301f74d77c68f3d",
-    "scripts/build.py": "56955a34753e1878d619a256eb14c05c80342e4cfb5e2f163cce0f5860027b57",
+    "scripts/build.py": "e12111bf78631b805e19b73564c2eabce3bb75ac717b23b67c9ef757f73fee8a",
     "scripts/classfile.py": "5d7927ba6d28f6b4f4262c67f4f7417684063874c4e3f40e9faf039e89305aca",
-    "scripts/java_compat.py": "d365bbf8166e1ef35c6cf1d3ba2a2e13b18c371670b3e653f99903465fc01a7d",
+    "scripts/forge_mapping.py": "bd302f854ab5fbdcc5c2f88f5aebaa51d1e550646fbe4a81203509394a04fe5d",
+    "scripts/java_compat.py": "c038047cb201e2c83a65703f62b013f941b3b4f16a92ab0534b55d73dc1bddc5",
     "scripts/native-image-source.py": "21c1196d81540e9466ac37f77405ce4062ab10c5511d2fe3b654e30b0047069c",
     "scripts/native_anticheat.py": "088afe11a71e0da8893c790df5356f54e1dea3d30858d8b84b4ec036654f5597",
     "scripts/native_api_policy.py": "4eee9e2fd9ed35f519a5221aa073b6e6c7fc7f7b50f24a2defbefec50f98eccc",
     "scripts/native_chat_poll.py": "a09d1e5912a6964ec70da9a8177f44c0f63b114dfdc5fd7e17c427b4c000fa9b",
     "scripts/native_compat.py": "fa93563fca2fffefe5c1de2c8b341eaa7b1b6d36ffd5a0b9abbcc57daeffcb57",
+    "scripts/native_forge.py": "020a5595a849d582ddabca5b0d760d33c7769701dc5d543fc554dedbe9404471",
     "scripts/native_game_state.py": "f3bc088ccb81a6327c313f43bae0d98937e3ccab70016c3f43d1973531e16f71",
     "scripts/native_headers.py": "d4c8dd182bb437ac4c039b80ba30a4573ed4dcae3df2da537848f2dd81fec166",
     "scripts/native_input_hooks.py": "75265c28e13eb0915c77e1a881df602cb2ab5dc6d3687d07c88ee38097e94ccd",
@@ -311,10 +388,11 @@
     "scripts/native_shared_config.py": "351db8c381e3fdc9c1466bd3cd52011c8468b84fd32e80080519f4f330b9e01d",
     "scripts/native_skin_policy.py": "ec36d3c1bf8b7e917917c8d32d09200d49190e3c966620d4259e7f118ddec545",
     "scripts/native_tick_hook.py": "3965eb0bf4a4c9e16f897c4a84d2d4ee10518424650ea499809b509c102306a1",
-    "scripts/package.py": "c76165f643360857f2e0341f95520aefbc409a005387905d63059ab1080f4a21",
-    "scripts/reembed.py": "f1a9c0faeec5d952eb42119365053acb3ebd2861eb93f529e7a0c73c25580e75",
-    "scripts/runtime_build.py": "6506e2a0cdc7ff3fc03b0699fcbf97cbb767680007ddd0fa204c3c97abb54602",
+    "scripts/package.py": "8c83227842d01359bfb163cfaaa802de8a21e5bae41bd94bfab634c914b22aaa",
+    "scripts/reembed.py": "de93174057133d176bd2a869cbb66ee712a14038e677fae4bca29982fda12a17",
+    "scripts/runtime_build.py": "931c866fcb3f236b502d36641ae2f8fb07ac4cd837534f3b5e72cf954215f15e",
     "resources/java-compat-1.8.9.json": "3c3cc4108818eb11002a013056f1d979b3b9cf353828a8d0675f4f45db821b24",
+    "resources/java-forge-1.8.9.json": "2c779a6fb3c5d5669707c868e0e426ff9bfcc8fbf3c7523cf7b69d7c2130bee8",
     "CMakeLists.txt": "8f035717126e26ac8b6fb69ff5efea1b5d409f68709c0db2be6e5ae574758bc4",
     "Build.ps1": "921140d9df6a49535fcfe926b1b312988421f6eac2debb817311f6d9f1c61017",
     "requirements.txt": "a90de62a285a70c562933715d37e36c4304df5490adb9cf878ffc972b11cd738",
@@ -323,6 +401,7 @@
   "supportedClients": [
     "Lunar 1.8.9",
     "Badlion 1.8.9",
+    "Forge 1.8.9",
     "Vanilla 1.8.9"
   ]
 }

@@ -1,8 +1,21 @@
-Adnin v23 - Lunar / Badlion / Vanilla Minecraft 1.8.9 x64
+Adnin v24 - Lunar / Badlion / Forge / Vanilla Minecraft 1.8.9 x64
 
-The usage ZIP contains exactly Adnin.exe. The program embeds its Lunar and
-Badlion/Vanilla DLL payloads, icon and third-party notices. No Forge installation,
-ClientSideSounds JAR, audio pack or sidecar DLL is required.
+The usage ZIP contains exactly Adnin.exe. The program embeds its Lunar,
+Badlion/Vanilla and Forge DLL payloads, icon and third-party notices. No
+ClientSideSounds JAR, audio pack or sidecar DLL is required. Forge uses a
+distinct named-class/SRG payload and the live Forge class loader.
+
+Forge note: standard Forge often keeps the generic `Minecraft 1.8.9` title.
+The injector checks the Forge `FMLTweaker` launch marker for all supported
+LWJGL/GLFW game-window classes, so custom titles such as TokenLogin 2.1 are
+detected automatically. Use `--client forge --pid <pid>` if process command-line
+access is restricted or multiple game windows are open.
+Use `Adnin.exe --client forge --pid <pid> --inject` when selecting that
+instance explicitly. Forge coremods or transformers that change private
+Minecraft members still require live validation.
+When Forge exposes `GuiIngameForge`, the Adnin HUD wrapper delegates the
+original Forge update and render calls first so Forge HUD extensions and
+overlay events remain active; this bridge has no Forge compile-time dependency.
 
 Updating
 1. Exit a game process that already has an older Adnin DLL loaded, then restart
@@ -13,7 +26,11 @@ Updating
    result stays open and offers Export log. The red dot closes either result.
 4. In game, use /config to open the menu.
 
-New in v23
+New in v24
+- Add an explicit Forge 1.8.9 client profile and Forge title recognition.
+  The generic Minecraft 1.8.9 title remains Vanilla in automatic mode; an
+  explicit Forge selection can assert that compatible window and uses the
+  shared Vanilla payload.
 - Cache positive teammate names and UUIDs for the current match. Temporary
   respawn/spectator states, Tab disappearance, entity replacement and a local
   entity tick reset do not erase an already confirmed teammate.
@@ -28,7 +45,7 @@ New in v23
   completes the cycle; transient missing-player/sidebar/sender failures can
   retry up to three times with five seconds between attempts and a fresh 500 ms
   waiting-room check. Lobby, active game and Replay restrictions remain.
-- The settings header now displays `v23`.
+- The settings header now displays `v24`.
 - Read decoded server-mode packets before Lunar consumes them; retire responses
   on scope/connection changes and pass verified modes to the native detector.
 - Recheck gray names before generated chat and party delivery, including cached
@@ -310,8 +327,8 @@ Party Output removes only a leading [Adnin] and splits only when the selected
 client's accepted chat-packet size requires it. Bot failures remain local.
 
 Maintenance build (source archive only)
-  .\Build.ps1 -BuildDirectory build-v23-party-shared-config
-  python scripts/package.py --build build-v23-party-shared-config --version v23
+  .\Build.ps1 -BuildDirectory build-v24
+  python scripts/package.py --build build-v24 --version v24
 Use -VanillaJar and -RuntimeClasspath when dependencies cannot be discovered.
 The source archive does not redistribute Minecraft, Lunar or the supplied mod JAR.
 The injector is C++20. The recovered native function bodies remain NASM plus

@@ -326,7 +326,7 @@ class InjectorTests(unittest.TestCase):
         result = self.run_cli('--help')
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn('--preview-ui success|failed', result.stdout)
-        self.assertIn('--client auto|lunar|badlion|vanilla', result.stdout)
+        self.assertIn('--client auto|lunar|badlion|vanilla|forge', result.stdout)
         self.assertIn('Exit codes:', result.stdout)
         for args in (('--pid', '0'), ('--inject', '--dry-run'), ('--preview-ui', 'invalid'),
                      ('--preview-ui', 'success', '--inject'), ('--timeout-ms', '300001'),

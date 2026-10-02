@@ -1,0 +1,7145 @@
+{
+  "inputSha256": "62a1695ae1084f9d45212cc8041fb17a7d41c05ecc4a4b60845a6a2c44523cc6",
+  "outputSha256": "8cc8d92c74b17c456c7c38c3a24facb99dd78e9d33afb4c5efa18e2e0636ee54",
+  "fixedNativeSha256": "4b66c2f91c91d7c5798488b487c5b1110d4ae74364a1ad2cd3cbae72d1e49d1d",
+  "normalizedNativeTextSha256": "2be3c91504dff27c652e0ac6cf4d024794ba8fa7522e5faa496a17ad8490ad4b",
+  "imageSize": 2846720,
+  "section": {
+    "name": ".adncode",
+    "rva": 2650112,
+    "offset": 2619392,
+    "size": 58672,
+    "rawSize": 58880,
+    "executable": true,
+    "writable": false
+  },
+  "stateSection": {
+    "name": ".adnstat",
+    "rva": 2711552,
+    "offset": 2678272,
+    "size": 256,
+    "rawSize": 512,
+    "executable": false,
+    "writable": true
+  },
+  "marker": "0x3130424e494e4441",
+  "metadata": {
+    "version": 2,
+    "headerSize": 160,
+    "payloadSize": 12592,
+    "plain": 192,
+    "json": 197,
+    "prelayout": 834,
+    "render": 862,
+    "outputBegin": 245,
+    "outputEnd": 505,
+    "outputUnwind": 1944,
+    "invokeBegin": 518,
+    "invokeEnd": 717,
+    "invokeUnwind": 1960,
+    "stringBegin": 717,
+    "stringEnd": 834,
+    "stringUnwind": 1976,
+    "layoutBegin": 834,
+    "layoutEnd": 862,
+    "layoutUnwind": 1988,
+    "renderBegin": 862,
+    "renderEnd": 1761,
+    "renderUnwind": 2004,
+    "seraphPrefix": 160,
+    "denicker": 2024,
+    "denickerBegin": 2024,
+    "denickerEnd": 3197,
+    "denickerUnwind": 3324,
+    "metricsBegin": 3348,
+    "metricsEnd": 3520,
+    "metricsUnwind": 3584,
+    "matchStart": 3596,
+    "matchBegin": 3596,
+    "matchEnd": 3650,
+    "matchUnwind": 3676,
+    "columnCatalog": 3888,
+    "columnBegin": 3888,
+    "columnEnd": 3948,
+    "columnUnwind": 3948,
+    "plainTags": 205,
+    "jsonTags": 213,
+    "plainLocal": 237,
+    "plainDenick": 221,
+    "jsonDenick": 229,
+    "header": 4156,
+    "headerBegin": 4156,
+    "headerEnd": 4512,
+    "headerUnwind": 4592,
+    "gameActive": 3688,
+    "gameActiveBegin": 3688,
+    "gameActiveEnd": 3834,
+    "gameActiveUnwind": 3856,
+    "processEntry": 9604,
+    "processEntryBegin": 9604,
+    "processEntryEnd": 9624,
+    "processEntryUnwind": 9624,
+    "numberGetLock": 8000,
+    "numberRegisterLock": 8000,
+    "numberPopLock": 8005,
+    "numberLockBegin": 8013,
+    "numberLockEnd": 8126,
+    "numberLockUnwind": 8128,
+    "apiKeyReady": 8269,
+    "apiKeyReadyBegin": 8269,
+    "apiKeyReadyEnd": 8321,
+    "apiKeyReadyUnwind": 8324,
+    "apiUuidReady": 8328,
+    "apiUuidReadyBegin": 8328,
+    "apiUuidReadyEnd": 8349,
+    "apiUuidReadyUnwind": 8352,
+    "apiPingProxy": 8356,
+    "apiPingProxyBegin": 8356,
+    "apiPingProxyEnd": 8361,
+    "apiPingProxyUnwind": 8364,
+    "auroraPingUrl": 8222,
+    "hypixelHttp": 8412,
+    "hypixelHttpBegin": 8412,
+    "hypixelHttpEnd": 9213,
+    "hypixelHttpUnwind": 9216,
+    "apiDecodeComponent": 9352,
+    "apiDecodeComponentBegin": 9352,
+    "apiDecodeComponentEnd": 9485,
+    "apiDecodeComponentUnwind": 9488,
+    "apiRefreshFailures": 9492,
+    "apiRefreshFailuresBegin": 9492,
+    "apiRefreshFailuresEnd": 9577,
+    "apiRefreshFailuresUnwind": 9580,
+    "replayRdi": 4652,
+    "replayRdiBegin": 4652,
+    "replayRdiEnd": 4894,
+    "replayRdiUnwind": 4896,
+    "replayRbx": 4908,
+    "replayRbxBegin": 4908,
+    "replayRbxEnd": 5150,
+    "replayRbxUnwind": 5152,
+    "replayFrame": 5164,
+    "replayFrameBegin": 5164,
+    "replayFrameEnd": 5411,
+    "replayFrameUnwind": 5412,
+    "replayStats": 5501,
+    "replayStatsBegin": 5501,
+    "replayStatsEnd": 6692,
+    "replayStatsUnwind": 6692,
+    "replayStatsQueue": 6720,
+    "replayStatsQueueBegin": 6720,
+    "replayStatsQueueEnd": 6796,
+    "replayStatsQueueUnwind": 6796,
+    "replayStatsCleanup": 6808,
+    "replayStatsCleanupBegin": 6808,
+    "replayStatsCleanupEnd": 6857,
+    "replayStatsCleanupUnwind": 6860,
+    "replayStatsFrameCleanup": 6868,
+    "replayStatsFrameCleanupBegin": 6868,
+    "replayStatsFrameCleanupEnd": 6986,
+    "replayStatsFrameCleanupUnwind": 6988,
+    "replayDenickGate": 7132,
+    "replayDenickGateBegin": 7132,
+    "replayDenickGateEnd": 7363,
+    "replayDenickGateUnwind": 7364,
+    "replayNickName": 7376,
+    "replayNickNameBegin": 7376,
+    "replayNickNameEnd": 7612,
+    "replayNickNameUnwind": 7612,
+    "replayUuidCopy": 7624,
+    "replayUuidCopyBegin": 7624,
+    "replayUuidCopyEnd": 7642,
+    "replayUuidCopyUnwind": 7644,
+    "grayNumberRegister": 7789,
+    "grayNumberRegisterBegin": 7789,
+    "grayNumberRegisterEnd": 7809,
+    "grayNumberRegisterUnwind": 7812,
+    "grayStatsAllowed": 7816,
+    "grayStatsAllowedBegin": 7816,
+    "grayStatsAllowedEnd": 7836,
+    "grayStatsAllowedUnwind": 7836,
+    "grayLegacyLookup": 7840,
+    "grayLegacyLookupBegin": 7840,
+    "grayLegacyLookupEnd": 7860,
+    "grayLegacyLookupUnwind": 7860,
+    "grayLegacySuccess": 7864,
+    "grayLegacySuccessBegin": 7864,
+    "grayLegacySuccessEnd": 7884,
+    "grayLegacySuccessUnwind": 7884,
+    "graySkinRegister": 7888,
+    "graySkinRegisterBegin": 7888,
+    "graySkinRegisterEnd": 7908,
+    "graySkinRegisterUnwind": 7908,
+    "grayStatsProduce": 7912,
+    "grayStatsProduceBegin": 7912,
+    "grayStatsProduceEnd": 7933,
+    "grayStatsProduceUnwind": 7936,
+    "grayTagsProduce": 7940,
+    "grayTagsProduceBegin": 7940,
+    "grayTagsProduceEnd": 7961,
+    "grayTagsProduceUnwind": 7964,
+    "inputResolve": 9733,
+    "inputResolveBegin": 9733,
+    "inputResolveEnd": 9874,
+    "inputResolveUnwind": 11528,
+    "inputMaintain": 9874,
+    "inputMaintainBegin": 9874,
+    "inputMaintainEnd": 10409,
+    "inputMaintainUnwind": 11540,
+    "inputDetach": 10409,
+    "inputDetachBegin": 10409,
+    "inputDetachEnd": 10907,
+    "inputDetachUnwind": 11552,
+    "inputProc": 10907,
+    "inputProcBegin": 10907,
+    "inputProcEnd": 11339,
+    "inputProcUnwind": 11560,
+    "inputInitialize": 9700,
+    "inputInitializeBegin": 9700,
+    "inputInitializeEnd": 9733,
+    "inputInitializeUnwind": 11576,
+    "chatPollTail": 11604,
+    "chatPollTailBegin": 11604,
+    "chatPollTailEnd": 11682,
+    "chatPollTailUnwind": 11684,
+    "configSave": 11700,
+    "configSaveBegin": 11700,
+    "configSaveEnd": 11731,
+    "configSaveUnwind": 11760,
+    "register": 11832,
+    "registerBegin": 11832,
+    "registerEnd": 12273,
+    "registerUnwind": 12564,
+    "clientTick": 12273,
+    "clientTickEnd": 12282,
+    "unloadKey": 12282,
+    "unloadKeyBegin": 12282,
+    "unloadKeyEnd": 12515,
+    "unloadKeyUnwind": 12576
+  },
+  "hooks": [
+    {
+      "callRva": 103048,
+      "originalTargetRva": 237376,
+      "bridgeTargetRva": 2650349,
+      "callback": "plainLocal"
+    },
+    {
+      "callRva": 103297,
+      "originalTargetRva": 237376,
+      "bridgeTargetRva": 2650349,
+      "callback": "plainLocal"
+    },
+    {
+      "callRva": 451746,
+      "originalTargetRva": 237376,
+      "bridgeTargetRva": 2650304,
+      "callback": "plain"
+    },
+    {
+      "callRva": 456112,
+      "originalTargetRva": 237376,
+      "bridgeTargetRva": 2650333,
+      "callback": "plainDenick"
+    },
+    {
+      "callRva": 440583,
+      "originalTargetRva": 236608,
+      "bridgeTargetRva": 2650325,
+      "callback": "jsonTags"
+    },
+    {
+      "callRva": 442498,
+      "originalTargetRva": 237376,
+      "bridgeTargetRva": 2650317,
+      "callback": "plainTags"
+    },
+    {
+      "callRva": 563512,
+      "originalTargetRva": 236608,
+      "bridgeTargetRva": 2650341,
+      "callback": "jsonDenick"
+    },
+    {
+      "callRva": 563519,
+      "originalTargetRva": 237376,
+      "bridgeTargetRva": 2650333,
+      "callback": "plainDenick"
+    },
+    {
+      "callRva": 563225,
+      "originalTargetRva": 237376,
+      "bridgeTargetRva": 2650333,
+      "callback": "plainDenick"
+    },
+    {
+      "callRva": 588065,
+      "originalTargetRva": 572016,
+      "bridgeTargetRva": 2650946,
+      "callback": "prelayout"
+    },
+    {
+      "callRva": 588703,
+      "originalTargetRva": 581808,
+      "bridgeTargetRva": 2650974,
+      "callback": "render"
+    },
+    {
+      "callRva": 439501,
+      "originalTargetRva": 428880,
+      "bridgeTargetRva": 2650272,
+      "callback": "seraphPrefix"
+    },
+    {
+      "callRva": 441133,
+      "originalTargetRva": 428880,
+      "bridgeTargetRva": 2650272,
+      "callback": "seraphPrefix"
+    },
+    {
+      "callRva": 558500,
+      "originalTargetRva": 773952,
+      "bridgeTargetRva": 2652136,
+      "callback": "denicker"
+    },
+    {
+      "callRva": 82045,
+      "originalTargetRva": 571728,
+      "bridgeTargetRva": 2653708,
+      "callback": "matchStart"
+    },
+    {
+      "callRva": 100063,
+      "originalTargetRva": 76688,
+      "bridgeTargetRva": 2653800,
+      "callback": "gameActive"
+    },
+    {
+      "callRva": 394333,
+      "originalTargetRva": 389664,
+      "bridgeTargetRva": 2654000,
+      "callback": "columnCatalog"
+    },
+    {
+      "callRva": 560392,
+      "originalTargetRva": 487488,
+      "bridgeTargetRva": 2655613,
+      "callback": "replayStats"
+    },
+    {
+      "callRva": 559818,
+      "originalTargetRva": 28864,
+      "bridgeTargetRva": 2657736,
+      "callback": "replayUuidCopy"
+    },
+    {
+      "callRva": 775786,
+      "originalTargetRva": 1202295,
+      "bridgeTargetRva": 2658112,
+      "callback": "numberGetLock"
+    },
+    {
+      "callRva": 778551,
+      "originalTargetRva": 1202295,
+      "bridgeTargetRva": 2658112,
+      "callback": "numberRegisterLock"
+    },
+    {
+      "callRva": 780439,
+      "originalTargetRva": 1202295,
+      "bridgeTargetRva": 2658117,
+      "callback": "numberPopLock"
+    },
+    {
+      "callRva": 665804,
+      "originalTargetRva": 629872,
+      "bridgeTargetRva": 2658468,
+      "callback": "apiPingProxy"
+    },
+    {
+      "callRva": 614232,
+      "originalTargetRva": 193344,
+      "bridgeTargetRva": 2658524,
+      "callback": "hypixelHttp"
+    },
+    {
+      "callRva": 616512,
+      "originalTargetRva": 193344,
+      "bridgeTargetRva": 2658524,
+      "callback": "hypixelHttp"
+    },
+    {
+      "callRva": 726708,
+      "originalTargetRva": 193344,
+      "bridgeTargetRva": 2658524,
+      "callback": "hypixelHttp"
+    },
+    {
+      "callRva": 661157,
+      "originalTargetRva": 705648,
+      "bridgeTargetRva": 2659604,
+      "callback": "apiRefreshFailures"
+    },
+    {
+      "callRva": 106949,
+      "originalTargetRva": 243328,
+      "bridgeTargetRva": 2661812,
+      "callback": "configSave"
+    },
+    {
+      "callRva": 558126,
+      "originalTargetRva": 778384,
+      "bridgeTargetRva": 2657901,
+      "callback": "grayNumberRegister"
+    },
+    {
+      "callRva": 560465,
+      "originalTargetRva": 636784,
+      "bridgeTargetRva": 2657928,
+      "callback": "grayStatsAllowed"
+    },
+    {
+      "callRva": 563280,
+      "originalTargetRva": 708240,
+      "bridgeTargetRva": 2657952,
+      "callback": "grayLegacyLookup"
+    },
+    {
+      "callRva": 562424,
+      "originalTargetRva": 707584,
+      "bridgeTargetRva": 2657976,
+      "callback": "grayLegacySuccess"
+    },
+    {
+      "callRva": 558188,
+      "originalTargetRva": 695744,
+      "bridgeTargetRva": 2658000,
+      "callback": "graySkinRegister"
+    },
+    {
+      "callRva": 558642,
+      "originalTargetRva": 443040,
+      "bridgeTargetRva": 2658024,
+      "callback": "grayStatsProduce"
+    },
+    {
+      "callRva": 559915,
+      "originalTargetRva": 443040,
+      "bridgeTargetRva": 2658024,
+      "callback": "grayStatsProduce"
+    },
+    {
+      "callRva": 560965,
+      "originalTargetRva": 443040,
+      "bridgeTargetRva": 2658024,
+      "callback": "grayStatsProduce"
+    },
+    {
+      "callRva": 569791,
+      "originalTargetRva": 443040,
+      "bridgeTargetRva": 2658024,
+      "callback": "grayStatsProduce"
+    },
+    {
+      "callRva": 560011,
+      "originalTargetRva": 435744,
+      "bridgeTargetRva": 2658052,
+      "callback": "grayTagsProduce"
+    },
+    {
+      "callRva": 561469,
+      "originalTargetRva": 435744,
+      "bridgeTargetRva": 2658052,
+      "callback": "grayTagsProduce"
+    },
+    {
+      "callRva": 570038,
+      "originalTargetRva": 435744,
+      "bridgeTargetRva": 2658052,
+      "callback": "grayTagsProduce"
+    },
+    {
+      "callRva": 71804,
+      "originalTargetRva": null,
+      "bridgeTargetRva": 2661944,
+      "callback": "registerClientTick"
+    },
+    {
+      "callRva": 86533,
+      "originalTargetRva": null,
+      "bridgeTargetRva": 2662394,
+      "callback": "stopClientPumpBeforeUnload"
+    }
+  ],
+  "originalRuntimeFunctions": 3795,
+  "bridgeRuntimeFunctions": [
+    {
+      "name": "output",
+      "begin": 2650357,
+      "end": 2650617,
+      "unwind": 2652056
+    },
+    {
+      "name": "invoke",
+      "begin": 2650630,
+      "end": 2650829,
+      "unwind": 2652072
+    },
+    {
+      "name": "string",
+      "begin": 2650829,
+      "end": 2650946,
+      "unwind": 2652088
+    },
+    {
+      "name": "layout",
+      "begin": 2650946,
+      "end": 2650974,
+      "unwind": 2652100
+    },
+    {
+      "name": "render",
+      "begin": 2650974,
+      "end": 2651873,
+      "unwind": 2652116
+    },
+    {
+      "name": "denicker",
+      "begin": 2652136,
+      "end": 2653309,
+      "unwind": 2653436
+    },
+    {
+      "name": "metrics",
+      "begin": 2653460,
+      "end": 2653632,
+      "unwind": 2653696
+    },
+    {
+      "name": "match",
+      "begin": 2653708,
+      "end": 2653762,
+      "unwind": 2653788
+    },
+    {
+      "name": "column",
+      "begin": 2654000,
+      "end": 2654060,
+      "unwind": 2654060
+    },
+    {
+      "name": "header",
+      "begin": 2654268,
+      "end": 2654624,
+      "unwind": 2654704
+    },
+    {
+      "name": "replayRdi",
+      "begin": 2654764,
+      "end": 2655006,
+      "unwind": 2655008
+    },
+    {
+      "name": "replayRbx",
+      "begin": 2655020,
+      "end": 2655262,
+      "unwind": 2655264
+    },
+    {
+      "name": "replayFrame",
+      "begin": 2655276,
+      "end": 2655523,
+      "unwind": 2655524
+    },
+    {
+      "name": "replayStats",
+      "begin": 2655613,
+      "end": 2656804,
+      "unwind": 2656804
+    },
+    {
+      "name": "replayStatsQueue",
+      "begin": 2656832,
+      "end": 2656908,
+      "unwind": 2656908
+    },
+    {
+      "name": "replayStatsCleanup",
+      "begin": 2656920,
+      "end": 2656969,
+      "unwind": 2656972
+    },
+    {
+      "name": "replayStatsFrameCleanup",
+      "begin": 2656980,
+      "end": 2657098,
+      "unwind": 2657100
+    },
+    {
+      "name": "replayDenickGate",
+      "begin": 2657244,
+      "end": 2657475,
+      "unwind": 2657476
+    },
+    {
+      "name": "replayNickName",
+      "begin": 2657488,
+      "end": 2657724,
+      "unwind": 2657724
+    },
+    {
+      "name": "replayUuidCopy",
+      "begin": 2657736,
+      "end": 2657754,
+      "unwind": 2657756
+    },
+    {
+      "name": "numberLock",
+      "begin": 2658125,
+      "end": 2658238,
+      "unwind": 2658240
+    },
+    {
+      "name": "apiKeyReady",
+      "begin": 2658381,
+      "end": 2658433,
+      "unwind": 2658436
+    },
+    {
+      "name": "apiUuidReady",
+      "begin": 2658440,
+      "end": 2658461,
+      "unwind": 2658464
+    },
+    {
+      "name": "apiPingProxy",
+      "begin": 2658468,
+      "end": 2658473,
+      "unwind": 2658476
+    },
+    {
+      "name": "hypixelHttp",
+      "begin": 2658524,
+      "end": 2659325,
+      "unwind": 2659328
+    },
+    {
+      "name": "apiDecodeComponent",
+      "begin": 2659464,
+      "end": 2659597,
+      "unwind": 2659600
+    },
+    {
+      "name": "apiRefreshFailures",
+      "begin": 2659604,
+      "end": 2659689,
+      "unwind": 2659692
+    },
+    {
+      "name": "processEntry",
+      "begin": 2659716,
+      "end": 2659736,
+      "unwind": 2659736
+    },
+    {
+      "name": "gameActive",
+      "begin": 2653800,
+      "end": 2653946,
+      "unwind": 2653968
+    },
+    {
+      "name": "inputResolve",
+      "begin": 2659845,
+      "end": 2659986,
+      "unwind": 2661640
+    },
+    {
+      "name": "inputMaintain",
+      "begin": 2659986,
+      "end": 2660521,
+      "unwind": 2661652
+    },
+    {
+      "name": "inputDetach",
+      "begin": 2660521,
+      "end": 2661019,
+      "unwind": 2661664
+    },
+    {
+      "name": "inputProc",
+      "begin": 2661019,
+      "end": 2661451,
+      "unwind": 2661672
+    },
+    {
+      "name": "inputInitialize",
+      "begin": 2659812,
+      "end": 2659845,
+      "unwind": 2661688
+    },
+    {
+      "name": "chatPollTail",
+      "begin": 2661716,
+      "end": 2661794,
+      "unwind": 2661796
+    },
+    {
+      "name": "configSave",
+      "begin": 2661812,
+      "end": 2661843,
+      "unwind": 2661872
+    },
+    {
+      "name": "grayNumberRegister",
+      "begin": 2657901,
+      "end": 2657921,
+      "unwind": 2657924
+    },
+    {
+      "name": "grayStatsAllowed",
+      "begin": 2657928,
+      "end": 2657948,
+      "unwind": 2657948
+    },
+    {
+      "name": "grayLegacyLookup",
+      "begin": 2657952,
+      "end": 2657972,
+      "unwind": 2657972
+    },
+    {
+      "name": "grayLegacySuccess",
+      "begin": 2657976,
+      "end": 2657996,
+      "unwind": 2657996
+    },
+    {
+      "name": "graySkinRegister",
+      "begin": 2658000,
+      "end": 2658020,
+      "unwind": 2658020
+    },
+    {
+      "name": "grayStatsProduce",
+      "begin": 2658024,
+      "end": 2658045,
+      "unwind": 2658048
+    },
+    {
+      "name": "grayTagsProduce",
+      "begin": 2658052,
+      "end": 2658073,
+      "unwind": 2658076
+    },
+    {
+      "name": "register",
+      "begin": 2661944,
+      "end": 2662385,
+      "unwind": 2662676
+    },
+    {
+      "name": "unloadKey",
+      "begin": 2662394,
+      "end": 2662627,
+      "unwind": 2662688
+    }
+  ],
+  "runtimeFunctionTable": {
+    "rva": 2662704,
+    "size": 46080,
+    "count": 3840
+  },
+  "patches": [
+    {
+      "offset": 312,
+      "before": "106a1200",
+      "after": "84952800",
+      "reason": "Skip CRT worker destructors only while the entire process is terminating"
+    },
+    {
+      "offset": 99976,
+      "before": "e8b30c0200",
+      "after": "e860de2600",
+      "reason": "Compatibility JNI plainLocal"
+    },
+    {
+      "offset": 100225,
+      "before": "e8ba0b0200",
+      "after": "e867dd2600",
+      "reason": "Compatibility JNI plainLocal"
+    },
+    {
+      "offset": 448674,
+      "before": "e899bafcff",
+      "after": "e8198c2100",
+      "reason": "Compatibility JNI plain"
+    },
+    {
+      "offset": 453040,
+      "before": "e88ba9fcff",
+      "after": "e8287b2100",
+      "reason": "Compatibility JNI plainDenick"
+    },
+    {
+      "offset": 437511,
+      "before": "e834e3fcff",
+      "after": "e8c9b72100",
+      "reason": "Compatibility JNI jsonTags"
+    },
+    {
+      "offset": 439426,
+      "before": "e8b9defcff",
+      "after": "e846b02100",
+      "reason": "Compatibility JNI plainTags"
+    },
+    {
+      "offset": 560440,
+      "before": "e80303fbff",
+      "after": "e8a8d71f00",
+      "reason": "Compatibility JNI jsonDenick"
+    },
+    {
+      "offset": 560447,
+      "before": "e8fc05fbff",
+      "after": "e899d71f00",
+      "reason": "Compatibility JNI plainDenick"
+    },
+    {
+      "offset": 560153,
+      "before": "e82207fbff",
+      "after": "e8bfd81f00",
+      "reason": "Compatibility JNI plainDenick"
+    },
+    {
+      "offset": 584993,
+      "before": "e84ac1ffff",
+      "after": "e81c7a1f00",
+      "reason": "Compatibility JNI prelayout"
+    },
+    {
+      "offset": 585631,
+      "before": "e80ce5ffff",
+      "after": "e8ba771f00",
+      "reason": "Compatibility JNI render"
+    },
+    {
+      "offset": 436429,
+      "before": "e87ed6ffff",
+      "after": "e8cebb2100",
+      "reason": "Compatibility JNI seraphPrefix"
+    },
+    {
+      "offset": 438061,
+      "before": "e81ed0ffff",
+      "after": "e86eb52100",
+      "reason": "Compatibility JNI seraphPrefix"
+    },
+    {
+      "offset": 555428,
+      "before": "e897490300",
+      "after": "e83ff21f00",
+      "reason": "Compatibility JNI denicker"
+    },
+    {
+      "offset": 78973,
+      "before": "e8ce780700",
+      "after": "e88a3d2700",
+      "reason": "Compatibility JNI matchStart"
+    },
+    {
+      "offset": 96991,
+      "before": "e8aca4ffff",
+      "after": "e884f72600",
+      "reason": "Compatibility JNI gameActive"
+    },
+    {
+      "offset": 391261,
+      "before": "e8beedffff",
+      "after": "e8ce7a2200",
+      "reason": "Compatibility JNI columnCatalog"
+    },
+    {
+      "offset": 557320,
+      "before": "e833e3feff",
+      "after": "e870f81f00",
+      "reason": "Compatibility JNI replayStats"
+    },
+    {
+      "offset": 556746,
+      "before": "e8f1e5f7ff",
+      "after": "e8f9022000",
+      "reason": "Compatibility JNI replayUuidCopy"
+    },
+    {
+      "offset": 772714,
+      "before": "e808820600",
+      "after": "e8d1b81c00",
+      "reason": "Compatibility JNI numberGetLock"
+    },
+    {
+      "offset": 775479,
+      "before": "e83b770600",
+      "after": "e804ae1c00",
+      "reason": "Compatibility JNI numberRegisterLock"
+    },
+    {
+      "offset": 777367,
+      "before": "e8db6f0600",
+      "after": "e8a9a61c00",
+      "reason": "Compatibility JNI numberPopLock"
+    },
+    {
+      "offset": 662732,
+      "before": "e89f73ffff",
+      "after": "e8d3671e00",
+      "reason": "Compatibility JNI apiPingProxy"
+    },
+    {
+      "offset": 611160,
+      "before": "e8e393f9ff",
+      "after": "e87f311f00",
+      "reason": "Compatibility JNI hypixelHttp"
+    },
+    {
+      "offset": 613440,
+      "before": "e8fb8af9ff",
+      "after": "e897281f00",
+      "reason": "Compatibility JNI hypixelHttp"
+    },
+    {
+      "offset": 723636,
+      "before": "e887dcf7ff",
+      "after": "e8237a1d00",
+      "reason": "Compatibility JNI hypixelHttp"
+    },
+    {
+      "offset": 658085,
+      "before": "e8c6ad0000",
+      "after": "e86a7e1e00",
+      "reason": "Compatibility JNI apiRefreshFailures"
+    },
+    {
+      "offset": 103877,
+      "before": "e8b6140200",
+      "after": "e8eafb2600",
+      "reason": "Compatibility JNI configSave"
+    },
+    {
+      "offset": 555054,
+      "before": "e85d5c0300",
+      "after": "e83a0a2000",
+      "reason": "Compatibility JNI grayNumberRegister"
+    },
+    {
+      "offset": 557393,
+      "before": "e81a2a0100",
+      "after": "e832012000",
+      "reason": "Compatibility JNI grayStatsAllowed"
+    },
+    {
+      "offset": 560208,
+      "before": "e83b360200",
+      "after": "e84bf61f00",
+      "reason": "Compatibility JNI grayLegacyLookup"
+    },
+    {
+      "offset": 559352,
+      "before": "e803370200",
+      "after": "e8bbf91f00",
+      "reason": "Compatibility JNI grayLegacySuccess"
+    },
+    {
+      "offset": 555116,
+      "before": "e84f190200",
+      "after": "e85f0a2000",
+      "reason": "Compatibility JNI graySkinRegister"
+    },
+    {
+      "offset": 555570,
+      "before": "e8693cfeff",
+      "after": "e8b1082000",
+      "reason": "Compatibility JNI grayStatsProduce"
+    },
+    {
+      "offset": 556843,
+      "before": "e87037feff",
+      "after": "e8b8032000",
+      "reason": "Compatibility JNI grayStatsProduce"
+    },
+    {
+      "offset": 557893,
+      "before": "e85633feff",
+      "after": "e89eff1f00",
+      "reason": "Compatibility JNI grayStatsProduce"
+    },
+    {
+      "offset": 566719,
+      "before": "e8dc10feff",
+      "after": "e824dd1f00",
+      "reason": "Compatibility JNI grayStatsProduce"
+    },
+    {
+      "offset": 556939,
+      "before": "e8901afeff",
+      "after": "e874032000",
+      "reason": "Compatibility JNI grayTagsProduce"
+    },
+    {
+      "offset": 558397,
+      "before": "e8de14feff",
+      "after": "e8c2fd1f00",
+      "reason": "Compatibility JNI grayTagsProduce"
+    },
+    {
+      "offset": 566966,
+      "before": "e865f3fdff",
+      "after": "e849dc1f00",
+      "reason": "Compatibility JNI grayTagsProduce"
+    },
+    {
+      "offset": 68732,
+      "before": "ff90b8060000",
+      "after": "e8b785270090",
+      "reason": "Extend active NewChat native registration with client heartbeat"
+    },
+    {
+      "offset": 83461,
+      "before": "ff1535d41100",
+      "after": "e8f04d270090",
+      "reason": "Require client-authorized unload request before stopping callbacks; never read system-wide End state"
+    },
+    {
+      "offset": 104870,
+      "before": "e8b5a10200",
+      "after": "9090909090",
+      "reason": "Retire legacy native AntiCheat dispatcher independently of historical configuration"
+    },
+    {
+      "offset": 105086,
+      "before": "0f84f3000000",
+      "after": "0f841a000000",
+      "reason": "Maintain fixed-phase game tick hook even when Session Stats is disabled"
+    },
+    {
+      "offset": 103697,
+      "before": "380546481600",
+      "after": "e816e1260090",
+      "reason": "Allow observed Replay sidebar only at overlay enabled predicate"
+    },
+    {
+      "offset": 105392,
+      "before": "803da641160000",
+      "after": "e877da26009090",
+      "reason": "Allow observed Replay sidebar only at overlay modelCache predicate"
+    },
+    {
+      "offset": 129455,
+      "before": "803da7e3150000",
+      "after": "e8787d26009090",
+      "reason": "Allow observed Replay sidebar only at overlay render predicate"
+    },
+    {
+      "offset": 117433,
+      "before": "803d9d12160000",
+      "after": "e86ead26009090",
+      "reason": "Allow observed Replay sidebar only at overlay fallbackRender predicate"
+    },
+    {
+      "offset": 554378,
+      "before": "4584e40f853a0b000083fb010f85310b0000",
+      "after": "e84d0a20000f84380b000090909090909090",
+      "reason": "Admit cached verified Replay Nicks to existing Denicker branch without changing actor identity"
+    },
+    {
+      "offset": 772721,
+      "before": "0f8505030000",
+      "after": "0f85ddffffff",
+      "reason": "Defer Number UI polling through original no-lock cleanup while cache worker is busy"
+    },
+    {
+      "offset": 775486,
+      "before": "0f851f020000",
+      "after": "0f85ae010000",
+      "reason": "Defer Number UI polling through original no-lock cleanup while cache worker is busy"
+    },
+    {
+      "offset": 777374,
+      "before": "0f85f6000000",
+      "after": "0f85ce000000",
+      "reason": "Defer Number UI polling through original no-lock cleanup while cache worker is busy"
+    },
+    {
+      "offset": 549166,
+      "before": "e8dd2c0200",
+      "after": "31c0909090",
+      "reason": "Replace legacy per-row Skin hash scans with bounded Mellow texture-owner resolver"
+    },
+    {
+      "offset": 554569,
+      "before": "e8c2170200",
+      "after": "31c0909090",
+      "reason": "Replace legacy per-row Skin hash scans with bounded Mellow texture-owner resolver"
+    },
+    {
+      "offset": 554763,
+      "before": "e800170200",
+      "after": "31c0909090",
+      "reason": "Replace legacy per-row Skin hash scans with bounded Mellow texture-owner resolver"
+    },
+    {
+      "offset": 555059,
+      "before": "e8d8150200",
+      "after": "31c0909090",
+      "reason": "Replace legacy per-row Skin hash scans with bounded Mellow texture-owner resolver"
+    },
+    {
+      "offset": 556654,
+      "before": "e89d0f0200",
+      "after": "31c0909090",
+      "reason": "Replace legacy per-row Skin hash scans with bounded Mellow texture-owner resolver"
+    },
+    {
+      "offset": 557343,
+      "before": "e8ec0c0200",
+      "after": "31c0909090",
+      "reason": "Replace legacy per-row Skin hash scans with bounded Mellow texture-owner resolver"
+    },
+    {
+      "offset": 626968,
+      "before": "488d1529ee0a00",
+      "after": "488d15fff21e00",
+      "reason": "Use the public Aurora Ping endpoint; retain UUID encoding, background worker, parser and cache"
+    },
+    {
+      "offset": 610575,
+      "before": "483971100f84dd050000",
+      "after": "e839331f0084c074e390",
+      "reason": "Require current nonempty direct key and reject blank copied key; never implicitly choose proxy"
+    },
+    {
+      "offset": 612432,
+      "before": "803dfd8e0e0000750c48837b100074054532f6eb0341b601",
+      "after": "e8332c1f0084c00f84010900009090909090909090909090",
+      "reason": "Require explicit proxy or current nonblank direct key before UUID stats retrieval"
+    },
+    {
+      "offset": 100721,
+      "before": "48833d673216000f",
+      "after": "48833ddf3716000f",
+      "reason": "Compare Number-owned key so replacement and clearing reach its existing setter"
+    },
+    {
+      "offset": 100729,
+      "before": "488d0548321600",
+      "after": "488d05c0371600",
+      "reason": "Compare Number-owned key so replacement and clearing reach its existing setter"
+    },
+    {
+      "offset": 100736,
+      "before": "480f470540321600",
+      "after": "480f4705b8371600",
+      "reason": "Compare Number-owned key so replacement and clearing reach its existing setter"
+    },
+    {
+      "offset": 100778,
+      "before": "4c3b0527321600",
+      "after": "4c3b059f371600",
+      "reason": "Compare Number-owned key so replacement and clearing reach its existing setter"
+    },
+    {
+      "offset": 585287,
+      "before": "ff9038050000",
+      "after": "e8f0851f0090",
+      "reason": "Localize allowlisted Overlay header before measurement"
+    },
+    {
+      "offset": 585435,
+      "before": "ff9038050000",
+      "after": "e85c851f0090",
+      "reason": "Localize allowlisted Overlay header before drawing"
+    },
+    {
+      "offset": 55664,
+      "before": "4883ec28ff15f63b1200",
+      "after": "e91db127009090909090",
+      "reason": "Bind input subclass once per verified window lifetime; never reacquire an external chain"
+    },
+    {
+      "offset": 67792,
+      "before": "4883ec28e867f8ffff",
+      "after": "e90f81270090909090",
+      "reason": "Bind input subclass once per verified window lifetime; never reacquire an external chain"
+    },
+    {
+      "offset": 49950,
+      "before": "8b442440ffc0",
+      "after": "e931ce270090",
+      "reason": "Stop only after the unchanged consumer would ignore every remaining history row"
+    },
+    {
+      "offset": 278,
+      "before": "0700",
+      "after": "0900",
+      "reason": "Append code and state sections"
+    },
+    {
+      "offset": 352,
+      "before": "00702800",
+      "after": "00702900",
+      "reason": "Compatibility image size"
+    },
+    {
+      "offset": 300,
+      "before": "00041300",
+      "after": "00ea1300",
+      "reason": "Compatibility code size"
+    },
+    {
+      "offset": 304,
+      "before": "000e1500",
+      "after": "00101500",
+      "reason": "Compatibility state size"
+    },
+    {
+      "offset": 432,
+      "before": "00101800e4b10000",
+      "after": "30a1280000b40000",
+      "reason": "Merged compatibility unwind table"
+    },
+    {
+      "offset": 816,
+      "before": "00000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "after": "2e61646e636f646530e500000070280000e6000000f8270000000000000000000000000020000060",
+      "reason": "Read-execute compatibility bridge header"
+    },
+    {
+      "offset": 856,
+      "before": "00000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "after": "2e61646e7374617400010000006029000002000000de2800000000000000000000000000400000c0",
+      "reason": "Read-write non-executable heartbeat header"
+    },
+    {
+      "offset": 360,
+      "before": "eb3d2800",
+      "after": "79442900",
+      "reason": "PE checksum"
+    }
+  ],
+  "runtime_metadata": {
+    "peHeaderOffset": 272,
+    "imageSize": 2846720,
+    "markerRva": 2650112,
+    "marker": 3544405810745328705,
+    "signatures": [
+      {
+        "rva": 71804,
+        "bytes": "e8b785270090"
+      },
+      {
+        "rva": 2711552,
+        "bytes": "41444e5354303031"
+      }
+    ],
+    "classes": [
+      {
+        "rva": 1565712,
+        "width": 8
+      },
+      {
+        "rva": 1565720,
+        "width": 8
+      },
+      {
+        "rva": 1565728,
+        "width": 8
+      },
+      {
+        "rva": 1565736,
+        "width": 8
+      },
+      {
+        "rva": 1565744,
+        "width": 8
+      }
+    ],
+    "pump": [],
+    "hooks": [
+      {
+        "rva": 1567045,
+        "width": 1
+      },
+      {
+        "rva": 1567046,
+        "width": 1
+      },
+      {
+        "rva": 2711560,
+        "width": 4
+      }
+    ],
+    "heartbeatRva": 2711568,
+    "heartbeatWidth": 8
+  },
+  "legacyAnticheat": {
+    "profile": "vanilla",
+    "disabled": true,
+    "callRva": 107942,
+    "originalTargetRva": 280416,
+    "originalBodyEndRva": 297511,
+    "before": "e8b5a10200",
+    "after": "9090909090",
+    "reason": "Retire legacy native AntiCheat dispatcher independently of historical configuration",
+    "guiFieldsAndJniAbiPreserved": true,
+    "detectorBodyAndUnwindPreserved": true
+  },
+  "gameTickHook": {
+    "profile": "vanilla",
+    "branchRva": 108158,
+    "originalTargetRva": 108407,
+    "maintenanceRva": 108190,
+    "installCallRva": 108348,
+    "installerRva": 835008,
+    "blockStartRva": 108135,
+    "blockEndRva": 108412,
+    "blockSha256": "44d6728354f08f5395b5435606e8ff3d85b8550c5489c5e4443d5863480dcaa0",
+    "before": "0f84f3000000",
+    "after": "0f841a000000",
+    "independentOfSessionStats": true,
+    "sessionStatsDisplaySettingPreserved": true,
+    "originalInstallerAndUnloadPreserved": true,
+    "reason": "Maintain fixed-phase game tick hook even when Session Stats is disabled"
+  },
+  "replayOverlay": [
+    {
+      "profile": "vanilla",
+      "predicateRva": 106769,
+      "bridgeTargetRva": 2654764,
+      "before": "380546481600",
+      "after": "e816e1260090",
+      "callback": "replayRdi",
+      "purpose": "enabled",
+      "nativeEligibilityRva": 1567069,
+      "nativeGameStateUnchanged": true,
+      "reason": "Allow observed Replay sidebar only at overlay enabled predicate"
+    },
+    {
+      "profile": "vanilla",
+      "predicateRva": 108464,
+      "bridgeTargetRva": 2654764,
+      "before": "803da641160000",
+      "after": "e877da26009090",
+      "callback": "replayRdi",
+      "purpose": "modelCache",
+      "nativeEligibilityRva": 1567069,
+      "nativeGameStateUnchanged": true,
+      "reason": "Allow observed Replay sidebar only at overlay modelCache predicate"
+    },
+    {
+      "profile": "vanilla",
+      "predicateRva": 132527,
+      "bridgeTargetRva": 2655020,
+      "before": "803da7e3150000",
+      "after": "e8787d26009090",
+      "callback": "replayRbx",
+      "purpose": "render",
+      "nativeEligibilityRva": 1567069,
+      "nativeGameStateUnchanged": true,
+      "reason": "Allow observed Replay sidebar only at overlay render predicate"
+    },
+    {
+      "profile": "vanilla",
+      "predicateRva": 120505,
+      "bridgeTargetRva": 2655276,
+      "before": "803d9d12160000",
+      "after": "e86ead26009090",
+      "callback": "replayFrame",
+      "purpose": "fallbackRender",
+      "nativeEligibilityRva": 1567069,
+      "nativeGameStateUnchanged": true,
+      "reason": "Allow observed Replay sidebar only at overlay fallbackRender predicate"
+    }
+  ],
+  "replayStats": {
+    "profile": "vanilla",
+    "callRva": 560392,
+    "originalTargetRva": 487488,
+    "bridgeTargetRva": 2655613,
+    "guardedBlockRva": 560333,
+    "guardedBlockSize": 82,
+    "guardedBlockSha256": "1766e7318c13a731209018941c2f48012bea4d1ee57054ff611795d1df20843f",
+    "callbackOwner": "AdninGui4",
+    "callback": "nativeReplayProfile",
+    "descriptor": "(Ljava/lang/String;)Ljava/lang/String;",
+    "validatedProfileFormat": "accountName|onlineUUIDv4",
+    "rawNameOffset": 64,
+    "confirmedNickSentinel": "NICK",
+    "confirmedNickLabel": "\u00a7c[NICK]",
+    "confirmedNickColor": 16733525,
+    "unknownOrPendingAction": "retain original placeholder",
+    "actorUuidOffset": 328,
+    "rowSize": 376,
+    "statsSize": 384,
+    "queueRva": 653888,
+    "getterRva": 634816,
+    "formatterRva": 379136,
+    "mutexRva": 1559376,
+    "originalPlaceholderPreserved": true,
+    "actorIdentityPreserved": true,
+    "historicalNamesUntouched": true,
+    "nativeGameStateUnchanged": true,
+    "chatAndOutputUntouched": true,
+    "nativeQueueDeduplicationAndThrottlePreserved": true
+  },
+  "replayDenicker": {
+    "profile": "vanilla",
+    "gateRva": 557450,
+    "before": "4584e40f853a0b000083fb010f85310b0000",
+    "after": "e84d0a20000f84380b000090909090909090",
+    "bridgeTargetRva": 2657244,
+    "skipRva": 560333,
+    "fallthroughRva": 557468,
+    "uuidCopyCallRva": 559818,
+    "uuidCopyTargetRva": 2657736,
+    "callbackOwner": "AdninGui4",
+    "callback": "nativeReplayIsNick",
+    "descriptor": "(Ljava/lang/String;)I",
+    "requiredAcknowledgement": 1,
+    "normalizedNameFrameOffset": 1008,
+    "ordinaryUuidV1GatePreserved": true,
+    "originalDenickerResolutionAlgorithmsPreserved": true,
+    "actorIdentityPreserved": true,
+    "historicalNameCacheGatesUnchanged": true,
+    "reason": "Admit cached verified Replay Nicks to existing Denicker branch without changing actor identity"
+  },
+  "numberPolling": [
+    {
+      "callRva": 775786,
+      "originalTargetRva": 1202295,
+      "callback": "numberGetLock",
+      "bridgeTargetRva": 2658112,
+      "branchRva": 775793,
+      "before": "0f8505030000",
+      "after": "0f85ddffffff",
+      "busyRva": 775764,
+      "mutexRva": 1559760,
+      "mutexType": 2,
+      "successContinuationRva": 775791,
+      "noLockCleanupPreserved": true,
+      "workerSynchronizationPreserved": true,
+      "queuedItemsPreserved": true,
+      "registrationDeferredUntilLaterPoll": true,
+      "unexpectedErrorAction": "original std::_Throw_Cpp_error(5)",
+      "missingExportFallback": "original _Mtx_lock; original waiting retained",
+      "reason": "Defer Number UI polling through original no-lock cleanup while cache worker is busy"
+    },
+    {
+      "callRva": 778551,
+      "originalTargetRva": 1202295,
+      "callback": "numberRegisterLock",
+      "bridgeTargetRva": 2658112,
+      "branchRva": 778558,
+      "before": "0f851f020000",
+      "after": "0f85ae010000",
+      "busyRva": 778994,
+      "mutexRva": 1559760,
+      "mutexType": 2,
+      "successContinuationRva": 778556,
+      "noLockCleanupPreserved": true,
+      "workerSynchronizationPreserved": true,
+      "queuedItemsPreserved": true,
+      "registrationDeferredUntilLaterPoll": true,
+      "unexpectedErrorAction": "original std::_Throw_Cpp_error(5)",
+      "missingExportFallback": "original _Mtx_lock; original waiting retained",
+      "reason": "Defer Number UI polling through original no-lock cleanup while cache worker is busy"
+    },
+    {
+      "callRva": 780439,
+      "originalTargetRva": 1202295,
+      "callback": "numberPopLock",
+      "bridgeTargetRva": 2658117,
+      "branchRva": 780446,
+      "before": "0f85f6000000",
+      "after": "0f85ce000000",
+      "busyRva": 780658,
+      "mutexRva": 1559760,
+      "mutexType": 2,
+      "successContinuationRva": 780444,
+      "noLockCleanupPreserved": true,
+      "workerSynchronizationPreserved": true,
+      "queuedItemsPreserved": true,
+      "registrationDeferredUntilLaterPoll": true,
+      "unexpectedErrorAction": "original std::_Throw_Cpp_error(5)",
+      "missingExportFallback": "original _Mtx_lock; original waiting retained",
+      "reason": "Defer Number UI polling through original no-lock cleanup while cache worker is busy"
+    }
+  ],
+  "nativeApiPolicy": {
+    "patches": [
+      {
+        "siteRva": 630040,
+        "before": "488d1529ee0a00",
+        "after": "488d15fff21e00",
+        "reason": "Use the public Aurora Ping endpoint; retain UUID encoding, background worker, parser and cache",
+        "oldTargetRva": 1346376,
+        "newTargetRva": 2658334,
+        "displacementOffset": 3
+      },
+      {
+        "siteRva": 613647,
+        "before": "483971100f84dd050000",
+        "after": "e839331f0084c074e390",
+        "reason": "Require current nonempty direct key and reject blank copied key; never implicitly choose proxy",
+        "failureRva": 613627,
+        "continuationRva": 613657
+      },
+      {
+        "siteRva": 615504,
+        "before": "803dfd8e0e0000750c48837b100074054532f6eb0341b601",
+        "after": "e8332c1f0084c00f84010900009090909090909090909090",
+        "reason": "Require explicit proxy or current nonblank direct key before UUID stats retrieval",
+        "failureRva": 617822,
+        "continuationRva": 615528
+      },
+      {
+        "siteRva": 103793,
+        "before": "48833d673216000f",
+        "after": "48833ddf3716000f",
+        "reason": "Compare Number-owned key so replacement and clearing reach its existing setter",
+        "oldTargetRva": 1558496,
+        "newTargetRva": 1559896,
+        "displacementOffset": 3
+      },
+      {
+        "siteRva": 103801,
+        "before": "488d0548321600",
+        "after": "488d05c0371600",
+        "reason": "Compare Number-owned key so replacement and clearing reach its existing setter",
+        "oldTargetRva": 1558472,
+        "newTargetRva": 1559872,
+        "displacementOffset": 3
+      },
+      {
+        "siteRva": 103808,
+        "before": "480f470540321600",
+        "after": "480f4705b8371600",
+        "reason": "Compare Number-owned key so replacement and clearing reach its existing setter",
+        "oldTargetRva": 1558472,
+        "newTargetRva": 1559872,
+        "displacementOffset": 4
+      },
+      {
+        "siteRva": 103850,
+        "before": "4c3b0527321600",
+        "after": "4c3b059f371600",
+        "reason": "Compare Number-owned key so replacement and clearing reach its existing setter",
+        "oldTargetRva": 1558488,
+        "newTargetRva": 1559888,
+        "displacementOffset": 3
+      }
+    ],
+    "explicitProxyRequired": true,
+    "blankDirectKeyRejected": true,
+    "keyPresenceSourceRva": 1559472,
+    "numberKeyRva": 1559872,
+    "numberIndependentCopyCompared": true,
+    "currentEmptyConfigRejectsOldWorkerKey": true,
+    "ping": {
+      "callRva": 665804,
+      "originalTargetRva": 629872,
+      "bridgeTargetRva": 2658468,
+      "callback": "apiPingProxy",
+      "provider": "aurora",
+      "endpoint": "https://bordic.xyz/api/v2/resources/ping?uuid=",
+      "requiresApiKey": false,
+      "urlOperandRva": 630040,
+      "requiresProxy": false,
+      "hypixelProviderIndependent": true,
+      "backgroundWorkerAndCachePreserved": true
+    },
+    "http": {
+      "authentication": "API-Key request header",
+      "playerParameter": "uuid",
+      "nameResolution": "original native Mojang resolver",
+      "legacyKeyQueryRemovedBeforeNetwork": true,
+      "temporaryHeaderClearedOnNormalReturn": true,
+      "sources": [
+        {
+          "callRva": 614232,
+          "originalTargetRva": 193344,
+          "bridgeTargetRva": 2658524,
+          "callback": "hypixelHttp"
+        },
+        {
+          "callRva": 616512,
+          "originalTargetRva": 193344,
+          "bridgeTargetRva": 2658524,
+          "callback": "hypixelHttp"
+        },
+        {
+          "callRva": 726708,
+          "originalTargetRva": 193344,
+          "bridgeTargetRva": 2658524,
+          "callback": "hypixelHttp"
+        }
+      ]
+    },
+    "failedCacheRefresh": {
+      "callRva": 661157,
+      "originalTargetRva": 705648,
+      "bridgeTargetRva": 2659604,
+      "callback": "apiRefreshFailures",
+      "underOriginalStatsMutex": true,
+      "onlyFailedEntriesExpired": true,
+      "successfulResultsPreserved": true,
+      "failureTimestamp": 18446744073709506615
+    },
+    "originalSettersAndLocksPreserved": true,
+    "originalNoResultCleanupPreserved": true,
+    "limitation": "Existing cached results and requests already accepted before configuration synchronization may complete; no cancellation barrier is installed"
+  },
+  "skinDenickerPolicy": {
+    "profile": "vanilla",
+    "callback": "nativeDenickerProfile",
+    "descriptor": "(Ljava/lang/String;Z)Ljava/lang/String;",
+    "evidence": "current Tab textures metadata; shared Nick hashes excluded",
+    "originalSkinResolutionRetired": true,
+    "nativeSettingPreserved": true,
+    "numberPriorityPreserved": true,
+    "actorIdentityPreserved": true,
+    "patches": [
+      {
+        "siteRva": 552238,
+        "before": "e8dd2c0200",
+        "after": "31c0909090",
+        "reason": "Replace legacy per-row Skin hash scans with bounded Mellow texture-owner resolver"
+      },
+      {
+        "siteRva": 557641,
+        "before": "e8c2170200",
+        "after": "31c0909090",
+        "reason": "Replace legacy per-row Skin hash scans with bounded Mellow texture-owner resolver"
+      },
+      {
+        "siteRva": 557835,
+        "before": "e800170200",
+        "after": "31c0909090",
+        "reason": "Replace legacy per-row Skin hash scans with bounded Mellow texture-owner resolver"
+      },
+      {
+        "siteRva": 558131,
+        "before": "e8d8150200",
+        "after": "31c0909090",
+        "reason": "Replace legacy per-row Skin hash scans with bounded Mellow texture-owner resolver"
+      },
+      {
+        "siteRva": 559726,
+        "before": "e89d0f0200",
+        "after": "31c0909090",
+        "reason": "Replace legacy per-row Skin hash scans with bounded Mellow texture-owner resolver"
+      },
+      {
+        "siteRva": 560415,
+        "before": "e8ec0c0200",
+        "after": "31c0909090",
+        "reason": "Replace legacy per-row Skin hash scans with bounded Mellow texture-owner resolver"
+      }
+    ]
+  },
+  "grayPlayerPolicy": {
+    "profile": "vanilla",
+    "nameColorOffset": 148,
+    "lightGrayRgb": 11184810,
+    "cachedIdentityAndStatisticsPreserved": true,
+    "originalRowRenderingPreserved": true,
+    "noJniOrAllocation": true,
+    "cachedNotificationProducersGuarded": true,
+    "producerRowRegister": "r9",
+    "producers": [
+      {
+        "callRva": 558642,
+        "originalTargetRva": 443040,
+        "callback": "grayStatsProduce"
+      },
+      {
+        "callRva": 559915,
+        "originalTargetRva": 443040,
+        "callback": "grayStatsProduce"
+      },
+      {
+        "callRva": 560965,
+        "originalTargetRva": 443040,
+        "callback": "grayStatsProduce"
+      },
+      {
+        "callRva": 569791,
+        "originalTargetRva": 443040,
+        "callback": "grayStatsProduce"
+      },
+      {
+        "callRva": 560011,
+        "originalTargetRva": 435744,
+        "callback": "grayTagsProduce"
+      },
+      {
+        "callRva": 561469,
+        "originalTargetRva": 435744,
+        "callback": "grayTagsProduce"
+      },
+      {
+        "callRva": 570038,
+        "originalTargetRva": 435744,
+        "callback": "grayTagsProduce"
+      }
+    ],
+    "gates": [
+      {
+        "callRva": 558126,
+        "originalTargetRva": 778384,
+        "callback": "grayNumberRegister"
+      },
+      {
+        "callRva": 560465,
+        "originalTargetRva": 636784,
+        "callback": "grayStatsAllowed"
+      },
+      {
+        "callRva": 563280,
+        "originalTargetRva": 708240,
+        "callback": "grayLegacyLookup"
+      },
+      {
+        "callRva": 562424,
+        "originalTargetRva": 707584,
+        "callback": "grayLegacySuccess"
+      },
+      {
+        "callRva": 558188,
+        "originalTargetRva": 695744,
+        "callback": "graySkinRegister"
+      }
+    ]
+  },
+  "headerLocalization": {
+    "owner": "AdninGui4",
+    "callback": "nativeOverlayHeader",
+    "descriptor": "(Ljava/lang/String;Ljava/lang/Object;I)Ljava/lang/String;",
+    "titleOnly": true,
+    "nativeColumnLayoutChanged": false,
+    "fitToColumnWidth": true,
+    "nativeFontRegister": "R12",
+    "nativeDescriptorRegister": "RDI",
+    "widthOffset": 68,
+    "patches": [
+      {
+        "siteRva": 588359,
+        "before": "ff9038050000",
+        "after": "e8f0851f0090",
+        "bridgeTargetRva": 2654268,
+        "purpose": "measurement",
+        "reason": "Localize allowlisted Overlay header before measurement"
+      },
+      {
+        "siteRva": 588507,
+        "before": "ff9038050000",
+        "after": "e85c851f0090",
+        "bridgeTargetRva": 2654268,
+        "purpose": "drawing",
+        "reason": "Localize allowlisted Overlay header before drawing"
+      }
+    ]
+  },
+  "processTerminationGuard": {
+    "offset": 312,
+    "before": "106a1200",
+    "after": "84952800",
+    "originalEntryRva": 1206800,
+    "bridgeEntryRva": 2659716,
+    "condition": "DLL_PROCESS_DETACH and lpReserved != NULL",
+    "explicitFreeLibraryPreserved": true,
+    "noJniLocksOrJoinsDuringProcessExit": true,
+    "reason": "Skip CRT worker destructors only while the entire process is terminating"
+  },
+  "nativeGameState": {
+    "callRva": 100063,
+    "originalTargetRva": 76688,
+    "bridgeTargetRva": 2653800,
+    "callback": "setGameActive",
+    "owner": "AdninGui4",
+    "descriptor": "(Z)V",
+    "nativeStateStringRva": 1556624,
+    "predicate": "exact six-byte Ingame after original parser; false for null Minecraft/class",
+    "notification": "each original parser call, including already active state and exits",
+    "parserIntervalMs": 500,
+    "javaWorldPresenceGuardRequired": true,
+    "existingExceptionPreserved": true,
+    "optionalCallbackFailureRetried": true
+  },
+  "nativeInputHooks": {
+    "profile": "vanilla",
+    "patches": [
+      {
+        "siteRva": 58736,
+        "before": "4883ec28ff15f63b1200",
+        "after": "e91db127009090909090",
+        "reason": "Bind input subclass once per verified window lifetime; never reacquire an external chain"
+      },
+      {
+        "siteRva": 70864,
+        "before": "4883ec28e867f8ffff",
+        "after": "e90f81270090909090",
+        "reason": "Bind input subclass once per verified window lifetime; never reacquire an external chain"
+      }
+    ],
+    "hwndRva": 1567224,
+    "predecessorRva": 1565776,
+    "originalWndProcRva": 127008,
+    "wrapperRva": 2661019,
+    "stateRva": 2711616,
+    "activeCounterRva": 2711616,
+    "privateMessage": "registered, HWND identity and token validated",
+    "destroyMessage": 130,
+    "detachTimeoutMs": 50,
+    "maintenanceIntervalMs": 1000,
+    "ordinaryMessages": "active counter and original handler only; all arguments and results preserved",
+    "unload": "only after window-thread detach acknowledgement and zero active callbacks; otherwise retain DLL",
+    "originalHandlerModified": false,
+    "gameRuntimeTested": false
+  },
+  "nativeChatPolling": {
+    "siteRva": 53022,
+    "width": 6,
+    "before": "8b442440ffc0",
+    "callback": "chatPollTail",
+    "bridgeTargetRva": 2661716,
+    "consumerRva": 92544,
+    "consumerEndRva": 94380,
+    "periodicReturnRva": 92709,
+    "otherCallerUntouched": true,
+    "initializedRva": 1567223,
+    "counterRva": 1558160,
+    "cleanupExitRva": 53042,
+    "fullBoundaryRecordPreserved": true,
+    "crossPollComponentCaching": false,
+    "consumerUnchanged": true,
+    "referenceOwnershipPreserved": true,
+    "schedulingUnchanged": true,
+    "reason": "Stop only after the unchanged consumer would ignore every remaining history row"
+  },
+  "sharedConfiguration": {
+    "callRva": 106949,
+    "originalTargetRva": 243328,
+    "bridgeTargetRva": 2661812,
+    "callback": "nativeRequestConfigSave",
+    "descriptor": "()I",
+    "originalWriterRetired": true,
+    "synchronousDiskWrites": false,
+    "sharedFile": "config.properties",
+    "unchangedSnapshotsSkipped": true
+  },
+  "outputRouting": {
+    "owner": "AdninGui4",
+    "callback": "nativeRenderGeneratedEvent",
+    "descriptor": "(Ljava/lang/String;ZI)I",
+    "categories": {
+      "players": 0,
+      "tags": 1,
+      "anticheatJavaOnly": 2,
+      "denick": 3,
+      "localOnly": 4
+    },
+    "sources": [
+      {
+        "callRva": 103048,
+        "json": false,
+        "category": 4
+      },
+      {
+        "callRva": 103297,
+        "json": false,
+        "category": 4
+      },
+      {
+        "callRva": 451746,
+        "json": false,
+        "category": 0
+      },
+      {
+        "callRva": 456112,
+        "json": false,
+        "category": 3
+      },
+      {
+        "callRva": 440583,
+        "json": true,
+        "category": 1
+      },
+      {
+        "callRva": 442498,
+        "json": false,
+        "category": 1
+      },
+      {
+        "callRva": 563512,
+        "json": true,
+        "category": 3
+      },
+      {
+        "callRva": 563519,
+        "json": false,
+        "category": 3
+      },
+      {
+        "callRva": 563225,
+        "json": false,
+        "category": 3
+      }
+    ],
+    "classification": "verified native producer CALL site, independent of message text"
+  },
+  "gameRuntimeTested": false,
+  "originalDllExecutedByBuild": false,
+  "denickerLayout": {
+    "rowSize": 376,
+    "uuidOffset": 328,
+    "statsSize": 384,
+    "skinScratchSize": 640,
+    "skinLastFieldEnd": 628,
+    "numberStatsReady": 448,
+    "modeReady": [
+      72,
+      256,
+      320
+    ]
+  },
+  "columnCatalog": {
+    "originalCount": 30,
+    "originalMaxId": 29,
+    "fklvId": 30,
+    "urchinId": 31
+  },
+  "skinSuccessOutput": {
+    "callRva": 563225,
+    "successGetterCallRva": 562424,
+    "successGetterRva": 707584,
+    "noSuccessSkipRva": 563253,
+    "format": "colored plain std::string",
+    "callback": "nativeRenderGeneratedEvent"
+  },
+  "clientTick": {
+    "owner": "AdninGuiNewChat",
+    "method": "nativeClientTick",
+    "descriptor": "()V",
+    "source": "bounded scheduled client callback after Features.tick; independent of sessionStats and world rendering",
+    "originalNativeMethodsPreserved": 2
+  },
+  "unloadGuard": {
+    "callRva": 86533,
+    "stopOwner": "AdninGuiNewChat",
+    "stopMethod": "adninTryStopClientPump",
+    "descriptor": "()I",
+    "acknowledgement": 1,
+    "systemKeyPolling": false,
+    "requiresClientAuthorizedRequest": true,
+    "originalPollIntervalMs": 20,
+    "requestSurvivesKeyRelease": true,
+    "busyAction": "return zero; retain class/method and retry without waiting for Netty",
+    "legacyStopAbiPreserved": "AdninGuiNewChat.adninStopClientPump()V",
+    "jniErrorAction": "return zero; keep cleanup and unload deferred",
+    "classGlobalRefRva": 2711576,
+    "stopMethodRva": 2711584,
+    "stoppedFlagRva": 2711564
+  },
+  "forgeJni": {
+    "profile": "forge-srg-1.8.9",
+    "inputSha256": "8cc8d92c74b17c456c7c38c3a24facb99dd78e9d33afb4c5efa18e2e0636ee54",
+    "lookupCounts": {
+      "find": 106,
+      "method": 302,
+      "static_method": 47,
+      "field": 173,
+      "static_field": 110
+    },
+    "patches": [
+      {
+        "rva": 32560,
+        "lookupRva": 32560,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e83bf6280090"
+      },
+      {
+        "rva": 34351,
+        "lookupRva": 34351,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e83cef280090"
+      },
+      {
+        "rva": 34607,
+        "lookupRva": 34607,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e83cee280090"
+      },
+      {
+        "rva": 35479,
+        "lookupRva": 35479,
+        "kind": "static_method",
+        "before": "ff9088030000",
+        "after": "e814ea280090"
+      },
+      {
+        "rva": 35991,
+        "lookupRva": 35991,
+        "kind": "static_method",
+        "before": "ff9088030000",
+        "after": "e814e8280090"
+      },
+      {
+        "rva": 36601,
+        "lookupRva": 36601,
+        "kind": "static_method",
+        "before": "ff9088030000",
+        "after": "e8b2e5280090"
+      },
+      {
+        "rva": 37111,
+        "lookupRva": 37111,
+        "kind": "static_method",
+        "before": "ff9088030000",
+        "after": "e8b4e3280090"
+      },
+      {
+        "rva": 37685,
+        "lookupRva": 37685,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e836e2280090"
+      },
+      {
+        "rva": 37883,
+        "lookupRva": 37883,
+        "kind": "static_field",
+        "before": "41ff9280040000",
+        "after": "e870e128009090"
+      },
+      {
+        "rva": 38145,
+        "lookupRva": 38145,
+        "kind": "static_field",
+        "before": "41ff9280040000",
+        "after": "e86ae028009090"
+      },
+      {
+        "rva": 38404,
+        "lookupRva": 38404,
+        "kind": "static_field",
+        "before": "41ff9280040000",
+        "after": "e867df28009090"
+      },
+      {
+        "rva": 38583,
+        "lookupRva": 38583,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e8b4de280090"
+      },
+      {
+        "rva": 38845,
+        "lookupRva": 38845,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e8aedd280090"
+      },
+      {
+        "rva": 38962,
+        "lookupRva": 38962,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e839dd280090"
+      },
+      {
+        "rva": 39244,
+        "lookupRva": 39244,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e81fdc280090"
+      },
+      {
+        "rva": 39517,
+        "lookupRva": 39517,
+        "kind": "static_method",
+        "before": "ff9088030000",
+        "after": "e84eda280090"
+      },
+      {
+        "rva": 50457,
+        "lookupRva": 50457,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8f2af280090"
+      },
+      {
+        "rva": 50606,
+        "lookupRva": 50606,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e89dae28009090"
+      },
+      {
+        "rva": 50948,
+        "lookupRva": 50948,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e847ad28009090"
+      },
+      {
+        "rva": 50983,
+        "lookupRva": 50983,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e824ad28009090"
+      },
+      {
+        "rva": 68912,
+        "lookupRva": 68915,
+        "kind": "find",
+        "before": "488b0148ff6030",
+        "after": "e9db6228009090"
+      },
+      {
+        "rva": 69027,
+        "lookupRva": 69027,
+        "kind": "method",
+        "before": "48ffa008010000",
+        "after": "e9a86628009090"
+      },
+      {
+        "rva": 69075,
+        "lookupRva": 69075,
+        "kind": "static_field",
+        "before": "48ffa080040000",
+        "after": "e9986728009090"
+      },
+      {
+        "rva": 69091,
+        "lookupRva": 69091,
+        "kind": "static_method",
+        "before": "48ffa088030000",
+        "after": "e9c86628009090"
+      },
+      {
+        "rva": 69225,
+        "lookupRva": 69228,
+        "kind": "find",
+        "before": "488bcfff5030",
+        "after": "e9a2b1280090"
+      },
+      {
+        "rva": 69314,
+        "lookupRva": 69314,
+        "kind": "static_method",
+        "before": "ff9088030000",
+        "after": "e8e965280090"
+      },
+      {
+        "rva": 71023,
+        "lookupRva": 71030,
+        "kind": "find",
+        "before": "488d15daeb1200ff5030",
+        "after": "e9bcaa28009090909090"
+      },
+      {
+        "rva": 71111,
+        "lookupRva": 71111,
+        "kind": "static_method",
+        "before": "ff9088030000",
+        "after": "e8e45e280090"
+      },
+      {
+        "rva": 71229,
+        "lookupRva": 71229,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8ce5e280090"
+      },
+      {
+        "rva": 71452,
+        "lookupRva": 71452,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e82f5d28009090"
+      },
+      {
+        "rva": 71888,
+        "lookupRva": 71888,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e87b5b28009090"
+      },
+      {
+        "rva": 72018,
+        "lookupRva": 72018,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8f95a28009090"
+      },
+      {
+        "rva": 72496,
+        "lookupRva": 72503,
+        "kind": "find",
+        "before": "488d1519e61200ff5030",
+        "after": "e92ba528009090909090"
+      },
+      {
+        "rva": 72561,
+        "lookupRva": 72561,
+        "kind": "static_method",
+        "before": "41ff9288030000",
+        "after": "e83a5928009090"
+      },
+      {
+        "rva": 72665,
+        "lookupRva": 72668,
+        "kind": "find",
+        "before": "488bcbff5030",
+        "after": "e9b2a4280090"
+      },
+      {
+        "rva": 72684,
+        "lookupRva": 72687,
+        "kind": "find",
+        "before": "4c8bf841ff5030",
+        "after": "e9bfa428009090"
+      },
+      {
+        "rva": 72755,
+        "lookupRva": 72755,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8185828009090"
+      },
+      {
+        "rva": 72788,
+        "lookupRva": 72788,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8f75728009090"
+      },
+      {
+        "rva": 73007,
+        "lookupRva": 73007,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8dc57280090"
+      },
+      {
+        "rva": 73270,
+        "lookupRva": 73270,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8155628009090"
+      },
+      {
+        "rva": 73620,
+        "lookupRva": 73620,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8b754280090"
+      },
+      {
+        "rva": 73763,
+        "lookupRva": 73763,
+        "kind": "field",
+        "before": "41ff92f0020000",
+        "after": "e8e85428009090"
+      },
+      {
+        "rva": 76860,
+        "lookupRva": 76860,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8cf48280090"
+      },
+      {
+        "rva": 77009,
+        "lookupRva": 77009,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e87a4728009090"
+      },
+      {
+        "rva": 77155,
+        "lookupRva": 77155,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8e84628009090"
+      },
+      {
+        "rva": 77585,
+        "lookupRva": 77585,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e83a4528009090"
+      },
+      {
+        "rva": 78539,
+        "lookupRva": 78539,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e88041280090"
+      },
+      {
+        "rva": 78571,
+        "lookupRva": 78571,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8604128009090"
+      },
+      {
+        "rva": 78592,
+        "lookupRva": 78595,
+        "kind": "find",
+        "before": "488bcb41ff5130",
+        "after": "e9cb8d28009090"
+      },
+      {
+        "rva": 78635,
+        "lookupRva": 78635,
+        "kind": "static_method",
+        "before": "41ff9288030000",
+        "after": "e8804128009090"
+      },
+      {
+        "rva": 78819,
+        "lookupRva": 78819,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8684028009090"
+      },
+      {
+        "rva": 78937,
+        "lookupRva": 78937,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8f23f28009090"
+      },
+      {
+        "rva": 78975,
+        "lookupRva": 78975,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8cc3f28009090"
+      },
+      {
+        "rva": 79139,
+        "lookupRva": 79139,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8283f28009090"
+      },
+      {
+        "rva": 79172,
+        "lookupRva": 79172,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8073f28009090"
+      },
+      {
+        "rva": 88561,
+        "lookupRva": 88561,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e85a1a280090"
+      },
+      {
+        "rva": 88672,
+        "lookupRva": 88672,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8eb19280090"
+      },
+      {
+        "rva": 88780,
+        "lookupRva": 88780,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e87f1928009090"
+      },
+      {
+        "rva": 88973,
+        "lookupRva": 88973,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e87e19280090"
+      },
+      {
+        "rva": 89113,
+        "lookupRva": 89113,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8321828009090"
+      },
+      {
+        "rva": 89254,
+        "lookupRva": 89254,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8a51728009090"
+      },
+      {
+        "rva": 95917,
+        "lookupRva": 95917,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e8befe270090"
+      },
+      {
+        "rva": 96166,
+        "lookupRva": 96166,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e8c5fd270090"
+      },
+      {
+        "rva": 96258,
+        "lookupRva": 96258,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e869fd270090"
+      },
+      {
+        "rva": 96350,
+        "lookupRva": 96350,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e80dfd270090"
+      },
+      {
+        "rva": 98572,
+        "lookupRva": 98572,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8fff3270090"
+      },
+      {
+        "rva": 98712,
+        "lookupRva": 98712,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8b3f227009090"
+      },
+      {
+        "rva": 98848,
+        "lookupRva": 98848,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e82bf227009090"
+      },
+      {
+        "rva": 99509,
+        "lookupRva": 99509,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e896ef270090"
+      },
+      {
+        "rva": 100472,
+        "lookupRva": 100472,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e893ec270090"
+      },
+      {
+        "rva": 101074,
+        "lookupRva": 101074,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e899ea270090"
+      },
+      {
+        "rva": 101169,
+        "lookupRva": 101169,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e83aea270090"
+      },
+      {
+        "rva": 101277,
+        "lookupRva": 101277,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e8cee9270090"
+      },
+      {
+        "rva": 101385,
+        "lookupRva": 101385,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e862e9270090"
+      },
+      {
+        "rva": 101564,
+        "lookupRva": 101564,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e8afe8270090"
+      },
+      {
+        "rva": 101885,
+        "lookupRva": 101885,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e86ee7270090"
+      },
+      {
+        "rva": 102104,
+        "lookupRva": 102104,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e893e6270090"
+      },
+      {
+        "rva": 102323,
+        "lookupRva": 102323,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e8b8e5270090"
+      },
+      {
+        "rva": 103449,
+        "lookupRva": 103449,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e852e1270090"
+      },
+      {
+        "rva": 105255,
+        "lookupRva": 105255,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e844da270090"
+      },
+      {
+        "rva": 105519,
+        "lookupRva": 105519,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e83cd9270090"
+      },
+      {
+        "rva": 105929,
+        "lookupRva": 105929,
+        "kind": "static_method",
+        "before": "ff9088030000",
+        "after": "e8e2d6270090"
+      },
+      {
+        "rva": 106723,
+        "lookupRva": 106723,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e888d4270090"
+      },
+      {
+        "rva": 108636,
+        "lookupRva": 108636,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8afcc270090"
+      },
+      {
+        "rva": 108704,
+        "lookupRva": 108707,
+        "kind": "find",
+        "before": "488bcf41ff5030",
+        "after": "e94b1828009090"
+      },
+      {
+        "rva": 108783,
+        "lookupRva": 108783,
+        "kind": "field",
+        "before": "41ff92f0020000",
+        "after": "e81ccc27009090"
+      },
+      {
+        "rva": 108874,
+        "lookupRva": 108874,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e801cb27009090"
+      },
+      {
+        "rva": 109233,
+        "lookupRva": 109233,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e8baca270090"
+      },
+      {
+        "rva": 109294,
+        "lookupRva": 109297,
+        "kind": "find",
+        "before": "488bcfff5030",
+        "after": "e91d16280090"
+      },
+      {
+        "rva": 109389,
+        "lookupRva": 109389,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8bec9270090"
+      },
+      {
+        "rva": 109756,
+        "lookupRva": 109756,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e88fc727009090"
+      },
+      {
+        "rva": 110368,
+        "lookupRva": 110371,
+        "kind": "find",
+        "before": "488bcfff5030",
+        "after": "e90b12280090"
+      },
+      {
+        "rva": 110402,
+        "lookupRva": 110402,
+        "kind": "field",
+        "before": "41ff92f0020000",
+        "after": "e8c9c527009090"
+      },
+      {
+        "rva": 110490,
+        "lookupRva": 110490,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e871c5270090"
+      },
+      {
+        "rva": 110522,
+        "lookupRva": 110522,
+        "kind": "field",
+        "before": "41ff92f0020000",
+        "after": "e851c527009090"
+      },
+      {
+        "rva": 110728,
+        "lookupRva": 110728,
+        "kind": "field",
+        "before": "41ff92f0020000",
+        "after": "e883c427009090"
+      },
+      {
+        "rva": 110765,
+        "lookupRva": 110765,
+        "kind": "field",
+        "before": "41ff92f0020000",
+        "after": "e85ec427009090"
+      },
+      {
+        "rva": 110937,
+        "lookupRva": 110937,
+        "kind": "field",
+        "before": "41ff92f0020000",
+        "after": "e8b2c327009090"
+      },
+      {
+        "rva": 111037,
+        "lookupRva": 111037,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e88ec227009090"
+      },
+      {
+        "rva": 113379,
+        "lookupRva": 113379,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e828ba270090"
+      },
+      {
+        "rva": 113623,
+        "lookupRva": 113623,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e874b8270090"
+      },
+      {
+        "rva": 113763,
+        "lookupRva": 113763,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8a8b8270090"
+      },
+      {
+        "rva": 114115,
+        "lookupRva": 114115,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e848b7270090"
+      },
+      {
+        "rva": 114307,
+        "lookupRva": 114307,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8c8b5270090"
+      },
+      {
+        "rva": 114683,
+        "lookupRva": 114686,
+        "kind": "find",
+        "before": "488bceff5030",
+        "after": "e95001280090"
+      },
+      {
+        "rva": 114744,
+        "lookupRva": 114744,
+        "kind": "static_method",
+        "before": "ff9088030000",
+        "after": "e873b4270090"
+      },
+      {
+        "rva": 118259,
+        "lookupRva": 118259,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e818a7270090"
+      },
+      {
+        "rva": 118358,
+        "lookupRva": 118361,
+        "kind": "find",
+        "before": "488bcf41ff5030",
+        "after": "e915f327009090"
+      },
+      {
+        "rva": 118449,
+        "lookupRva": 118449,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e85aa6270090"
+      },
+      {
+        "rva": 118589,
+        "lookupRva": 118589,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e80ea527009090"
+      },
+      {
+        "rva": 120168,
+        "lookupRva": 120175,
+        "kind": "find",
+        "before": "488d15e12b1200ff5030",
+        "after": "e923ec27009090909090"
+      },
+      {
+        "rva": 120240,
+        "lookupRva": 120240,
+        "kind": "static_method",
+        "before": "41ff9288030000",
+        "after": "e8fb9e27009090"
+      },
+      {
+        "rva": 120361,
+        "lookupRva": 120361,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8e29e270090"
+      },
+      {
+        "rva": 120870,
+        "lookupRva": 120875,
+        "kind": "find",
+        "before": "48895c2438ff5030",
+        "after": "e995e92700909090"
+      },
+      {
+        "rva": 120942,
+        "lookupRva": 120942,
+        "kind": "static_method",
+        "before": "41ff9288030000",
+        "after": "e83d9c27009090"
+      },
+      {
+        "rva": 132299,
+        "lookupRva": 132304,
+        "kind": "find",
+        "before": "48897c2438ff5030",
+        "after": "e910bd2700909090"
+      },
+      {
+        "rva": 132367,
+        "lookupRva": 132367,
+        "kind": "static_method",
+        "before": "41ff9288030000",
+        "after": "e89c6f27009090"
+      },
+      {
+        "rva": 139308,
+        "lookupRva": 139313,
+        "kind": "find",
+        "before": "4889742450ff5030",
+        "after": "e9dfa12700909090"
+      },
+      {
+        "rva": 139381,
+        "lookupRva": 139381,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8d65327009090"
+      },
+      {
+        "rva": 139414,
+        "lookupRva": 139414,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8b55327009090"
+      },
+      {
+        "rva": 139945,
+        "lookupRva": 139948,
+        "kind": "find",
+        "before": "488bd3ff5030",
+        "after": "e9929f270090"
+      },
+      {
+        "rva": 140180,
+        "lookupRva": 140180,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e8d751270090"
+      },
+      {
+        "rva": 140553,
+        "lookupRva": 140553,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8424f270090"
+      },
+      {
+        "rva": 140678,
+        "lookupRva": 140678,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8c54e270090"
+      },
+      {
+        "rva": 141029,
+        "lookupRva": 141029,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8664d270090"
+      },
+      {
+        "rva": 141075,
+        "lookupRva": 141075,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8384d270090"
+      },
+      {
+        "rva": 141199,
+        "lookupRva": 141199,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8bc4c27009090"
+      },
+      {
+        "rva": 142207,
+        "lookupRva": 142212,
+        "kind": "find",
+        "before": "48897c2458ff5030",
+        "after": "e9dc962700909090"
+      },
+      {
+        "rva": 142275,
+        "lookupRva": 142275,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8884827009090"
+      },
+      {
+        "rva": 142461,
+        "lookupRva": 142466,
+        "kind": "find",
+        "before": "4c897c242041ff5130",
+        "after": "e90e96270090909090"
+      },
+      {
+        "rva": 142505,
+        "lookupRva": 142505,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8a24727009090"
+      },
+      {
+        "rva": 142538,
+        "lookupRva": 142538,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8814727009090"
+      },
+      {
+        "rva": 142701,
+        "lookupRva": 142701,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8de4627009090"
+      },
+      {
+        "rva": 143098,
+        "lookupRva": 143105,
+        "kind": "find",
+        "before": "488d1563181200ff5030",
+        "after": "e9b19327009090909090"
+      },
+      {
+        "rva": 143168,
+        "lookupRva": 143168,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e80b4527009090"
+      },
+      {
+        "rva": 143201,
+        "lookupRva": 143201,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8ea4427009090"
+      },
+      {
+        "rva": 143836,
+        "lookupRva": 143836,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e86f4227009090"
+      },
+      {
+        "rva": 143869,
+        "lookupRva": 143869,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e84e4227009090"
+      },
+      {
+        "rva": 144290,
+        "lookupRva": 144295,
+        "kind": "find",
+        "before": "4c897c2430ff5030",
+        "after": "e9398f2700909090"
+      },
+      {
+        "rva": 144336,
+        "lookupRva": 144336,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e87b4027009090"
+      },
+      {
+        "rva": 144365,
+        "lookupRva": 144365,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e85e4027009090"
+      },
+      {
+        "rva": 157352,
+        "lookupRva": 157352,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8a30d270090"
+      },
+      {
+        "rva": 157810,
+        "lookupRva": 157810,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8d90b270090"
+      },
+      {
+        "rva": 157944,
+        "lookupRva": 157944,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8530b270090"
+      },
+      {
+        "rva": 158418,
+        "lookupRva": 158418,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e87909270090"
+      },
+      {
+        "rva": 159747,
+        "lookupRva": 159747,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8480427009090"
+      },
+      {
+        "rva": 159899,
+        "lookupRva": 159899,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8b00327009090"
+      },
+      {
+        "rva": 160370,
+        "lookupRva": 160370,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8d901270090"
+      },
+      {
+        "rva": 160510,
+        "lookupRva": 160510,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e84d01270090"
+      },
+      {
+        "rva": 160649,
+        "lookupRva": 160649,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8c200270090"
+      },
+      {
+        "rva": 160784,
+        "lookupRva": 160784,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e83b00270090"
+      },
+      {
+        "rva": 192552,
+        "lookupRva": 192552,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e82384260090"
+      },
+      {
+        "rva": 192617,
+        "lookupRva": 192617,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8e283260090"
+      },
+      {
+        "rva": 192937,
+        "lookupRva": 192937,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8a282260090"
+      },
+      {
+        "rva": 193007,
+        "lookupRva": 193007,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e85c82260090"
+      },
+      {
+        "rva": 194415,
+        "lookupRva": 194415,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8dc7c26009090"
+      },
+      {
+        "rva": 194526,
+        "lookupRva": 194529,
+        "kind": "find",
+        "before": "488bcb41ff5030",
+        "after": "e91dcb26009090"
+      },
+      {
+        "rva": 194564,
+        "lookupRva": 194564,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8477c26009090"
+      },
+      {
+        "rva": 205221,
+        "lookupRva": 205221,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8a652260090"
+      },
+      {
+        "rva": 205591,
+        "lookupRva": 205591,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e85452260090"
+      },
+      {
+        "rva": 205766,
+        "lookupRva": 205766,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e8a551260090"
+      },
+      {
+        "rva": 205987,
+        "lookupRva": 205987,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e8c850260090"
+      },
+      {
+        "rva": 207627,
+        "lookupRva": 207627,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e84049260090"
+      },
+      {
+        "rva": 207691,
+        "lookupRva": 207694,
+        "kind": "find",
+        "before": "488bcbff5030",
+        "after": "e9d097260090"
+      },
+      {
+        "rva": 207728,
+        "lookupRva": 207728,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8db48260090"
+      },
+      {
+        "rva": 207892,
+        "lookupRva": 207892,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8f748260090"
+      },
+      {
+        "rva": 208170,
+        "lookupRva": 208173,
+        "kind": "find",
+        "before": "488bcfff5030",
+        "after": "e91196260090"
+      },
+      {
+        "rva": 208277,
+        "lookupRva": 208277,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8b646260090"
+      },
+      {
+        "rva": 209481,
+        "lookupRva": 209481,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e80242260090"
+      },
+      {
+        "rva": 209617,
+        "lookupRva": 209617,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e87a4126009090"
+      },
+      {
+        "rva": 211472,
+        "lookupRva": 211472,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8fb3a260090"
+      },
+      {
+        "rva": 211789,
+        "lookupRva": 211796,
+        "kind": "find",
+        "before": "c605fcaf140001ff5030",
+        "after": "e90e8826009090909090"
+      },
+      {
+        "rva": 211854,
+        "lookupRva": 211854,
+        "kind": "field",
+        "before": "41ff92f0020000",
+        "after": "e87d3926009090"
+      },
+      {
+        "rva": 211926,
+        "lookupRva": 211926,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e83539260090"
+      },
+      {
+        "rva": 211997,
+        "lookupRva": 211997,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8ee38260090"
+      },
+      {
+        "rva": 212819,
+        "lookupRva": 212819,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8f834260090"
+      },
+      {
+        "rva": 217505,
+        "lookupRva": 217505,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8aa2226009090"
+      },
+      {
+        "rva": 217616,
+        "lookupRva": 217619,
+        "kind": "find",
+        "before": "488bcbff5030",
+        "after": "e97b71260090"
+      },
+      {
+        "rva": 217653,
+        "lookupRva": 217653,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8162226009090"
+      },
+      {
+        "rva": 219560,
+        "lookupRva": 219560,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8631b260090"
+      },
+      {
+        "rva": 219700,
+        "lookupRva": 219700,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8d71a260090"
+      },
+      {
+        "rva": 219876,
+        "lookupRva": 219876,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8671926009090"
+      },
+      {
+        "rva": 219909,
+        "lookupRva": 219909,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8461926009090"
+      },
+      {
+        "rva": 220007,
+        "lookupRva": 220010,
+        "kind": "find",
+        "before": "488bcfff5030",
+        "after": "e94468260090"
+      },
+      {
+        "rva": 220068,
+        "lookupRva": 220068,
+        "kind": "field",
+        "before": "41ff92f0020000",
+        "after": "e8671926009090"
+      },
+      {
+        "rva": 220140,
+        "lookupRva": 220140,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e81f19260090"
+      },
+      {
+        "rva": 220211,
+        "lookupRva": 220211,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8d818260090"
+      },
+      {
+        "rva": 231023,
+        "lookupRva": 231023,
+        "kind": "static_method",
+        "before": "ff9088030000",
+        "after": "e83cee250090"
+      },
+      {
+        "rva": 231337,
+        "lookupRva": 231337,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e8c2ed250090"
+      },
+      {
+        "rva": 231779,
+        "lookupRva": 231779,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8e8ea25009090"
+      },
+      {
+        "rva": 231815,
+        "lookupRva": 231815,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8c4ea25009090"
+      },
+      {
+        "rva": 233732,
+        "lookupRva": 233732,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e807e4250090"
+      },
+      {
+        "rva": 233814,
+        "lookupRva": 233814,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8b5e3250090"
+      },
+      {
+        "rva": 234021,
+        "lookupRva": 234021,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8e6e2250090"
+      },
+      {
+        "rva": 234091,
+        "lookupRva": 234091,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8a0e2250090"
+      },
+      {
+        "rva": 234260,
+        "lookupRva": 234260,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e837e1250090"
+      },
+      {
+        "rva": 234342,
+        "lookupRva": 234342,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8e5e0250090"
+      },
+      {
+        "rva": 234507,
+        "lookupRva": 234507,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e840e0250090"
+      },
+      {
+        "rva": 234660,
+        "lookupRva": 234660,
+        "kind": "static_method",
+        "before": "ff9088030000",
+        "after": "e807e0250090"
+      },
+      {
+        "rva": 234742,
+        "lookupRva": 234742,
+        "kind": "static_method",
+        "before": "ff9088030000",
+        "after": "e8b5df250090"
+      },
+      {
+        "rva": 234994,
+        "lookupRva": 234994,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e859de250090"
+      },
+      {
+        "rva": 235088,
+        "lookupRva": 235091,
+        "kind": "find",
+        "before": "488bcf41ff5030",
+        "after": "e97b2d26009090"
+      },
+      {
+        "rva": 235155,
+        "lookupRva": 235155,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8b8dd25009090"
+      },
+      {
+        "rva": 235313,
+        "lookupRva": 235316,
+        "kind": "find",
+        "before": "488bcfff5030",
+        "after": "e9ba2c260090"
+      },
+      {
+        "rva": 235393,
+        "lookupRva": 235393,
+        "kind": "static_method",
+        "before": "ff9088030000",
+        "after": "e82add250090"
+      },
+      {
+        "rva": 235510,
+        "lookupRva": 235510,
+        "kind": "static_method",
+        "before": "ff9088030000",
+        "after": "e8b5dc250090"
+      },
+      {
+        "rva": 235668,
+        "lookupRva": 235668,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8b7db25009090"
+      },
+      {
+        "rva": 236065,
+        "lookupRva": 236065,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8eada250090"
+      },
+      {
+        "rva": 236210,
+        "lookupRva": 236210,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e899d925009090"
+      },
+      {
+        "rva": 236352,
+        "lookupRva": 236352,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e80bd925009090"
+      },
+      {
+        "rva": 236646,
+        "lookupRva": 236649,
+        "kind": "find",
+        "before": "488bd9ff5030",
+        "after": "e9a527260090"
+      },
+      {
+        "rva": 236713,
+        "lookupRva": 236713,
+        "kind": "static_method",
+        "before": "41ff9288030000",
+        "after": "e802d825009090"
+      },
+      {
+        "rva": 236898,
+        "lookupRva": 236898,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8a9d7250090"
+      },
+      {
+        "rva": 236997,
+        "lookupRva": 236997,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e886d625009090"
+      },
+      {
+        "rva": 237127,
+        "lookupRva": 237127,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e804d625009090"
+      },
+      {
+        "rva": 237438,
+        "lookupRva": 237438,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e88dd5250090"
+      },
+      {
+        "rva": 237540,
+        "lookupRva": 237540,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e867d425009090"
+      },
+      {
+        "rva": 237708,
+        "lookupRva": 237708,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8bfd325009090"
+      },
+      {
+        "rva": 237738,
+        "lookupRva": 237745,
+        "kind": "find",
+        "before": "488d15cfa6100041ff5030",
+        "after": "e981232600909090909090"
+      },
+      {
+        "rva": 237789,
+        "lookupRva": 237789,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e86ed325009090"
+      },
+      {
+        "rva": 238194,
+        "lookupRva": 238194,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e8f9d2250090"
+      },
+      {
+        "rva": 238392,
+        "lookupRva": 238392,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8d3d1250090"
+      },
+      {
+        "rva": 238547,
+        "lookupRva": 238547,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e878d025009090"
+      },
+      {
+        "rva": 238728,
+        "lookupRva": 238728,
+        "kind": "field",
+        "before": "41ff92f0020000",
+        "after": "e883d025009090"
+      },
+      {
+        "rva": 238951,
+        "lookupRva": 238951,
+        "kind": "field",
+        "before": "41ff92f0020000",
+        "after": "e8a4cf25009090"
+      },
+      {
+        "rva": 238985,
+        "lookupRva": 238985,
+        "kind": "field",
+        "before": "41ff92f0020000",
+        "after": "e882cf25009090"
+      },
+      {
+        "rva": 242364,
+        "lookupRva": 242364,
+        "kind": "field",
+        "before": "41ff92f0020000",
+        "after": "e84fc225009090"
+      },
+      {
+        "rva": 242653,
+        "lookupRva": 242658,
+        "kind": "find",
+        "before": "48897c2468ff5030",
+        "after": "e97e102600909090"
+      },
+      {
+        "rva": 242736,
+        "lookupRva": 242736,
+        "kind": "static_method",
+        "before": "41ff9288030000",
+        "after": "e87bc025009090"
+      },
+      {
+        "rva": 242774,
+        "lookupRva": 242774,
+        "kind": "field",
+        "before": "41ff92f0020000",
+        "after": "e8b5c025009090"
+      },
+      {
+        "rva": 242807,
+        "lookupRva": 242807,
+        "kind": "field",
+        "before": "41ff92f0020000",
+        "after": "e894c025009090"
+      },
+      {
+        "rva": 242840,
+        "lookupRva": 242840,
+        "kind": "field",
+        "before": "41ff92f0020000",
+        "after": "e873c025009090"
+      },
+      {
+        "rva": 242916,
+        "lookupRva": 242919,
+        "kind": "find",
+        "before": "488bcbff5030",
+        "after": "e9a70f260090"
+      },
+      {
+        "rva": 242987,
+        "lookupRva": 242987,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e820bf25009090"
+      },
+      {
+        "rva": 243020,
+        "lookupRva": 243020,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8ffbe25009090"
+      },
+      {
+        "rva": 243454,
+        "lookupRva": 243454,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e86dbe250090"
+      },
+      {
+        "rva": 243546,
+        "lookupRva": 243546,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e811be250090"
+      },
+      {
+        "rva": 243638,
+        "lookupRva": 243638,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e8b5bd250090"
+      },
+      {
+        "rva": 243730,
+        "lookupRva": 243730,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e859bd250090"
+      },
+      {
+        "rva": 243822,
+        "lookupRva": 243822,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e8fdbc250090"
+      },
+      {
+        "rva": 243914,
+        "lookupRva": 243914,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e8a1bc250090"
+      },
+      {
+        "rva": 244006,
+        "lookupRva": 244006,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e845bc250090"
+      },
+      {
+        "rva": 244098,
+        "lookupRva": 244098,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e8e9bb250090"
+      },
+      {
+        "rva": 244190,
+        "lookupRva": 244190,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e88dbb250090"
+      },
+      {
+        "rva": 244282,
+        "lookupRva": 244282,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e831bb250090"
+      },
+      {
+        "rva": 244374,
+        "lookupRva": 244374,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e8d5ba250090"
+      },
+      {
+        "rva": 244466,
+        "lookupRva": 244466,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e879ba250090"
+      },
+      {
+        "rva": 244558,
+        "lookupRva": 244558,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e81dba250090"
+      },
+      {
+        "rva": 244650,
+        "lookupRva": 244650,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e8c1b9250090"
+      },
+      {
+        "rva": 244742,
+        "lookupRva": 244742,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e865b9250090"
+      },
+      {
+        "rva": 244834,
+        "lookupRva": 244834,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e809b9250090"
+      },
+      {
+        "rva": 244926,
+        "lookupRva": 244926,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e8adb8250090"
+      },
+      {
+        "rva": 245073,
+        "lookupRva": 245073,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e81ab8250090"
+      },
+      {
+        "rva": 245164,
+        "lookupRva": 245164,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e8bfb7250090"
+      },
+      {
+        "rva": 245255,
+        "lookupRva": 245255,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e864b7250090"
+      },
+      {
+        "rva": 245346,
+        "lookupRva": 245346,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e809b7250090"
+      },
+      {
+        "rva": 245437,
+        "lookupRva": 245437,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e8aeb6250090"
+      },
+      {
+        "rva": 245528,
+        "lookupRva": 245528,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e853b6250090"
+      },
+      {
+        "rva": 245619,
+        "lookupRva": 245619,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e8f8b5250090"
+      },
+      {
+        "rva": 245710,
+        "lookupRva": 245710,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e89db5250090"
+      },
+      {
+        "rva": 245801,
+        "lookupRva": 245801,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e842b5250090"
+      },
+      {
+        "rva": 245892,
+        "lookupRva": 245892,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e8e7b4250090"
+      },
+      {
+        "rva": 245983,
+        "lookupRva": 245983,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e88cb4250090"
+      },
+      {
+        "rva": 246074,
+        "lookupRva": 246074,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e831b4250090"
+      },
+      {
+        "rva": 246165,
+        "lookupRva": 246165,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e8d6b3250090"
+      },
+      {
+        "rva": 246256,
+        "lookupRva": 246256,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e87bb3250090"
+      },
+      {
+        "rva": 246347,
+        "lookupRva": 246347,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e820b3250090"
+      },
+      {
+        "rva": 246438,
+        "lookupRva": 246438,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e8c5b2250090"
+      },
+      {
+        "rva": 246529,
+        "lookupRva": 246529,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e86ab2250090"
+      },
+      {
+        "rva": 246620,
+        "lookupRva": 246620,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e80fb2250090"
+      },
+      {
+        "rva": 246711,
+        "lookupRva": 246711,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e8b4b1250090"
+      },
+      {
+        "rva": 246802,
+        "lookupRva": 246802,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e859b1250090"
+      },
+      {
+        "rva": 246893,
+        "lookupRva": 246893,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e8feb0250090"
+      },
+      {
+        "rva": 246984,
+        "lookupRva": 246984,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e8a3b0250090"
+      },
+      {
+        "rva": 247075,
+        "lookupRva": 247075,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e848b0250090"
+      },
+      {
+        "rva": 247247,
+        "lookupRva": 247247,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e89caf250090"
+      },
+      {
+        "rva": 247647,
+        "lookupRva": 247647,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e80cae250090"
+      },
+      {
+        "rva": 247780,
+        "lookupRva": 247780,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e887ad250090"
+      },
+      {
+        "rva": 247894,
+        "lookupRva": 247894,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e815ad250090"
+      },
+      {
+        "rva": 248009,
+        "lookupRva": 248009,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e8a2ac250090"
+      },
+      {
+        "rva": 248180,
+        "lookupRva": 248180,
+        "kind": "static_method",
+        "before": "ff9088030000",
+        "after": "e837ab250090"
+      },
+      {
+        "rva": 248584,
+        "lookupRva": 248584,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e863aa250090"
+      },
+      {
+        "rva": 248684,
+        "lookupRva": 248684,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e8ffa9250090"
+      },
+      {
+        "rva": 248785,
+        "lookupRva": 248785,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e89aa9250090"
+      },
+      {
+        "rva": 248886,
+        "lookupRva": 248886,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e835a9250090"
+      },
+      {
+        "rva": 249455,
+        "lookupRva": 249455,
+        "kind": "static_method",
+        "before": "ff9088030000",
+        "after": "e83ca6250090"
+      },
+      {
+        "rva": 249718,
+        "lookupRva": 249718,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e8f5a5250090"
+      },
+      {
+        "rva": 249937,
+        "lookupRva": 249937,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e81aa5250090"
+      },
+      {
+        "rva": 269691,
+        "lookupRva": 269691,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8d056250090"
+      },
+      {
+        "rva": 269868,
+        "lookupRva": 269868,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e81f5625009090"
+      },
+      {
+        "rva": 269901,
+        "lookupRva": 269901,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8fe5525009090"
+      },
+      {
+        "rva": 270699,
+        "lookupRva": 270699,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8e05225009090"
+      },
+      {
+        "rva": 270835,
+        "lookupRva": 270835,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8585225009090"
+      },
+      {
+        "rva": 270974,
+        "lookupRva": 270974,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8cd5125009090"
+      },
+      {
+        "rva": 271103,
+        "lookupRva": 271103,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e84c5125009090"
+      },
+      {
+        "rva": 271483,
+        "lookupRva": 271483,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8d04f250090"
+      },
+      {
+        "rva": 271611,
+        "lookupRva": 271611,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8504f25009090"
+      },
+      {
+        "rva": 271898,
+        "lookupRva": 271898,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8314e250090"
+      },
+      {
+        "rva": 272030,
+        "lookupRva": 272030,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8ad4d25009090"
+      },
+      {
+        "rva": 272162,
+        "lookupRva": 272162,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8294d25009090"
+      },
+      {
+        "rva": 272294,
+        "lookupRva": 272294,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8a54c25009090"
+      },
+      {
+        "rva": 272332,
+        "lookupRva": 272332,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e87f4c25009090"
+      },
+      {
+        "rva": 275355,
+        "lookupRva": 275355,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8b040250090"
+      },
+      {
+        "rva": 275468,
+        "lookupRva": 275468,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e83f4025009090"
+      },
+      {
+        "rva": 275597,
+        "lookupRva": 275597,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8be3f25009090"
+      },
+      {
+        "rva": 276053,
+        "lookupRva": 276053,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8f63d250090"
+      },
+      {
+        "rva": 276099,
+        "lookupRva": 276099,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8c83d250090"
+      },
+      {
+        "rva": 276220,
+        "lookupRva": 276220,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e84f3d25009090"
+      },
+      {
+        "rva": 276387,
+        "lookupRva": 276387,
+        "kind": "static_method",
+        "before": "41ff9288030000",
+        "after": "e8083d25009090"
+      },
+      {
+        "rva": 276671,
+        "lookupRva": 276671,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e88c3b250090"
+      },
+      {
+        "rva": 276798,
+        "lookupRva": 276798,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e80d3b25009090"
+      },
+      {
+        "rva": 276956,
+        "lookupRva": 276956,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e86f3a25009090"
+      },
+      {
+        "rva": 277123,
+        "lookupRva": 277123,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8c83925009090"
+      },
+      {
+        "rva": 277157,
+        "lookupRva": 277157,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8a63925009090"
+      },
+      {
+        "rva": 277336,
+        "lookupRva": 277336,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8f33825009090"
+      },
+      {
+        "rva": 277498,
+        "lookupRva": 277498,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8513825009090"
+      },
+      {
+        "rva": 277531,
+        "lookupRva": 277531,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8303825009090"
+      },
+      {
+        "rva": 277698,
+        "lookupRva": 277698,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8893725009090"
+      },
+      {
+        "rva": 280631,
+        "lookupRva": 280631,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e8342d250090"
+      },
+      {
+        "rva": 281493,
+        "lookupRva": 281493,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e8d629250090"
+      },
+      {
+        "rva": 281568,
+        "lookupRva": 281568,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e88b29250090"
+      },
+      {
+        "rva": 281642,
+        "lookupRva": 281642,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e84129250090"
+      },
+      {
+        "rva": 281716,
+        "lookupRva": 281716,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e8f728250090"
+      },
+      {
+        "rva": 281792,
+        "lookupRva": 281792,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e8ab28250090"
+      },
+      {
+        "rva": 281868,
+        "lookupRva": 281868,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e85f28250090"
+      },
+      {
+        "rva": 281942,
+        "lookupRva": 281942,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e81528250090"
+      },
+      {
+        "rva": 282017,
+        "lookupRva": 282017,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e86a27250090"
+      },
+      {
+        "rva": 282118,
+        "lookupRva": 282118,
+        "kind": "field",
+        "before": "41ff92f0020000",
+        "after": "e8052725009090"
+      },
+      {
+        "rva": 282301,
+        "lookupRva": 282301,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e84e26250090"
+      },
+      {
+        "rva": 282398,
+        "lookupRva": 282405,
+        "kind": "find",
+        "before": "488d1547f50f0041ff5030",
+        "after": "e98d752500909090909090"
+      },
+      {
+        "rva": 283462,
+        "lookupRva": 283462,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8052125009090"
+      },
+      {
+        "rva": 283497,
+        "lookupRva": 283497,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8e22025009090"
+      },
+      {
+        "rva": 283762,
+        "lookupRva": 283762,
+        "kind": "field",
+        "before": "41ff92f0020000",
+        "after": "e8992025009090"
+      },
+      {
+        "rva": 285621,
+        "lookupRva": 285628,
+        "kind": "find",
+        "before": "488d15b0e80f00ff5030",
+        "after": "e9266925009090909090"
+      },
+      {
+        "rva": 285704,
+        "lookupRva": 285704,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e80319250090"
+      },
+      {
+        "rva": 285787,
+        "lookupRva": 285787,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8b018250090"
+      },
+      {
+        "rva": 285870,
+        "lookupRva": 285870,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e85d18250090"
+      },
+      {
+        "rva": 285953,
+        "lookupRva": 285953,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e80a18250090"
+      },
+      {
+        "rva": 286214,
+        "lookupRva": 286214,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e84516250090"
+      },
+      {
+        "rva": 286251,
+        "lookupRva": 286251,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8201625009090"
+      },
+      {
+        "rva": 286713,
+        "lookupRva": 286720,
+        "kind": "find",
+        "before": "488d158ce50f00ff5030",
+        "after": "e9126525009090909090"
+      },
+      {
+        "rva": 287086,
+        "lookupRva": 287093,
+        "kind": "find",
+        "before": "488d15f7e20f00ff5030",
+        "after": "e9cd6325009090909090"
+      },
+      {
+        "rva": 288159,
+        "lookupRva": 288166,
+        "kind": "find",
+        "before": "488d15e6df0f00ff5030",
+        "after": "e9cc5f25009090909090"
+      },
+      {
+        "rva": 288208,
+        "lookupRva": 288208,
+        "kind": "field",
+        "before": "41ff92f0020000",
+        "after": "e83b0f25009090"
+      },
+      {
+        "rva": 288292,
+        "lookupRva": 288292,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8e70e250090"
+      },
+      {
+        "rva": 288375,
+        "lookupRva": 288375,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8d40d250090"
+      },
+      {
+        "rva": 288469,
+        "lookupRva": 288476,
+        "kind": "find",
+        "before": "488d1590dd0f00ff5030",
+        "after": "e9c65e25009090909090"
+      },
+      {
+        "rva": 288514,
+        "lookupRva": 288514,
+        "kind": "field",
+        "before": "41ff92f0020000",
+        "after": "e8090e25009090"
+      },
+      {
+        "rva": 289750,
+        "lookupRva": 289757,
+        "kind": "find",
+        "before": "488d15afd90f00ff5030",
+        "after": "e9f55925009090909090"
+      },
+      {
+        "rva": 289773,
+        "lookupRva": 289780,
+        "kind": "find",
+        "before": "488d1578d80f0041ff5030",
+        "after": "e90e5a2500909090909090"
+      },
+      {
+        "rva": 289796,
+        "lookupRva": 289803,
+        "kind": "find",
+        "before": "488d15e9e90f0041ff5030",
+        "after": "e9275a2500909090909090"
+      },
+      {
+        "rva": 289857,
+        "lookupRva": 289857,
+        "kind": "field",
+        "before": "41ff92f0020000",
+        "after": "e8ca0825009090"
+      },
+      {
+        "rva": 289951,
+        "lookupRva": 289951,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e86c08250090"
+      },
+      {
+        "rva": 290044,
+        "lookupRva": 290044,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e80f08250090"
+      },
+      {
+        "rva": 290137,
+        "lookupRva": 290137,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8b207250090"
+      },
+      {
+        "rva": 290230,
+        "lookupRva": 290230,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e89506250090"
+      },
+      {
+        "rva": 290725,
+        "lookupRva": 290725,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e86605250090"
+      },
+      {
+        "rva": 290817,
+        "lookupRva": 290817,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e84a04250090"
+      },
+      {
+        "rva": 290950,
+        "lookupRva": 290950,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8c503250090"
+      },
+      {
+        "rva": 291081,
+        "lookupRva": 291081,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e80204250090"
+      },
+      {
+        "rva": 291178,
+        "lookupRva": 291178,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8a103250090"
+      },
+      {
+        "rva": 291275,
+        "lookupRva": 291275,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e84003250090"
+      },
+      {
+        "rva": 291372,
+        "lookupRva": 291372,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8df02250090"
+      },
+      {
+        "rva": 291469,
+        "lookupRva": 291469,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e87e02250090"
+      },
+      {
+        "rva": 291561,
+        "lookupRva": 291561,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e86201250090"
+      },
+      {
+        "rva": 291653,
+        "lookupRva": 291653,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e80601250090"
+      },
+      {
+        "rva": 303592,
+        "lookupRva": 303592,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e863d224009090"
+      },
+      {
+        "rva": 303842,
+        "lookupRva": 303842,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e869d124009090"
+      },
+      {
+        "rva": 304511,
+        "lookupRva": 304511,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e88ccf240090"
+      },
+      {
+        "rva": 304706,
+        "lookupRva": 304706,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e809ce24009090"
+      },
+      {
+        "rva": 304836,
+        "lookupRva": 304836,
+        "kind": "static_method",
+        "before": "ff9088030000",
+        "after": "e8e7cd240090"
+      },
+      {
+        "rva": 305232,
+        "lookupRva": 305237,
+        "kind": "find",
+        "before": "4c89742428ff5030",
+        "after": "e90b1e2500909090"
+      },
+      {
+        "rva": 305253,
+        "lookupRva": 305256,
+        "kind": "find",
+        "before": "4c8be841ff5030",
+        "after": "e9161e25009090"
+      },
+      {
+        "rva": 305273,
+        "lookupRva": 305276,
+        "kind": "find",
+        "before": "488bf041ff5030",
+        "after": "e9221e25009090"
+      },
+      {
+        "rva": 305363,
+        "lookupRva": 305363,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e878cb240090"
+      },
+      {
+        "rva": 305397,
+        "lookupRva": 305397,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e856cb24009090"
+      },
+      {
+        "rva": 305430,
+        "lookupRva": 305430,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e835cb24009090"
+      },
+      {
+        "rva": 305954,
+        "lookupRva": 305954,
+        "kind": "field",
+        "before": "41ff92f0020000",
+        "after": "e8e9c924009090"
+      },
+      {
+        "rva": 305989,
+        "lookupRva": 305989,
+        "kind": "field",
+        "before": "41ff92f0020000",
+        "after": "e8c6c924009090"
+      },
+      {
+        "rva": 306022,
+        "lookupRva": 306022,
+        "kind": "field",
+        "before": "41ff92f0020000",
+        "after": "e8a5c924009090"
+      },
+      {
+        "rva": 306055,
+        "lookupRva": 306055,
+        "kind": "field",
+        "before": "41ff92f0020000",
+        "after": "e884c924009090"
+      },
+      {
+        "rva": 306088,
+        "lookupRva": 306088,
+        "kind": "field",
+        "before": "41ff92f0020000",
+        "after": "e863c924009090"
+      },
+      {
+        "rva": 306121,
+        "lookupRva": 306121,
+        "kind": "field",
+        "before": "41ff92f0020000",
+        "after": "e842c924009090"
+      },
+      {
+        "rva": 308176,
+        "lookupRva": 308176,
+        "kind": "static_field",
+        "before": "41ff9280040000",
+        "after": "e89bc124009090"
+      },
+      {
+        "rva": 310413,
+        "lookupRva": 310416,
+        "kind": "find",
+        "before": "488bcbff5030",
+        "after": "e92e0a250090"
+      },
+      {
+        "rva": 310624,
+        "lookupRva": 310624,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8ebb6240090"
+      },
+      {
+        "rva": 310883,
+        "lookupRva": 310883,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8a8b6240090"
+      },
+      {
+        "rva": 310912,
+        "lookupRva": 310912,
+        "kind": "field",
+        "before": "41ff92f0020000",
+        "after": "e88bb624009090"
+      },
+      {
+        "rva": 310942,
+        "lookupRva": 310942,
+        "kind": "field",
+        "before": "41ff92f0020000",
+        "after": "e86db624009090"
+      },
+      {
+        "rva": 311059,
+        "lookupRva": 311059,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8f8b5240090"
+      },
+      {
+        "rva": 311155,
+        "lookupRva": 311155,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e898b5240090"
+      },
+      {
+        "rva": 311292,
+        "lookupRva": 311292,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e84fb4240090"
+      },
+      {
+        "rva": 311443,
+        "lookupRva": 311450,
+        "kind": "find",
+        "before": "488d15ee4a0f00ff5030",
+        "after": "e9480625009090909090"
+      },
+      {
+        "rva": 311466,
+        "lookupRva": 311469,
+        "kind": "find",
+        "before": "4c8bf041ff5030",
+        "after": "e9610625009090"
+      },
+      {
+        "rva": 311542,
+        "lookupRva": 311542,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e855b324009090"
+      },
+      {
+        "rva": 311575,
+        "lookupRva": 311575,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e834b324009090"
+      },
+      {
+        "rva": 311944,
+        "lookupRva": 311944,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8c3b1240090"
+      },
+      {
+        "rva": 312009,
+        "lookupRva": 312009,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e882b124009090"
+      },
+      {
+        "rva": 312916,
+        "lookupRva": 312916,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8f7ad24009090"
+      },
+      {
+        "rva": 312993,
+        "lookupRva": 312993,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e86aae240090"
+      },
+      {
+        "rva": 313152,
+        "lookupRva": 313152,
+        "kind": "field",
+        "before": "41ff92f0020000",
+        "after": "e8cbad24009090"
+      },
+      {
+        "rva": 313451,
+        "lookupRva": 313454,
+        "kind": "find",
+        "before": "488bcbff5030",
+        "after": "e9c0fe240090"
+      },
+      {
+        "rva": 313597,
+        "lookupRva": 313597,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e80eac240090"
+      },
+      {
+        "rva": 313668,
+        "lookupRva": 313668,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8c7ab240090"
+      },
+      {
+        "rva": 313704,
+        "lookupRva": 313704,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8a3ab240090"
+      },
+      {
+        "rva": 313861,
+        "lookupRva": 313864,
+        "kind": "find",
+        "before": "488bcbff5030",
+        "after": "e946fd240090"
+      },
+      {
+        "rva": 314261,
+        "lookupRva": 314264,
+        "kind": "find",
+        "before": "488bcbff5030",
+        "after": "e9d6fb240090"
+      },
+      {
+        "rva": 314322,
+        "lookupRva": 314322,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e839a9240090"
+      },
+      {
+        "rva": 314358,
+        "lookupRva": 314358,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e815a9240090"
+      },
+      {
+        "rva": 314394,
+        "lookupRva": 314394,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8f1a8240090"
+      },
+      {
+        "rva": 314430,
+        "lookupRva": 314430,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8cda8240090"
+      },
+      {
+        "rva": 314466,
+        "lookupRva": 314466,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8a9a8240090"
+      },
+      {
+        "rva": 314502,
+        "lookupRva": 314502,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e885a8240090"
+      },
+      {
+        "rva": 314538,
+        "lookupRva": 314538,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e861a8240090"
+      },
+      {
+        "rva": 314574,
+        "lookupRva": 314574,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e83da8240090"
+      },
+      {
+        "rva": 314619,
+        "lookupRva": 314619,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e810a8240090"
+      },
+      {
+        "rva": 315187,
+        "lookupRva": 315187,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e818a524009090"
+      },
+      {
+        "rva": 315220,
+        "lookupRva": 315220,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8f7a424009090"
+      },
+      {
+        "rva": 315409,
+        "lookupRva": 315409,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8faa4240090"
+      },
+      {
+        "rva": 315483,
+        "lookupRva": 315483,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8b0a4240090"
+      },
+      {
+        "rva": 315568,
+        "lookupRva": 315568,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e85ba4240090"
+      },
+      {
+        "rva": 315637,
+        "lookupRva": 315637,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e816a4240090"
+      },
+      {
+        "rva": 315702,
+        "lookupRva": 315702,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8d5a3240090"
+      },
+      {
+        "rva": 315789,
+        "lookupRva": 315789,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e87ea3240090"
+      },
+      {
+        "rva": 315834,
+        "lookupRva": 315834,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e891a2240090"
+      },
+      {
+        "rva": 316103,
+        "lookupRva": 316103,
+        "kind": "field",
+        "before": "41ff92f0020000",
+        "after": "e844a224009090"
+      },
+      {
+        "rva": 316140,
+        "lookupRva": 316140,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e81fa2240090"
+      },
+      {
+        "rva": 316176,
+        "lookupRva": 316176,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8fba1240090"
+      },
+      {
+        "rva": 316212,
+        "lookupRva": 316212,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8d7a1240090"
+      },
+      {
+        "rva": 316248,
+        "lookupRva": 316248,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8b3a1240090"
+      },
+      {
+        "rva": 316284,
+        "lookupRva": 316284,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e88fa1240090"
+      },
+      {
+        "rva": 316320,
+        "lookupRva": 316320,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e86ba1240090"
+      },
+      {
+        "rva": 316356,
+        "lookupRva": 316356,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e847a1240090"
+      },
+      {
+        "rva": 316401,
+        "lookupRva": 316401,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e81aa1240090"
+      },
+      {
+        "rva": 316478,
+        "lookupRva": 316478,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8cda0240090"
+      },
+      {
+        "rva": 316552,
+        "lookupRva": 316552,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e883a0240090"
+      },
+      {
+        "rva": 316637,
+        "lookupRva": 316637,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e82ea0240090"
+      },
+      {
+        "rva": 316706,
+        "lookupRva": 316706,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8e99f240090"
+      },
+      {
+        "rva": 316771,
+        "lookupRva": 316771,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8a89f240090"
+      },
+      {
+        "rva": 316858,
+        "lookupRva": 316858,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8519f240090"
+      },
+      {
+        "rva": 316905,
+        "lookupRva": 316905,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8629e240090"
+      },
+      {
+        "rva": 317189,
+        "lookupRva": 317189,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8069e240090"
+      },
+      {
+        "rva": 317658,
+        "lookupRva": 317661,
+        "kind": "find",
+        "before": "488bcbff5030",
+        "after": "e9b1ee240090"
+      },
+      {
+        "rva": 317719,
+        "lookupRva": 317719,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8349b240090"
+      },
+      {
+        "rva": 317872,
+        "lookupRva": 317875,
+        "kind": "find",
+        "before": "488bcbff5030",
+        "after": "e9fbed240090"
+      },
+      {
+        "rva": 317950,
+        "lookupRva": 317953,
+        "kind": "find",
+        "before": "488bcbff5030",
+        "after": "e9cded240090"
+      },
+      {
+        "rva": 318067,
+        "lookupRva": 318070,
+        "kind": "find",
+        "before": "488bcbff5030",
+        "after": "e978ed240090"
+      },
+      {
+        "rva": 318154,
+        "lookupRva": 318157,
+        "kind": "find",
+        "before": "488bcbff5030",
+        "after": "e941ed240090"
+      },
+      {
+        "rva": 318215,
+        "lookupRva": 318215,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8449924009090"
+      },
+      {
+        "rva": 318252,
+        "lookupRva": 318252,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e81f99240090"
+      },
+      {
+        "rva": 369052,
+        "lookupRva": 369052,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8afd2230090"
+      },
+      {
+        "rva": 369191,
+        "lookupRva": 369191,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e824d223009090"
+      },
+      {
+        "rva": 430994,
+        "lookupRva": 430994,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8b9e022009090"
+      },
+      {
+        "rva": 431283,
+        "lookupRva": 431283,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e898df22009090"
+      },
+      {
+        "rva": 431316,
+        "lookupRva": 431316,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e877df22009090"
+      },
+      {
+        "rva": 477745,
+        "lookupRva": 477745,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e81a2a22009090"
+      },
+      {
+        "rva": 477778,
+        "lookupRva": 477778,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8f92922009090"
+      },
+      {
+        "rva": 478083,
+        "lookupRva": 478083,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8c82822009090"
+      },
+      {
+        "rva": 478116,
+        "lookupRva": 478116,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8a72822009090"
+      },
+      {
+        "rva": 478547,
+        "lookupRva": 478547,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8f826220090"
+      },
+      {
+        "rva": 478631,
+        "lookupRva": 478631,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8a426220090"
+      },
+      {
+        "rva": 478696,
+        "lookupRva": 478699,
+        "kind": "find",
+        "before": "488b16ff5030",
+        "after": "e9437a220090"
+      },
+      {
+        "rva": 478804,
+        "lookupRva": 478804,
+        "kind": "static_method",
+        "before": "ff9088030000",
+        "after": "e85726220090"
+      },
+      {
+        "rva": 478890,
+        "lookupRva": 478890,
+        "kind": "static_method",
+        "before": "ff9088030000",
+        "after": "e80126220090"
+      },
+      {
+        "rva": 492106,
+        "lookupRva": 492106,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e801f2210090"
+      },
+      {
+        "rva": 492171,
+        "lookupRva": 492171,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8c0f1210090"
+      },
+      {
+        "rva": 492465,
+        "lookupRva": 492465,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e89af021009090"
+      },
+      {
+        "rva": 492531,
+        "lookupRva": 492531,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e858f0210090"
+      },
+      {
+        "rva": 495456,
+        "lookupRva": 495456,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8ebe421009090"
+      },
+      {
+        "rva": 495522,
+        "lookupRva": 495522,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8a9e4210090"
+      },
+      {
+        "rva": 495913,
+        "lookupRva": 495913,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e822e321009090"
+      },
+      {
+        "rva": 495980,
+        "lookupRva": 495980,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8dfe2210090"
+      },
+      {
+        "rva": 511804,
+        "lookupRva": 511804,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e80fa521009090"
+      },
+      {
+        "rva": 511936,
+        "lookupRva": 511936,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e88ba421009090"
+      },
+      {
+        "rva": 511969,
+        "lookupRva": 511969,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e86aa421009090"
+      },
+      {
+        "rva": 574462,
+        "lookupRva": 574467,
+        "kind": "find",
+        "before": "4889742460ff5030",
+        "after": "e94d042100909090"
+      },
+      {
+        "rva": 574583,
+        "lookupRva": 574588,
+        "kind": "find",
+        "before": "4c897c2440ff5030",
+        "after": "e904042100909090"
+      },
+      {
+        "rva": 574604,
+        "lookupRva": 574607,
+        "kind": "find",
+        "before": "488b03ff5030",
+        "after": "e90f04210090"
+      },
+      {
+        "rva": 574623,
+        "lookupRva": 574626,
+        "kind": "find",
+        "before": "488b03ff5030",
+        "after": "e91c04210090"
+      },
+      {
+        "rva": 574642,
+        "lookupRva": 574645,
+        "kind": "find",
+        "before": "488b03ff5030",
+        "after": "e92904210090"
+      },
+      {
+        "rva": 574661,
+        "lookupRva": 574664,
+        "kind": "find",
+        "before": "488b03ff5030",
+        "after": "e93604210090"
+      },
+      {
+        "rva": 574680,
+        "lookupRva": 574683,
+        "kind": "find",
+        "before": "488b03ff5030",
+        "after": "e94304210090"
+      },
+      {
+        "rva": 574699,
+        "lookupRva": 574702,
+        "kind": "find",
+        "before": "488b03ff5030",
+        "after": "e95004210090"
+      },
+      {
+        "rva": 574723,
+        "lookupRva": 574726,
+        "kind": "find",
+        "before": "488bcbff5030",
+        "after": "e95804210090"
+      },
+      {
+        "rva": 574747,
+        "lookupRva": 574750,
+        "kind": "find",
+        "before": "488bcbff5030",
+        "after": "e96004210090"
+      },
+      {
+        "rva": 574771,
+        "lookupRva": 574774,
+        "kind": "find",
+        "before": "488bcbff5030",
+        "after": "e96804210090"
+      },
+      {
+        "rva": 574792,
+        "lookupRva": 574795,
+        "kind": "find",
+        "before": "488bcbff5030",
+        "after": "e97304210090"
+      },
+      {
+        "rva": 574813,
+        "lookupRva": 574816,
+        "kind": "find",
+        "before": "488bcbff5030",
+        "after": "e97e04210090"
+      },
+      {
+        "rva": 574834,
+        "lookupRva": 574837,
+        "kind": "find",
+        "before": "488bcbff5030",
+        "after": "e98904210090"
+      },
+      {
+        "rva": 575524,
+        "lookupRva": 575524,
+        "kind": "static_method",
+        "before": "ff9088030000",
+        "after": "e887ac200090"
+      },
+      {
+        "rva": 575561,
+        "lookupRva": 575561,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e802ac200090"
+      },
+      {
+        "rva": 575598,
+        "lookupRva": 575598,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8ddab200090"
+      },
+      {
+        "rva": 575635,
+        "lookupRva": 575635,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8b8ab200090"
+      },
+      {
+        "rva": 575672,
+        "lookupRva": 575672,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e893ab200090"
+      },
+      {
+        "rva": 575709,
+        "lookupRva": 575709,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e86eab200090"
+      },
+      {
+        "rva": 575746,
+        "lookupRva": 575746,
+        "kind": "static_method",
+        "before": "ff9088030000",
+        "after": "e8a9ab200090"
+      },
+      {
+        "rva": 575783,
+        "lookupRva": 575783,
+        "kind": "static_method",
+        "before": "ff9088030000",
+        "after": "e884ab200090"
+      },
+      {
+        "rva": 575820,
+        "lookupRva": 575820,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8ffaa200090"
+      },
+      {
+        "rva": 575857,
+        "lookupRva": 575857,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8daaa200090"
+      },
+      {
+        "rva": 575894,
+        "lookupRva": 575894,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8b5aa200090"
+      },
+      {
+        "rva": 575931,
+        "lookupRva": 575931,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e890aa200090"
+      },
+      {
+        "rva": 575968,
+        "lookupRva": 575968,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e86baa200090"
+      },
+      {
+        "rva": 576005,
+        "lookupRva": 576005,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e846aa200090"
+      },
+      {
+        "rva": 576042,
+        "lookupRva": 576042,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e821aa200090"
+      },
+      {
+        "rva": 576079,
+        "lookupRva": 576079,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8fca9200090"
+      },
+      {
+        "rva": 576116,
+        "lookupRva": 576116,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8d7a9200090"
+      },
+      {
+        "rva": 576190,
+        "lookupRva": 576190,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e88da9200090"
+      },
+      {
+        "rva": 576262,
+        "lookupRva": 576262,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e845a9200090"
+      },
+      {
+        "rva": 576299,
+        "lookupRva": 576299,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e820a9200090"
+      },
+      {
+        "rva": 576336,
+        "lookupRva": 576336,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8fba8200090"
+      },
+      {
+        "rva": 576373,
+        "lookupRva": 576373,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8d6a8200090"
+      },
+      {
+        "rva": 576410,
+        "lookupRva": 576410,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8b1a8200090"
+      },
+      {
+        "rva": 576482,
+        "lookupRva": 576482,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e829a9200090"
+      },
+      {
+        "rva": 576540,
+        "lookupRva": 576543,
+        "kind": "find",
+        "before": "488bcbff5030",
+        "after": "e9fffd200090"
+      },
+      {
+        "rva": 576620,
+        "lookupRva": 576620,
+        "kind": "static_method",
+        "before": "41ff9288030000",
+        "after": "e83fa820009090"
+      },
+      {
+        "rva": 576658,
+        "lookupRva": 576658,
+        "kind": "static_method",
+        "before": "ff9088030000",
+        "after": "e819a8200090"
+      },
+      {
+        "rva": 576695,
+        "lookupRva": 576695,
+        "kind": "static_method",
+        "before": "ff9088030000",
+        "after": "e8f4a7200090"
+      },
+      {
+        "rva": 576732,
+        "lookupRva": 576732,
+        "kind": "static_method",
+        "before": "ff9088030000",
+        "after": "e8cfa7200090"
+      },
+      {
+        "rva": 576769,
+        "lookupRva": 576769,
+        "kind": "static_method",
+        "before": "ff9088030000",
+        "after": "e8aaa7200090"
+      },
+      {
+        "rva": 576806,
+        "lookupRva": 576806,
+        "kind": "static_method",
+        "before": "ff9088030000",
+        "after": "e885a7200090"
+      },
+      {
+        "rva": 576942,
+        "lookupRva": 576942,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e85da7200090"
+      },
+      {
+        "rva": 576979,
+        "lookupRva": 576979,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e838a7200090"
+      },
+      {
+        "rva": 577016,
+        "lookupRva": 577016,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e813a7200090"
+      },
+      {
+        "rva": 577053,
+        "lookupRva": 577053,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8eea6200090"
+      },
+      {
+        "rva": 577090,
+        "lookupRva": 577090,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8c9a6200090"
+      },
+      {
+        "rva": 577127,
+        "lookupRva": 577127,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8a4a6200090"
+      },
+      {
+        "rva": 577164,
+        "lookupRva": 577164,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e87fa6200090"
+      },
+      {
+        "rva": 577201,
+        "lookupRva": 577201,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e85aa6200090"
+      },
+      {
+        "rva": 577224,
+        "lookupRva": 577227,
+        "kind": "find",
+        "before": "488bcbff5030",
+        "after": "e973fb200090"
+      },
+      {
+        "rva": 577277,
+        "lookupRva": 577277,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e80ea6200090"
+      },
+      {
+        "rva": 586667,
+        "lookupRva": 586667,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8a08020009090"
+      },
+      {
+        "rva": 586849,
+        "lookupRva": 586849,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8ea7f20009090"
+      },
+      {
+        "rva": 681212,
+        "lookupRva": 681212,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e84f0f1f0090"
+      },
+      {
+        "rva": 681425,
+        "lookupRva": 681425,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e87a0e1f0090"
+      },
+      {
+        "rva": 681606,
+        "lookupRva": 681606,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8c50d1f0090"
+      },
+      {
+        "rva": 681641,
+        "lookupRva": 681641,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8a20d1f0090"
+      },
+      {
+        "rva": 681854,
+        "lookupRva": 681854,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8cd0c1f0090"
+      },
+      {
+        "rva": 691715,
+        "lookupRva": 691715,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e848e61e0090"
+      },
+      {
+        "rva": 691824,
+        "lookupRva": 691827,
+        "kind": "find",
+        "before": "488bcbff5030",
+        "after": "e9eb3b1f0090"
+      },
+      {
+        "rva": 692000,
+        "lookupRva": 692003,
+        "kind": "find",
+        "before": "488bcbff5030",
+        "after": "e95b3b1f0090"
+      },
+      {
+        "rva": 692037,
+        "lookupRva": 692037,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e826e61e0090"
+      },
+      {
+        "rva": 692137,
+        "lookupRva": 692140,
+        "kind": "find",
+        "before": "488bcbff5030",
+        "after": "e9f23a1f0090"
+      },
+      {
+        "rva": 692174,
+        "lookupRva": 692174,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e87de41e0090"
+      },
+      {
+        "rva": 694000,
+        "lookupRva": 694000,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e85bdd1e0090"
+      },
+      {
+        "rva": 694032,
+        "lookupRva": 694032,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8fbdd1e0090"
+      },
+      {
+        "rva": 702666,
+        "lookupRva": 702666,
+        "kind": "field",
+        "before": "41ff92f0020000",
+        "after": "e841bc1e009090"
+      },
+      {
+        "rva": 702822,
+        "lookupRva": 702822,
+        "kind": "field",
+        "before": "41ff92f0020000",
+        "after": "e8a5bb1e009090"
+      },
+      {
+        "rva": 702998,
+        "lookupRva": 702998,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e835ba1e009090"
+      },
+      {
+        "rva": 703031,
+        "lookupRva": 703031,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e814ba1e009090"
+      },
+      {
+        "rva": 703110,
+        "lookupRva": 703113,
+        "kind": "find",
+        "before": "488bcbff5030",
+        "after": "e935101f0090"
+      },
+      {
+        "rva": 703134,
+        "lookupRva": 703137,
+        "kind": "find",
+        "before": "488bcb41ff5030",
+        "after": "e93d101f009090"
+      },
+      {
+        "rva": 703177,
+        "lookupRva": 703177,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e882b91e009090"
+      },
+      {
+        "rva": 703225,
+        "lookupRva": 703225,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e852b91e0090"
+      },
+      {
+        "rva": 703660,
+        "lookupRva": 703660,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e89fb71e009090"
+      },
+      {
+        "rva": 736362,
+        "lookupRva": 736362,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8e1371e0090"
+      },
+      {
+        "rva": 744769,
+        "lookupRva": 744769,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e80a171e0090"
+      },
+      {
+        "rva": 744918,
+        "lookupRva": 744918,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e875161e009090"
+      },
+      {
+        "rva": 745064,
+        "lookupRva": 745064,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8e3151e009090"
+      },
+      {
+        "rva": 745103,
+        "lookupRva": 745103,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8bc151e009090"
+      },
+      {
+        "rva": 745289,
+        "lookupRva": 745289,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e802151e009090"
+      },
+      {
+        "rva": 745324,
+        "lookupRva": 745324,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8df141e009090"
+      },
+      {
+        "rva": 746112,
+        "lookupRva": 746112,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8cb111e009090"
+      },
+      {
+        "rva": 746277,
+        "lookupRva": 746277,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e826111e009090"
+      },
+      {
+        "rva": 746462,
+        "lookupRva": 746462,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e86d101e009090"
+      },
+      {
+        "rva": 746501,
+        "lookupRva": 746501,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e846101e009090"
+      },
+      {
+        "rva": 746685,
+        "lookupRva": 746685,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e88e0f1e009090"
+      },
+      {
+        "rva": 746720,
+        "lookupRva": 746720,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e86b0f1e009090"
+      },
+      {
+        "rva": 747200,
+        "lookupRva": 747200,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e88b0d1e009090"
+      },
+      {
+        "rva": 809400,
+        "lookupRva": 809400,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8931a1d009090"
+      },
+      {
+        "rva": 809645,
+        "lookupRva": 809645,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e89e191d009090"
+      },
+      {
+        "rva": 809898,
+        "lookupRva": 809898,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8a1181d009090"
+      },
+      {
+        "rva": 810880,
+        "lookupRva": 810880,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8cb141d0090"
+      },
+      {
+        "rva": 813167,
+        "lookupRva": 813167,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e89c0c1d0090"
+      },
+      {
+        "rva": 813373,
+        "lookupRva": 813373,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e80e0b1d009090"
+      },
+      {
+        "rva": 813492,
+        "lookupRva": 813492,
+        "kind": "static_method",
+        "before": "41ff9288030000",
+        "after": "e8f70a1d009090"
+      },
+      {
+        "rva": 816980,
+        "lookupRva": 816980,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e817fe1c0090"
+      },
+      {
+        "rva": 817017,
+        "lookupRva": 817017,
+        "kind": "static_field",
+        "before": "41ff9280040000",
+        "after": "e8f2fd1c009090"
+      },
+      {
+        "rva": 817050,
+        "lookupRva": 817050,
+        "kind": "static_field",
+        "before": "41ff9280040000",
+        "after": "e8d1fd1c009090"
+      },
+      {
+        "rva": 817083,
+        "lookupRva": 817083,
+        "kind": "static_field",
+        "before": "41ff9280040000",
+        "after": "e8b0fd1c009090"
+      },
+      {
+        "rva": 817116,
+        "lookupRva": 817116,
+        "kind": "static_field",
+        "before": "41ff9280040000",
+        "after": "e88ffd1c009090"
+      },
+      {
+        "rva": 817149,
+        "lookupRva": 817149,
+        "kind": "static_field",
+        "before": "41ff9280040000",
+        "after": "e86efd1c009090"
+      },
+      {
+        "rva": 817182,
+        "lookupRva": 817182,
+        "kind": "static_field",
+        "before": "41ff9280040000",
+        "after": "e84dfd1c009090"
+      },
+      {
+        "rva": 817220,
+        "lookupRva": 817220,
+        "kind": "static_field",
+        "before": "41ff9280040000",
+        "after": "e827fd1c009090"
+      },
+      {
+        "rva": 817258,
+        "lookupRva": 817258,
+        "kind": "static_field",
+        "before": "41ff9280040000",
+        "after": "e801fd1c009090"
+      },
+      {
+        "rva": 817296,
+        "lookupRva": 817296,
+        "kind": "static_field",
+        "before": "41ff9280040000",
+        "after": "e8dbfc1c009090"
+      },
+      {
+        "rva": 817331,
+        "lookupRva": 817331,
+        "kind": "static_field",
+        "before": "41ff9280040000",
+        "after": "e8b8fc1c009090"
+      },
+      {
+        "rva": 817784,
+        "lookupRva": 817787,
+        "kind": "find",
+        "before": "488bcbff5030",
+        "after": "e983501d0090"
+      },
+      {
+        "rva": 818214,
+        "lookupRva": 818214,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8e5f81c0090"
+      },
+      {
+        "rva": 818396,
+        "lookupRva": 818396,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e86ff71c0090"
+      },
+      {
+        "rva": 818530,
+        "lookupRva": 818530,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8e9f61c0090"
+      },
+      {
+        "rva": 818664,
+        "lookupRva": 818664,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e863f61c0090"
+      },
+      {
+        "rva": 819040,
+        "lookupRva": 819040,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8ebf41c0090"
+      },
+      {
+        "rva": 819174,
+        "lookupRva": 819174,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e865f41c0090"
+      },
+      {
+        "rva": 819827,
+        "lookupRva": 819827,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e898f21c0090"
+      },
+      {
+        "rva": 819999,
+        "lookupRva": 819999,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e82cf11c0090"
+      },
+      {
+        "rva": 820143,
+        "lookupRva": 820143,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e89cf01c0090"
+      },
+      {
+        "rva": 820284,
+        "lookupRva": 820284,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e80ff01c0090"
+      },
+      {
+        "rva": 824542,
+        "lookupRva": 824549,
+        "kind": "find",
+        "before": "488d156b6c0700ff5030",
+        "after": "e93d361d009090909090"
+      },
+      {
+        "rva": 824655,
+        "lookupRva": 824655,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8fcde1c009090"
+      },
+      {
+        "rva": 824874,
+        "lookupRva": 824874,
+        "kind": "static_method",
+        "before": "ff9088030000",
+        "after": "e881de1c0090"
+      },
+      {
+        "rva": 825077,
+        "lookupRva": 825077,
+        "kind": "field",
+        "before": "41ff92f0020000",
+        "after": "e816de1c009090"
+      },
+      {
+        "rva": 825115,
+        "lookupRva": 825115,
+        "kind": "field",
+        "before": "41ff92f0020000",
+        "after": "e8f0dd1c009090"
+      },
+      {
+        "rva": 825153,
+        "lookupRva": 825153,
+        "kind": "field",
+        "before": "41ff92f0020000",
+        "after": "e8cadd1c009090"
+      },
+      {
+        "rva": 825191,
+        "lookupRva": 825191,
+        "kind": "field",
+        "before": "41ff92f0020000",
+        "after": "e8a4dd1c009090"
+      },
+      {
+        "rva": 825311,
+        "lookupRva": 825314,
+        "kind": "find",
+        "before": "488bcbff5030",
+        "after": "e96c331d0090"
+      },
+      {
+        "rva": 825380,
+        "lookupRva": 825380,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e827dc1c009090"
+      },
+      {
+        "rva": 825418,
+        "lookupRva": 825418,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e801dc1c009090"
+      },
+      {
+        "rva": 825456,
+        "lookupRva": 825456,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8dbdb1c009090"
+      },
+      {
+        "rva": 825667,
+        "lookupRva": 825667,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e808db1c0090"
+      },
+      {
+        "rva": 825763,
+        "lookupRva": 825763,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8a8da1c0090"
+      },
+      {
+        "rva": 825891,
+        "lookupRva": 825891,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e828da1c009090"
+      },
+      {
+        "rva": 833300,
+        "lookupRva": 833300,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e857be1c0090"
+      },
+      {
+        "rva": 835093,
+        "lookupRva": 835100,
+        "kind": "find",
+        "before": "488d156c4d0700ff5030",
+        "after": "e9560d1d009090909090"
+      },
+      {
+        "rva": 835116,
+        "lookupRva": 835119,
+        "kind": "find",
+        "before": "4c8bf041ff5030",
+        "after": "e96f0d1d009090"
+      },
+      {
+        "rva": 835192,
+        "lookupRva": 835192,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8d3b51c009090"
+      },
+      {
+        "rva": 835225,
+        "lookupRva": 835225,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8b2b51c009090"
+      },
+      {
+        "rva": 835621,
+        "lookupRva": 835621,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e826b41c0090"
+      },
+      {
+        "rva": 835686,
+        "lookupRva": 835686,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8e5b31c009090"
+      },
+      {
+        "rva": 836107,
+        "lookupRva": 836107,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e800b31c0090"
+      },
+      {
+        "rva": 836255,
+        "lookupRva": 836255,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e86cb21c0090"
+      },
+      {
+        "rva": 836399,
+        "lookupRva": 836399,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e81cb11c009090"
+      },
+      {
+        "rva": 836539,
+        "lookupRva": 836539,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e890b01c009090"
+      },
+      {
+        "rva": 836682,
+        "lookupRva": 836682,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e801b01c0090"
+      },
+      {
+        "rva": 836716,
+        "lookupRva": 836716,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8dfaf1c0090"
+      },
+      {
+        "rva": 836750,
+        "lookupRva": 836753,
+        "kind": "find",
+        "before": "488bcbff5030",
+        "after": "e92d071d0090"
+      },
+      {
+        "rva": 836791,
+        "lookupRva": 836791,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e894af1c0090"
+      },
+      {
+        "rva": 836825,
+        "lookupRva": 836825,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e872af1c0090"
+      },
+      {
+        "rva": 836862,
+        "lookupRva": 836865,
+        "kind": "find",
+        "before": "488bcbff5030",
+        "after": "e9dd061d0090"
+      },
+      {
+        "rva": 836903,
+        "lookupRva": 836903,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e824af1c0090"
+      },
+      {
+        "rva": 837250,
+        "lookupRva": 837250,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8c9ad1c0090"
+      },
+      {
+        "rva": 839668,
+        "lookupRva": 839668,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e817a51c0090"
+      },
+      {
+        "rva": 839729,
+        "lookupRva": 839729,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8daa41c0090"
+      },
+      {
+        "rva": 840040,
+        "lookupRva": 840040,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8e3a21c009090"
+      },
+      {
+        "rva": 840073,
+        "lookupRva": 840073,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8c2a21c009090"
+      },
+      {
+        "rva": 840152,
+        "lookupRva": 840155,
+        "kind": "find",
+        "before": "488bcbff5030",
+        "after": "e923fa1c0090"
+      },
+      {
+        "rva": 840200,
+        "lookupRva": 840203,
+        "kind": "find",
+        "before": "488bcb41ff5030",
+        "after": "e913fa1c009090"
+      },
+      {
+        "rva": 840299,
+        "lookupRva": 840299,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8e0a11c0090"
+      },
+      {
+        "rva": 841261,
+        "lookupRva": 841268,
+        "kind": "find",
+        "before": "488d151c2b0700ff5030",
+        "after": "e90ef61c009090909090"
+      },
+      {
+        "rva": 841357,
+        "lookupRva": 841357,
+        "kind": "static_method",
+        "before": "ff9088030000",
+        "after": "e81e9e1c0090"
+      },
+      {
+        "rva": 859855,
+        "lookupRva": 859855,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e87c551c009090"
+      },
+      {
+        "rva": 860185,
+        "lookupRva": 860185,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e832541c0090"
+      },
+      {
+        "rva": 860296,
+        "lookupRva": 860296,
+        "kind": "static_method",
+        "before": "ff9088030000",
+        "after": "e823541c0090"
+      },
+      {
+        "rva": 862772,
+        "lookupRva": 862772,
+        "kind": "field",
+        "before": "41ff92f0020000",
+        "after": "e8d74a1c009090"
+      },
+      {
+        "rva": 862838,
+        "lookupRva": 862838,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8954a1c0090"
+      },
+      {
+        "rva": 862983,
+        "lookupRva": 862983,
+        "kind": "static_method",
+        "before": "ff9088030000",
+        "after": "e8a4491c0090"
+      },
+      {
+        "rva": 863452,
+        "lookupRva": 863452,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e82f481c0090"
+      },
+      {
+        "rva": 863517,
+        "lookupRva": 863517,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8ee471c0090"
+      },
+      {
+        "rva": 863652,
+        "lookupRva": 863652,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8a7461c0090"
+      },
+      {
+        "rva": 863717,
+        "lookupRva": 863717,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e866461c0090"
+      },
+      {
+        "rva": 864102,
+        "lookupRva": 864102,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8a5451c0090"
+      },
+      {
+        "rva": 864167,
+        "lookupRva": 864167,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e864451c0090"
+      },
+      {
+        "rva": 864302,
+        "lookupRva": 864302,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8dd441c0090"
+      },
+      {
+        "rva": 864367,
+        "lookupRva": 864367,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e89c441c0090"
+      },
+      {
+        "rva": 866281,
+        "lookupRva": 866281,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8623c1c009090"
+      },
+      {
+        "rva": 866347,
+        "lookupRva": 866347,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8203c1c0090"
+      },
+      {
+        "rva": 867933,
+        "lookupRva": 867933,
+        "kind": "static_method",
+        "before": "ff9088030000",
+        "after": "e84e361c0090"
+      },
+      {
+        "rva": 869633,
+        "lookupRva": 869636,
+        "kind": "find",
+        "before": "488bcfff5030",
+        "after": "e96a871c0090"
+      },
+      {
+        "rva": 869685,
+        "lookupRva": 869688,
+        "kind": "find",
+        "before": "488bcfff5030",
+        "after": "e956871c0090"
+      },
+      {
+        "rva": 869749,
+        "lookupRva": 869749,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8962f1c0090"
+      },
+      {
+        "rva": 869814,
+        "lookupRva": 869814,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8552f1c0090"
+      },
+      {
+        "rva": 869874,
+        "lookupRva": 869874,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8192f1c0090"
+      },
+      {
+        "rva": 869939,
+        "lookupRva": 869939,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8d82e1c0090"
+      },
+      {
+        "rva": 870026,
+        "lookupRva": 870026,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8812e1c0090"
+      },
+      {
+        "rva": 870091,
+        "lookupRva": 870091,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8402e1c0090"
+      },
+      {
+        "rva": 870303,
+        "lookupRva": 870303,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e86c2d1c0090"
+      },
+      {
+        "rva": 870420,
+        "lookupRva": 870420,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8372c1c009090"
+      },
+      {
+        "rva": 870506,
+        "lookupRva": 870506,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8a12c1c0090"
+      },
+      {
+        "rva": 870703,
+        "lookupRva": 870703,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e81c2b1c0090"
+      },
+      {
+        "rva": 871208,
+        "lookupRva": 871208,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e8432a1c0090"
+      },
+      {
+        "rva": 871772,
+        "lookupRva": 871772,
+        "kind": "static_field",
+        "before": "ff9080040000",
+        "after": "e80f281c0090"
+      },
+      {
+        "rva": 872483,
+        "lookupRva": 872483,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8e8241c0090"
+      },
+      {
+        "rva": 872548,
+        "lookupRva": 872548,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8a7241c0090"
+      },
+      {
+        "rva": 872646,
+        "lookupRva": 872649,
+        "kind": "find",
+        "before": "488bcf41ff5030",
+        "after": "e9e57b1c009090"
+      },
+      {
+        "rva": 872699,
+        "lookupRva": 872702,
+        "kind": "find",
+        "before": "488bcfff5030",
+        "after": "e9d07b1c0090"
+      },
+      {
+        "rva": 872794,
+        "lookupRva": 872794,
+        "kind": "field",
+        "before": "41ff92f0020000",
+        "after": "e8b1231c009090"
+      },
+      {
+        "rva": 872860,
+        "lookupRva": 872860,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e86f231c0090"
+      },
+      {
+        "rva": 873033,
+        "lookupRva": 873033,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e802221c0090"
+      },
+      {
+        "rva": 873098,
+        "lookupRva": 873098,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8c1211c0090"
+      },
+      {
+        "rva": 873445,
+        "lookupRva": 873445,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e866201c009090"
+      },
+      {
+        "rva": 873511,
+        "lookupRva": 873511,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e824201c0090"
+      },
+      {
+        "rva": 877280,
+        "lookupRva": 877280,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e86b111c0090"
+      },
+      {
+        "rva": 877382,
+        "lookupRva": 877382,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e805111c0090"
+      },
+      {
+        "rva": 878992,
+        "lookupRva": 878992,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e87b0b1c0090"
+      },
+      {
+        "rva": 879061,
+        "lookupRva": 879061,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8360b1c0090"
+      },
+      {
+        "rva": 879097,
+        "lookupRva": 879097,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8120b1c0090"
+      },
+      {
+        "rva": 879166,
+        "lookupRva": 879166,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8cd0a1c0090"
+      },
+      {
+        "rva": 879202,
+        "lookupRva": 879202,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8a90a1c0090"
+      },
+      {
+        "rva": 879238,
+        "lookupRva": 879238,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8850a1c0090"
+      },
+      {
+        "rva": 879274,
+        "lookupRva": 879274,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8610a1c0090"
+      },
+      {
+        "rva": 879310,
+        "lookupRva": 879310,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e83d0a1c0090"
+      },
+      {
+        "rva": 879388,
+        "lookupRva": 879388,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8ef091c0090"
+      },
+      {
+        "rva": 879466,
+        "lookupRva": 879466,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8e1081c0090"
+      },
+      {
+        "rva": 879544,
+        "lookupRva": 879544,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e893081c0090"
+      },
+      {
+        "rva": 879620,
+        "lookupRva": 879620,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e807091c0090"
+      },
+      {
+        "rva": 879643,
+        "lookupRva": 879646,
+        "kind": "find",
+        "before": "488bcbff5030",
+        "after": "e9d0601c0090"
+      },
+      {
+        "rva": 879662,
+        "lookupRva": 879665,
+        "kind": "find",
+        "before": "488bf841ff5030",
+        "after": "e9dd601c009090"
+      },
+      {
+        "rva": 879682,
+        "lookupRva": 879685,
+        "kind": "find",
+        "before": "4c8bf041ff5030",
+        "after": "e9e9601c009090"
+      },
+      {
+        "rva": 879735,
+        "lookupRva": 879738,
+        "kind": "find",
+        "before": "488bcbff5030",
+        "after": "e9d4601c0090"
+      },
+      {
+        "rva": 879754,
+        "lookupRva": 879757,
+        "kind": "find",
+        "before": "488bcbff5030",
+        "after": "e9e1601c0090"
+      },
+      {
+        "rva": 879773,
+        "lookupRva": 879776,
+        "kind": "find",
+        "before": "4c8bf841ff5030",
+        "after": "e9ee601c009090"
+      },
+      {
+        "rva": 879793,
+        "lookupRva": 879796,
+        "kind": "find",
+        "before": "488be841ff5030",
+        "after": "e9fa601c009090"
+      },
+      {
+        "rva": 879879,
+        "lookupRva": 879879,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e804081c0090"
+      },
+      {
+        "rva": 879948,
+        "lookupRva": 879948,
+        "kind": "field",
+        "before": "ff90f0020000",
+        "after": "e8bf071c0090"
+      },
+      {
+        "rva": 880000,
+        "lookupRva": 880003,
+        "kind": "find",
+        "before": "488bcbff5030",
+        "after": "e94b601c0090"
+      },
+      {
+        "rva": 880019,
+        "lookupRva": 880022,
+        "kind": "find",
+        "before": "488bf041ff5030",
+        "after": "e958601c009090"
+      },
+      {
+        "rva": 880072,
+        "lookupRva": 880075,
+        "kind": "find",
+        "before": "488bcbff5030",
+        "after": "e943601c0090"
+      },
+      {
+        "rva": 880161,
+        "lookupRva": 880161,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e82a061c0090"
+      },
+      {
+        "rva": 880230,
+        "lookupRva": 880230,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8e5051c0090"
+      },
+      {
+        "rva": 880346,
+        "lookupRva": 880346,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e871051c0090"
+      },
+      {
+        "rva": 880415,
+        "lookupRva": 880415,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e82c051c0090"
+      },
+      {
+        "rva": 880451,
+        "lookupRva": 880451,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e808051c0090"
+      },
+      {
+        "rva": 880520,
+        "lookupRva": 880520,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8c3041c0090"
+      },
+      {
+        "rva": 880556,
+        "lookupRva": 880556,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e89f041c0090"
+      },
+      {
+        "rva": 880625,
+        "lookupRva": 880625,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e85a041c0090"
+      },
+      {
+        "rva": 880676,
+        "lookupRva": 880679,
+        "kind": "find",
+        "before": "488bcbff5030",
+        "after": "e9075e1c0090"
+      },
+      {
+        "rva": 880733,
+        "lookupRva": 880733,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e8ee031c009090"
+      },
+      {
+        "rva": 880803,
+        "lookupRva": 880803,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8a8031c0090"
+      },
+      {
+        "rva": 880855,
+        "lookupRva": 880858,
+        "kind": "find",
+        "before": "488bcbff5030",
+        "after": "e9745d1c0090"
+      },
+      {
+        "rva": 880912,
+        "lookupRva": 880912,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e83b031c009090"
+      },
+      {
+        "rva": 880982,
+        "lookupRva": 880982,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8f5021c0090"
+      },
+      {
+        "rva": 881034,
+        "lookupRva": 881037,
+        "kind": "find",
+        "before": "488bcbff5030",
+        "after": "e9e15c1c0090"
+      },
+      {
+        "rva": 881091,
+        "lookupRva": 881091,
+        "kind": "method",
+        "before": "41ff9208010000",
+        "after": "e888021c009090"
+      },
+      {
+        "rva": 881161,
+        "lookupRva": 881161,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e842021c0090"
+      },
+      {
+        "rva": 881273,
+        "lookupRva": 881273,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8d2011c0090"
+      },
+      {
+        "rva": 881342,
+        "lookupRva": 881342,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e88d011c0090"
+      },
+      {
+        "rva": 881483,
+        "lookupRva": 881483,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e800011c0090"
+      },
+      {
+        "rva": 881582,
+        "lookupRva": 881582,
+        "kind": "static_method",
+        "before": "ff9088030000",
+        "after": "e8fd001c0090"
+      },
+      {
+        "rva": 881618,
+        "lookupRva": 881618,
+        "kind": "static_method",
+        "before": "ff9088030000",
+        "after": "e8d9001c0090"
+      },
+      {
+        "rva": 881687,
+        "lookupRva": 881687,
+        "kind": "static_method",
+        "before": "ff9088030000",
+        "after": "e894001c0090"
+      },
+      {
+        "rva": 881800,
+        "lookupRva": 881800,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8c3ff1b0090"
+      },
+      {
+        "rva": 882001,
+        "lookupRva": 882001,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8fafe1b0090"
+      },
+      {
+        "rva": 882070,
+        "lookupRva": 882070,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8b5fe1b0090"
+      },
+      {
+        "rva": 882106,
+        "lookupRva": 882106,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e891fe1b0090"
+      },
+      {
+        "rva": 882175,
+        "lookupRva": 882175,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e84cfe1b0090"
+      },
+      {
+        "rva": 882211,
+        "lookupRva": 882211,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e828fe1b0090"
+      },
+      {
+        "rva": 882280,
+        "lookupRva": 882280,
+        "kind": "method",
+        "before": "ff9008010000",
+        "after": "e8e3fd1b0090"
+      },
+      {
+        "rva": 882709,
+        "lookupRva": 882712,
+        "kind": "find",
+        "before": "488bcbff5030",
+        "after": "e976561c0090"
+      },
+      {
+        "rva": 882810,
+        "lookupRva": 882810,
+        "kind": "static_method",
+        "before": "ff9088030000",
+        "after": "e831fc1b0090"
+      }
+    ],
+    "facadeCodeRva": 2715648,
+    "stateRva": 2842624,
+    "mapperSha256": "74e966e601ff7c03009724102be579f3ce4577bfa52ba02eb09f29263d815ce6",
+    "imageSize": 2846720,
+    "jvmTableUnchanged": true,
+    "gameClassesUnchanged": true,
+    "otherNativeModulesUnchanged": true,
+    "preservedJavaVmGetEnvCalls": [
+      119762,
+      120053,
+      120788
+    ],
+    "unwindRecords": 3952,
+    "runtimeGameTested": false
+  }
+}
